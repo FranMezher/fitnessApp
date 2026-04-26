@@ -1,0 +1,17 @@
+name = "fitcore-api"
+main = "src/index.ts"
+compatibility_date = "2024-10-01"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+SUPABASE_URL = ""         # set in Cloudflare dashboard or wrangler secret
+
+# Secrets (set via: wrangler secret put SECRET_NAME)
+# SUPABASE_SERVICE_KEY
+# SUPABASE_JWT_SECRET
+# ANTHROPIC_API_KEY
+
+[[d1_databases]]
+binding = "DB"
+database_name = "fitcore"
+database_id   = ""        # fill after: wrangler d1 create fitcore

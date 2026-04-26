@@ -1,0 +1,1472 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fitness App — Wireframes</title>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Caveat+Brush&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #111; font-family: 'Caveat', cursive; color: #eee; }
+
+  /* Sketch UI primitives */
+  .phone {
+    width: 320px;
+    background: #1a1a1a;
+    border-radius: 36px;
+    border: 2.5px solid #444;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 0 0 1px #333, 4px 8px 32px rgba(0,0,0,0.6);
+  }
+  .phone-notch {
+    width: 100px; height: 28px;
+    background: #111;
+    border-radius: 0 0 20px 20px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 10;
+  }
+  .phone-screen {
+    padding: 0 16px 24px;
+    min-height: 580px;
+    position: relative;
+  }
+  .status-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 6px 16px 10px;
+    font-size: 13px; color: #888;
+    letter-spacing: 0.5px;
+  }
+
+  /* Sketch style elements */
+  .sketch-box {
+    background: #252525;
+    border: 1.5px solid #444;
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 10px;
+    position: relative;
+  }
+  .sketch-box.neon { border-color: #CCFF00; }
+  .sketch-box.orange { border-color: #FF6B35; }
+  .sketch-box.accent-fill { background: #CCFF00; color: #111; }
+  .sketch-box.orange-fill { background: #FF6B35; color: #fff; }
+
+  .sketch-label {
+    font-size: 11px; color: #666; text-transform: uppercase;
+    letter-spacing: 1px; margin-bottom: 4px;
+    font-family: 'Caveat', cursive;
+  }
+  .sketch-title { font-size: 20px; font-weight: 700; color: #eee; line-height: 1.2; }
+  .sketch-val { font-size: 28px; font-weight: 700; color: #CCFF00; }
+  .sketch-sub { font-size: 14px; color: #888; }
+  .sketch-body { font-size: 15px; color: #ccc; }
+
+  .sketch-btn {
+    display: block; width: 100%;
+    background: #CCFF00; color: #111;
+    border: none; border-radius: 50px;
+    padding: 12px; font-size: 18px; font-weight: 700;
+    font-family: 'Caveat', cursive;
+    text-align: center; cursor: pointer; margin-bottom: 8px;
+  }
+  .sketch-btn.ghost {
+    background: transparent; color: #CCFF00;
+    border: 1.5px solid #CCFF00;
+  }
+  .sketch-btn.orange-btn { background: #FF6B35; color: #fff; }
+
+  .sketch-input {
+    background: #222; border: 1.5px solid #444; border-radius: 10px;
+    padding: 10px 12px; color: #eee; font-size: 16px;
+    font-family: 'Caveat', cursive; width: 100%; margin-bottom: 8px;
+  }
+  .sketch-input::placeholder { color: #555; }
+
+  .progress-bar-wrap {
+    background: #2a2a2a; border-radius: 10px; height: 8px; overflow: hidden;
+    margin: 6px 0;
+  }
+  .progress-bar-fill { height: 100%; border-radius: 10px; background: #CCFF00; }
+
+  .macro-row { display: flex; gap: 6px; margin-bottom: 10px; }
+  .macro-chip {
+    flex: 1; background: #252525; border: 1.5px solid #333;
+    border-radius: 10px; padding: 8px 6px; text-align: center;
+  }
+  .macro-chip .val { font-size: 18px; font-weight: 700; color: #CCFF00; }
+  .macro-chip .lbl { font-size: 11px; color: #777; }
+
+  .row { display: flex; gap: 8px; margin-bottom: 10px; }
+  .row > * { flex: 1; }
+
+  .avatar-circle {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: #333; border: 1.5px solid #555;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+  }
+
+  .tag {
+    display: inline-block; background: #222; border: 1px solid #555;
+    border-radius: 20px; padding: 3px 10px; font-size: 13px; color: #aaa;
+    margin: 2px;
+  }
+  .tag.active { background: #CCFF00; color: #111; border-color: #CCFF00; font-weight: 700; }
+
+  .exercise-row {
+    display: flex; align-items: center; gap: 10px;
+    background: #252525; border: 1.5px solid #333; border-radius: 10px;
+    padding: 10px 12px; margin-bottom: 8px;
+  }
+  .ex-icon {
+    width: 36px; height: 36px; background: #333; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center; font-size: 18px;
+  }
+
+  .ring-wrap {
+    position: relative; width: 80px; height: 80px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .ring-text { position: absolute; text-align: center; }
+
+  .notif-pill {
+    background: #252525; border: 1.5px solid #333; border-radius: 14px;
+    padding: 10px 12px; margin-bottom: 8px;
+    display: flex; align-items: flex-start; gap: 10px;
+  }
+  .notif-icon {
+    width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; font-size: 16px;
+  }
+
+  .nav-bar {
+    display: flex; justify-content: space-around; align-items: center;
+    background: #1a1a1a; border-top: 1px solid #333;
+    padding: 10px 0 14px; margin: 0 -16px -24px;
+  }
+  .nav-item {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 3px; font-size: 11px; color: #666;
+  }
+  .nav-item.active { color: #CCFF00; }
+  .nav-dot { font-size: 22px; line-height: 1; }
+
+  .badge {
+    display: inline-block; background: #FF6B35;
+    border-radius: 50%; width: 18px; height: 18px;
+    font-size: 11px; text-align: center; line-height: 18px; color: #fff;
+    position: absolute; top: -4px; right: -4px;
+  }
+
+  .divider { border: none; border-top: 1px dashed #333; margin: 10px 0; }
+
+  .section-head {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 8px;
+  }
+  .see-all { font-size: 13px; color: #CCFF00; }
+
+  /* Annotation arrows */
+  .annotation {
+    position: absolute;
+    font-size: 13px; color: #CCFF00; font-family: 'Caveat', cursive;
+    line-height: 1.3;
+  }
+
+  /* Screen label */
+  .screen-label {
+    text-align: center; color: #666; font-size: 16px;
+    margin-top: 10px; letter-spacing: 0.5px;
+  }
+
+  /* Streak dots */
+  .streak-row { display: flex; gap: 6px; justify-content: center; margin: 8px 0; }
+  .streak-dot {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: #252525; border: 1.5px solid #444;
+    display: flex; align-items: center; justify-content: center; font-size: 12px;
+  }
+  .streak-dot.done { background: #CCFF00; border-color: #CCFF00; color: #111; font-weight: 700; }
+  .streak-dot.today { border-color: #CCFF00; color: #CCFF00; }
+
+  /* Pose skeleton placeholder */
+  .pose-box {
+    background: #1e1e1e; border: 1.5px dashed #555; border-radius: 12px;
+    height: 140px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 6px;
+    margin-bottom: 10px; color: #666; font-size: 14px; text-align: center;
+    padding: 10px;
+  }
+  .pose-overlay {
+    position: absolute; top: 0; left: 0; right: 0;
+    display: flex; justify-content: space-between; padding: 6px 8px;
+  }
+  .pose-badge {
+    background: rgba(204,255,0,0.15); border: 1px solid #CCFF00;
+    border-radius: 8px; padding: 3px 8px; font-size: 12px; color: #CCFF00;
+  }
+
+  .onboarding-step {
+    font-size: 12px; color: #666; text-align: center; margin-bottom: 14px;
+  }
+  .step-dots { display: flex; justify-content: center; gap: 6px; margin-bottom: 20px; }
+  .step-dot {
+    width: 8px; height: 8px; border-radius: 50%; background: #333;
+  }
+  .step-dot.active { background: #CCFF00; width: 20px; border-radius: 4px; }
+
+  /* Gamification badge */
+  .badge-card {
+    background: linear-gradient(135deg, #222 0%, #2a2a1a 100%);
+    border: 1.5px solid #CCFF00; border-radius: 14px;
+    padding: 12px; text-align: center; margin-bottom: 10px;
+  }
+  .badge-icon { font-size: 32px; margin-bottom: 4px; }
+  .xp-bar-wrap {
+    background: #2a2a2a; border-radius: 10px; height: 10px;
+    overflow: hidden; margin: 6px 0;
+  }
+  .xp-bar { height: 100%; background: linear-gradient(90deg, #CCFF00, #aadd00); border-radius: 10px; }
+
+  .pantry-item {
+    background: #252525; border: 1.5px solid #333; border-radius: 10px;
+    padding: 8px 12px; margin-bottom: 6px; display: flex;
+    justify-content: space-between; align-items: center;
+  }
+  .macro-dot {
+    width: 8px; height: 8px; border-radius: 50%; display: inline-block;
+    margin-right: 4px;
+  }
+
+  /* Canvas label style */
+  .canvas-section-label {
+    font-family: 'Caveat', cursive;
+    font-size: 22px;
+    color: #CCFF00;
+    letter-spacing: 1px;
+    padding: 24px 32px 8px;
+    border-bottom: 1px dashed #333;
+    margin-bottom: 0;
+  }
+
+  /* Flow arrow */
+  .flow-arrow {
+    display: flex; align-items: center; color: #555; font-size: 28px;
+    padding: 0 4px; align-self: center; margin-top: -24px;
+  }
+</style>
+</head>
+<body>
+<script type="text/babel" src="design-canvas.jsx"></script>
+<script type="text/babel">
+
+// ─── SHARED PHONE WRAPPER ───────────────────────────────────────────────────
+function Phone({ label, children, width = 320 }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <div className="phone" style={{ width }}>
+        <div className="phone-notch" />
+        <div className="status-bar"><span>9:41</span><span>●●● 100%</span></div>
+        <div className="phone-screen">{children}</div>
+      </div>
+      {label && <div className="screen-label">{label}</div>}
+    </div>
+  );
+}
+
+// ─── BOTTOM NAV ─────────────────────────────────────────────────────────────
+function BottomNav({ active = 'home' }) {
+  const items = [
+    { id: 'home', icon: '⌂', label: 'Inicio' },
+    { id: 'train', icon: '◈', label: 'Entrena' },
+    { id: 'food', icon: '◎', label: 'Nutrición' },
+    { id: 'prog', icon: '▣', label: 'Progreso' },
+    { id: 'me', icon: '◉', label: 'Yo' },
+  ];
+  return (
+    <div className="nav-bar">
+      {items.map(i => (
+        <div key={i.id} className={`nav-item ${active === i.id ? 'active' : ''}`}>
+          <div className="nav-dot">{i.icon}</div>
+          <span>{i.label}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── RING SVG ────────────────────────────────────────────────────────────────
+function Ring({ pct = 72, size = 80, color = '#CCFF00', label = '', sub = '' }) {
+  const r = (size / 2) - 8;
+  const circ = 2 * Math.PI * r;
+  const offset = circ * (1 - pct / 100);
+  return (
+    <div className="ring-wrap" style={{ width: size, height: size }}>
+      <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#2a2a2a" strokeWidth="7" />
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color}
+          strokeWidth="7" strokeDasharray={circ} strokeDashoffset={offset}
+          strokeLinecap="round" />
+      </svg>
+      <div className="ring-text">
+        <div style={{ fontSize: size * 0.22, fontWeight: 700, color }}>{label}</div>
+        <div style={{ fontSize: size * 0.14, color: '#777' }}>{sub}</div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SECTION 1 — ONBOARDING FLOW
+// ═══════════════════════════════════════════════════════════════════════════
+
+function OnboardWelcome() {
+  return <Phone label="1 — Bienvenida">
+    <div style={{ textAlign: 'center', paddingTop: 24 }}>
+      <div style={{ fontSize: 64, marginBottom: 12 }}>⚡</div>
+      <div style={{ fontSize: 32, fontWeight: 700, color: '#CCFF00', marginBottom: 6 }}>FITCORE</div>
+      <div style={{ fontSize: 16, color: '#777', marginBottom: 32 }}>Tu cuerpo. Tu ritmo. Tu meta.</div>
+      <div className="sketch-btn">Comenzar gratis</div>
+      <div className="sketch-btn ghost">Ya tengo cuenta</div>
+      <div style={{ marginTop: 24, fontSize: 13, color: '#555' }}>Al continuar aceptas los Términos de uso</div>
+    </div>
+  </Phone>;
+}
+
+function OnboardBio() {
+  return <Phone label="2 — Datos biométricos">
+    <div className="step-dots">
+      <div className="step-dot active" /><div className="step-dot" /><div className="step-dot" /><div className="step-dot" />
+    </div>
+    <div className="sketch-title" style={{ marginBottom: 4 }}>Cuéntanos sobre ti</div>
+    <div className="sketch-sub" style={{ marginBottom: 16 }}>Calculamos tu plan ideal</div>
+
+    <div className="sketch-label">Sexo</div>
+    <div className="row" style={{ marginBottom: 12 }}>
+      <div className="sketch-box neon" style={{ textAlign: 'center', padding: '10px 0' }}>
+        <div style={{ fontSize: 20 }}>♂</div>
+        <div style={{ fontSize: 14, color: '#CCFF00' }}>Hombre</div>
+      </div>
+      <div className="sketch-box" style={{ textAlign: 'center', padding: '10px 0' }}>
+        <div style={{ fontSize: 20 }}>♀</div>
+        <div style={{ fontSize: 14, color: '#aaa' }}>Mujer</div>
+      </div>
+    </div>
+
+    <div className="row">
+      <div>
+        <div className="sketch-label">Edad</div>
+        <input className="sketch-input" placeholder="28" style={{ marginBottom: 0 }} readOnly />
+      </div>
+      <div>
+        <div className="sketch-label">Altura (cm)</div>
+        <input className="sketch-input" placeholder="175" style={{ marginBottom: 0 }} readOnly />
+      </div>
+    </div>
+    <div style={{ marginTop: 8 }}>
+      <div className="sketch-label">Peso actual (kg)</div>
+      <input className="sketch-input" placeholder="78" readOnly />
+    </div>
+
+    <div style={{ marginTop: 8 }}>
+      <div className="sketch-label">Nivel de actividad</div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+        {['Sedentario','Ligero','Moderado','Intenso'].map((t,i) => (
+          <span key={t} className={`tag ${i===1?'active':''}`}>{t}</span>
+        ))}
+      </div>
+    </div>
+
+    <div style={{ marginTop: 16 }}><div className="sketch-btn">Siguiente →</div></div>
+    <BottomNav active="" />
+  </Phone>;
+}
+
+function OnboardGoal() {
+  return <Phone label="3 — Objetivo">
+    <div className="step-dots">
+      <div className="step-dot" /><div className="step-dot active" /><div className="step-dot" /><div className="step-dot" />
+    </div>
+    <div className="sketch-title" style={{ marginBottom: 4 }}>¿Cuál es tu meta?</div>
+    <div className="sketch-sub" style={{ marginBottom: 14 }}>Puedes cambiarla después</div>
+
+    {[
+      { icon: '🔥', title: 'Perder grasa', sub: 'Déficit calórico inteligente', active: true },
+      { icon: '💪', title: 'Ganar músculo', sub: 'Superávit + proteína alta' },
+      { icon: '⚡', title: 'Rendimiento', sub: 'Fuerza y resistencia' },
+      { icon: '🧘', title: 'Salud general', sub: 'Equilibrio y bienestar' },
+    ].map(g => (
+      <div key={g.title} className={`sketch-box ${g.active ? 'neon' : ''}`} style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}>
+        <div style={{ fontSize: 28 }}>{g.icon}</div>
+        <div>
+          <div style={{ fontSize: 17, fontWeight: 700, color: g.active ? '#CCFF00' : '#eee' }}>{g.title}</div>
+          <div style={{ fontSize: 13, color: '#777' }}>{g.sub}</div>
+        </div>
+        {g.active && <div style={{ marginLeft: 'auto', color: '#CCFF00', fontSize: 20 }}>✓</div>}
+      </div>
+    ))}
+
+    <div style={{ marginTop: 8 }}><div className="sketch-btn">Continuar</div></div>
+  </Phone>;
+}
+
+function OnboardPlan() {
+  return <Phone label="4 — Tu plan">
+    <div className="step-dots">
+      <div className="step-dot" /><div className="step-dot" /><div className="step-dot" /><div className="step-dot active" />
+    </div>
+    <div className="sketch-title" style={{ marginBottom: 2 }}>Tu plan está listo 🎉</div>
+    <div className="sketch-sub" style={{ marginBottom: 14 }}>Basado en tu perfil</div>
+
+    <div className="sketch-box neon" style={{ marginBottom: 10 }}>
+      <div className="sketch-label">Calorías objetivo / día</div>
+      <div className="sketch-val">1,840 kcal</div>
+      <div className="macro-row" style={{ marginTop: 8 }}>
+        <div className="macro-chip"><div className="val">145g</div><div className="lbl">Proteína</div></div>
+        <div className="macro-chip"><div className="val">198g</div><div className="lbl">Carbos</div></div>
+        <div className="macro-chip"><div className="val">55g</div><div className="lbl">Grasas</div></div>
+      </div>
+    </div>
+
+    <div className="sketch-box" style={{ marginBottom: 10 }}>
+      <div className="sketch-label">Entrenamiento semanal</div>
+      <div style={{ fontSize: 18, color: '#eee' }}>4 días / semana</div>
+      <div style={{ fontSize: 14, color: '#777' }}>~35 min por sesión · En casa</div>
+    </div>
+
+    <div className="sketch-box orange" style={{ marginBottom: 14 }}>
+      <div style={{ fontSize: 14, color: '#FF6B35', fontWeight: 700 }}>⚠ Primera semana de adaptación</div>
+      <div style={{ fontSize: 13, color: '#999' }}>Intensidad reducida para evitar lesiones</div>
+    </div>
+
+    <div className="sketch-btn">¡Empezar ahora!</div>
+  </Phone>;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SECTION 2 — DASHBOARD
+// ═══════════════════════════════════════════════════════════════════════════
+
+function DashboardMain() {
+  return <Phone label="Dashboard Central">
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+      <div>
+        <div style={{ fontSize: 14, color: '#777' }}>Buenos días,</div>
+        <div style={{ fontSize: 22, fontWeight: 700, color: '#eee' }}>Carlos 👋</div>
+      </div>
+      <div style={{ position: 'relative' }}>
+        <div className="avatar-circle">C</div>
+        <div className="badge">3</div>
+      </div>
+    </div>
+
+    {/* Streak */}
+    <div className="sketch-box" style={{ marginBottom: 10, textAlign: 'center' }}>
+      <div className="sketch-label">Racha actual</div>
+      <div style={{ fontSize: 26, fontWeight: 700, color: '#CCFF00' }}>🔥 5 días seguidos</div>
+      <div className="streak-row" style={{ marginTop: 8 }}>
+        {['L','M','X','J','V','S','D'].map((d, i) => (
+          <div key={d} className={`streak-dot ${i<5?'done':i===5?'today':''}`}>
+            {i<5?'✓':d}
+          </div>
+        ))}
+      </div>
+    </div>
+
+    {/* Rings summary */}
+    <div className="row" style={{ justifyContent: 'center', gap: 12, marginBottom: 10 }}>
+      <div style={{ textAlign: 'center' }}>
+        <Ring pct={72} size={72} color="#CCFF00" label="72%" sub="mov" />
+        <div style={{ fontSize: 12, color: '#777', marginTop: 4 }}>Movimiento</div>
+      </div>
+      <div style={{ textAlign: 'center' }}>
+        <Ring pct={50} size={72} color="#FF6B35" label="50%" sub="ejer" />
+        <div style={{ fontSize: 12, color: '#777', marginTop: 4 }}>Ejercicio</div>
+      </div>
+      <div style={{ textAlign: 'center' }}>
+        <Ring pct={88} size={72} color="#44ddaa" label="88%" sub="agua" />
+        <div style={{ fontSize: 12, color: '#777', marginTop: 4 }}>Hidratación</div>
+      </div>
+    </div>
+
+    {/* Macros */}
+    <div className="sketch-box" style={{ marginBottom: 10 }}>
+      <div className="section-head">
+        <div className="sketch-label" style={{ marginBottom: 0 }}>Calorías de hoy</div>
+        <div style={{ fontSize: 14, color: '#CCFF00' }}>1,240 / 1,840</div>
+      </div>
+      <div className="progress-bar-wrap"><div className="progress-bar-fill" style={{ width: '67%' }} /></div>
+      <div className="macro-row" style={{ marginTop: 8 }}>
+        <div className="macro-chip"><div className="val" style={{ fontSize: 15 }}>87g</div><div className="lbl">Prot.</div></div>
+        <div className="macro-chip"><div className="val" style={{ fontSize: 15 }}>134g</div><div className="lbl">Carb.</div></div>
+        <div className="macro-chip"><div className="val" style={{ fontSize: 15 }}>32g</div><div className="lbl">Gras.</div></div>
+      </div>
+    </div>
+
+    {/* Workout CTA */}
+    <div className="sketch-box orange" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+      <div>
+        <div style={{ fontSize: 13, color: '#FF6B35', fontWeight: 700 }}>HOY · DÍA 3</div>
+        <div style={{ fontSize: 17, fontWeight: 700, color: '#eee' }}>Upper Body Power</div>
+        <div style={{ fontSize: 13, color: '#888' }}>6 ejercicios · ~38 min</div>
+      </div>
+      <div style={{ marginLeft: 'auto' }}>
+        <div style={{ background: '#FF6B35', borderRadius: '50%', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>▶</div>
+      </div>
+    </div>
+
+    <BottomNav active="home" />
+  </Phone>;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SECTION 3 — WORKOUT
+// ═══════════════════════════════════════════════════════════════════════════
+
+function WorkoutScreen() {
+  return <Phone label="Rutina del día">
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+      <div style={{ fontSize: 14, color: '#888' }}>←</div>
+      <div style={{ flex: 1 }}>
+        <div style={{ fontSize: 20, fontWeight: 700, color: '#eee' }}>Upper Body Power</div>
+        <div style={{ fontSize: 13, color: '#777' }}>Día 3 · 6 ejercicios</div>
+      </div>
+      <div style={{ background: '#222', borderRadius: 8, padding: '4px 8px', fontSize: 13, color: '#CCFF00', border: '1px solid #CCFF00' }}>38 min</div>
+    </div>
+
+    {/* AI Pose Box */}
+    <div className="pose-box" style={{ position: 'relative' }}>
+      <div className="pose-overlay">
+        <div className="pose-badge">IA activa</div>
+        <div className="pose-badge" style={{ background: 'rgba(255,107,53,0.15)', borderColor: '#FF6B35', color: '#FF6B35' }}>◉ EN VIVO</div>
+      </div>
+      <div style={{ fontSize: 32 }}>🤸</div>
+      <div style={{ fontSize: 14, color: '#666', marginTop: 4 }}>Cámara · Análisis de postura</div>
+      <div style={{ fontSize: 12, color: '#444' }}>[ placeholder: vista cámara + esqueleto IA ]</div>
+    </div>
+
+    {/* Current exercise */}
+    <div className="sketch-box neon" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+      <div>
+        <div style={{ fontSize: 11, color: '#CCFF00', fontWeight: 700, marginBottom: 2 }}>EJERCICIO 2 DE 6</div>
+        <div style={{ fontSize: 18, fontWeight: 700, color: '#eee' }}>Flexiones Diamante</div>
+        <div style={{ fontSize: 14, color: '#888' }}>3 series × 12 reps</div>
+      </div>
+      <div style={{ marginLeft: 'auto', textAlign: 'center' }}>
+        <div style={{ fontSize: 32, fontWeight: 700, color: '#CCFF00' }}>3</div>
+        <div style={{ fontSize: 11, color: '#777' }}>serie actual</div>
+      </div>
+    </div>
+
+    {/* Rest of exercises */}
+    <div className="section-head">
+      <span style={{ fontSize: 15, color: '#aaa' }}>Siguiente</span>
+    </div>
+    {[
+      { name: 'Sentadillas', detail: '4×15', icon: '🦵', done: true },
+      { name: 'Press hombros', detail: '3×10', icon: '🏋️' },
+    ].map(ex => (
+      <div key={ex.name} className="exercise-row" style={{ opacity: ex.done ? 0.5 : 1 }}>
+        <div className="ex-icon">{ex.icon}</div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 15, color: ex.done ? '#666' : '#eee', textDecoration: ex.done ? 'line-through' : 'none' }}>{ex.name}</div>
+          <div style={{ fontSize: 13, color: '#666' }}>{ex.detail}</div>
+        </div>
+        {ex.done && <div style={{ color: '#CCFF00', fontSize: 18 }}>✓</div>}
+      </div>
+    ))}
+
+    <div style={{ marginTop: 8 }}><div className="sketch-btn orange-btn">▶ Iniciar serie</div></div>
+    <BottomNav active="train" />
+  </Phone>;
+}
+
+function WorkoutActive() {
+  return <Phone label="Corrección IA">
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+      <div style={{ fontSize: 16, color: '#888' }}>✕ Salir</div>
+      <div style={{ fontSize: 16, color: '#eee', fontWeight: 700 }}>Serie 2 / 3</div>
+      <div style={{ fontSize: 16, color: '#CCFF00' }}>⏸</div>
+    </div>
+
+    {/* Big timer */}
+    <div style={{ textAlign: 'center', marginBottom: 14 }}>
+      <div style={{ fontSize: 72, fontWeight: 700, color: '#CCFF00', lineHeight: 1 }}>00:32</div>
+      <div style={{ fontSize: 16, color: '#777' }}>Flexiones Diamante</div>
+    </div>
+
+    {/* Pose feedback */}
+    <div style={{ background: '#1e1e1e', border: '1.5px dashed #555', borderRadius: 12, height: 160, marginBottom: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+      <div style={{ fontSize: 14, color: '#555' }}>[ cámara + overlay esqueleto IA ]</div>
+      <div style={{ position: 'absolute', bottom: 10, left: 10, right: 10 }}>
+        <div style={{ background: 'rgba(255,107,53,0.2)', border: '1px solid #FF6B35', borderRadius: 8, padding: '5px 10px', fontSize: 13, color: '#FF6B35', textAlign: 'center' }}>
+          ⚠ Codos demasiado abiertos → ciérralos
+        </div>
+      </div>
+    </div>
+
+    {/* Rep counter */}
+    <div className="sketch-box" style={{ textAlign: 'center', marginBottom: 10 }}>
+      <div style={{ fontSize: 13, color: '#777', marginBottom: 4 }}>Repeticiones detectadas</div>
+      <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
+        {[1,2,3,4,5,6,7,8].map(n => (
+          <div key={n} style={{ width: 26, height: 26, borderRadius: '50%', background: n <= 6 ? '#CCFF00' : '#2a2a2a', border: '1.5px solid', borderColor: n <= 6 ? '#CCFF00' : '#444', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, color: n <= 6 ? '#111' : '#555', fontWeight: 700 }}>{n}</div>
+        ))}
+      </div>
+      <div style={{ fontSize: 12, color: '#777', marginTop: 6 }}>6 / 12 · Precisión: 85%</div>
+    </div>
+
+    <div className="sketch-btn orange-btn">DESCANSO →</div>
+  </Phone>;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SECTION 4 — NUTRITION
+// ═══════════════════════════════════════════════════════════════════════════
+
+function NutritionLog() {
+  return <Phone label="Registro nutricional">
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+      <div style={{ fontSize: 20, fontWeight: 700, color: '#eee' }}>Nutrición</div>
+      <div style={{ background: '#222', border: '1px solid #555', borderRadius: 8, padding: '4px 10px', fontSize: 13, color: '#aaa' }}>Hoy ▾</div>
+    </div>
+
+    {/* Calorie ring */}
+    <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 12 }}>
+      <Ring pct={67} size={88} color="#CCFF00" label="1240" sub="kcal" />
+      <div style={{ flex: 1 }}>
+        <div style={{ fontSize: 13, color: '#777', marginBottom: 4 }}>Restantes: <span style={{ color: '#CCFF00', fontWeight: 700 }}>600 kcal</span></div>
+        {[
+          { name: 'Proteína', pct: 60, color: '#CCFF00' },
+          { name: 'Carbos', pct: 67, color: '#44ddaa' },
+          { name: 'Grasas', pct: 58, color: '#FF6B35' },
+        ].map(m => (
+          <div key={m.name} style={{ marginBottom: 5 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#777', marginBottom: 2 }}>
+              <span>{m.name}</span><span>{m.pct}%</span>
+            </div>
+            <div className="progress-bar-wrap" style={{ height: 5 }}>
+              <div className="progress-bar-fill" style={{ width: `${m.pct}%`, background: m.color }} />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <hr className="divider" />
+
+    {/* Meals */}
+    {[
+      { meal: 'Desayuno', kcal: 420, items: ['Avena + plátano', 'Café con leche'], done: true },
+      { meal: 'Almuerzo', kcal: 580, items: ['Arroz + pollo', 'Ensalada'], done: true },
+      { meal: 'Merienda', kcal: 240, items: ['Proteína + manzana'], done: false },
+    ].map(m => (
+      <div key={m.meal} className="sketch-box" style={{ marginBottom: 8 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+          <div style={{ fontSize: 15, fontWeight: 700, color: m.done ? '#eee' : '#666' }}>{m.meal}</div>
+          <div style={{ fontSize: 14, color: m.done ? '#CCFF00' : '#555' }}>{m.kcal} kcal</div>
+        </div>
+        {m.items.map(it => <div key={it} style={{ fontSize: 13, color: '#777' }}>· {it}</div>)}
+        {!m.done && (
+          <div style={{ marginTop: 6, background: '#1e1e1e', borderRadius: 8, padding: '5px 8px', fontSize: 12, color: '#FF6B35', border: '1px dashed #FF6B35', textAlign: 'center' }}>
+            + Registrar merienda
+          </div>
+        )}
+      </div>
+    ))}
+
+    <BottomNav active="food" />
+  </Phone>;
+}
+
+function PantryMode() {
+  return <Phone label="Modo Despensa ★">
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+      <div style={{ fontSize: 14, color: '#888' }}>←</div>
+      <div>
+        <div style={{ fontSize: 20, fontWeight: 700, color: '#CCFF00' }}>Modo Despensa</div>
+        <div style={{ fontSize: 13, color: '#777' }}>¿Qué tienes en casa?</div>
+      </div>
+    </div>
+
+    <div style={{ fontSize: 14, color: '#888', marginBottom: 8 }}>Ingredientes disponibles:</div>
+
+    {[
+      { name: 'Huevos', qty: '6 uds', p: '36g', c: '2g', g: '30g' },
+      { name: 'Pechuga de pollo', qty: '300g', p: '63g', c: '0g', g: '6g' },
+      { name: 'Arroz integral', qty: '200g', p: '7g', c: '76g', g: '2g' },
+      { name: 'Espinacas', qty: '100g', p: '2g', c: '1g', g: '0g' },
+    ].map(item => (
+      <div key={item.name} className="pantry-item">
+        <div>
+          <div style={{ fontSize: 16, color: '#eee' }}>{item.name}</div>
+          <div style={{ fontSize: 12, color: '#666' }}>{item.qty}</div>
+        </div>
+        <div style={{ textAlign: 'right', fontSize: 12 }}>
+          <span style={{ color: '#CCFF00' }}>{item.p} P </span>
+          <span style={{ color: '#44ddaa' }}>{item.c} C </span>
+          <span style={{ color: '#FF6B35' }}>{item.g} G</span>
+        </div>
+      </div>
+    ))}
+
+    <div style={{ background: '#1e1e1e', border: '1.5px dashed #444', borderRadius: 10, padding: '10px', textAlign: 'center', marginBottom: 12, marginTop: 4 }}>
+      <div style={{ fontSize: 13, color: '#555' }}>+ Escanear o añadir ingrediente</div>
+    </div>
+
+    <div className="sketch-btn neon" style={{ background: '#CCFF00', color: '#111', border: 'none' }}>
+      ✦ Generar recetas con IA
+    </div>
+
+    {/* Recipe result */}
+    <div className="sketch-box neon" style={{ marginTop: 4 }}>
+      <div style={{ fontSize: 11, color: '#CCFF00', fontWeight: 700, marginBottom: 4 }}>RECETA SUGERIDA · 520 KCAL</div>
+      <div style={{ fontSize: 17, fontWeight: 700, color: '#eee' }}>Bowl Proteico Pollo + Arroz</div>
+      <div style={{ fontSize: 13, color: '#888', marginBottom: 6 }}>35g P · 60g C · 8g G · ~20 min</div>
+      <div style={{ display: 'flex', gap: 6 }}>
+        <div style={{ flex: 1, background: '#1a1a1a', borderRadius: 8, padding: '6px 8px', fontSize: 12, color: '#888', textAlign: 'center' }}>Ver receta</div>
+        <div style={{ flex: 1, background: '#CCFF00', borderRadius: 8, padding: '6px 8px', fontSize: 12, color: '#111', textAlign: 'center', fontWeight: 700 }}>Registrar</div>
+      </div>
+    </div>
+
+    <BottomNav active="food" />
+  </Phone>;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SECTION 5 — GAMIFICATION & RETENTION
+// ═══════════════════════════════════════════════════════════════════════════
+
+function GamificationScreen() {
+  return <Phone label="Logros y Gamificación">
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+      <div style={{ fontSize: 20, fontWeight: 700, color: '#eee' }}>Tu progreso</div>
+      <div style={{ fontSize: 14, color: '#CCFF00' }}>Semana 1</div>
+    </div>
+
+    {/* Level */}
+    <div className="badge-card">
+      <div className="badge-icon">🏆</div>
+      <div style={{ fontSize: 16, fontWeight: 700, color: '#CCFF00' }}>Nivel 3 · Atleta Emergente</div>
+      <div style={{ fontSize: 13, color: '#888', marginBottom: 6 }}>1,240 / 2,000 XP para nivel 4</div>
+      <div className="xp-bar-wrap"><div className="xp-bar" style={{ width: '62%' }} /></div>
+    </div>
+
+    {/* Achievements */}
+    <div className="section-head">
+      <div style={{ fontSize: 16, fontWeight: 700, color: '#eee' }}>Logros desbloqueados</div>
+      <div className="see-all">Ver todos</div>
+    </div>
+
+    {[
+      { icon: '🔥', name: 'Primera llama', desc: '5 días de racha', done: true },
+      { icon: '💪', name: 'Sin excusas', desc: 'Completa 3 entrenos', done: true },
+      { icon: '🥗', name: 'Nutrido', desc: 'Registra 7 días de comidas', done: false, pct: 71 },
+    ].map(a => (
+      <div key={a.name} className="exercise-row" style={{ opacity: a.done ? 1 : 0.7 }}>
+        <div className="ex-icon" style={{ background: a.done ? 'rgba(204,255,0,0.15)' : '#252525', fontSize: 20 }}>{a.icon}</div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 15, color: a.done ? '#eee' : '#888', fontWeight: a.done ? 700 : 400 }}>{a.name}</div>
+          <div style={{ fontSize: 12, color: '#666' }}>{a.desc}</div>
+          {!a.done && <div className="progress-bar-wrap" style={{ marginTop: 4 }}><div className="progress-bar-fill" style={{ width: `${a.pct}%`, background: '#555' }} /></div>}
+        </div>
+        {a.done ? <div style={{ color: '#CCFF00', fontSize: 18 }}>★</div> : <div style={{ fontSize: 13, color: '#555' }}>{a.pct}%</div>}
+      </div>
+    ))}
+
+    <hr className="divider" />
+
+    {/* Leaderboard */}
+    <div className="section-head">
+      <div style={{ fontSize: 16, fontWeight: 700, color: '#eee' }}>Liga semanal</div>
+      <div className="see-all">Explorar</div>
+    </div>
+    {[
+      { pos: 1, name: 'MariF.', xp: '2,340 XP', you: false },
+      { pos: 2, name: 'Tú', xp: '1,240 XP', you: true },
+      { pos: 3, name: 'Juanp.', xp: '980 XP', you: false },
+    ].map(u => (
+      <div key={u.name} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8, padding: '8px 10px', background: u.you ? 'rgba(204,255,0,0.08)' : '#252525', border: `1.5px solid ${u.you ? '#CCFF00' : '#333'}`, borderRadius: 10 }}>
+        <div style={{ fontSize: 18, fontWeight: 700, color: u.pos === 1 ? '#FFD700' : '#666', width: 20 }}>{u.pos}</div>
+        <div className="avatar-circle" style={{ width: 32, height: 32, fontSize: 14 }}>{u.name[0]}</div>
+        <div style={{ flex: 1, fontSize: 15, color: u.you ? '#CCFF00' : '#eee', fontWeight: u.you ? 700 : 400 }}>{u.name}</div>
+        <div style={{ fontSize: 13, color: '#777' }}>{u.xp}</div>
+      </div>
+    ))}
+
+    <BottomNav active="prog" />
+  </Phone>;
+}
+
+function NotificationSystem() {
+  return <Phone label="Sistema de notificaciones">
+    <div style={{ fontSize: 20, fontWeight: 700, color: '#eee', marginBottom: 4 }}>Notificaciones</div>
+    <div style={{ fontSize: 13, color: '#777', marginBottom: 14 }}>Sistema de retención 7 días</div>
+
+    {[
+      { day: 'Día 1', icon: '🎉', color: '#CCFF00', title: '¡Bienvenido a FITCORE!', body: 'Tu plan está listo. 1er entreno en 30 min ⚡', type: 'Motivación' },
+      { day: 'Día 2', icon: '🔥', color: '#CCFF00', title: 'Racha de 2 días 🔥', body: 'Sigues en racha. ¡No la rompas hoy!', type: 'Racha' },
+      { day: 'Día 3', icon: '⏰', color: '#FF6B35', title: 'Hora de entrenar', body: 'Tu rutina Upper Body te espera. 38 min.', type: 'Recordatorio' },
+      { day: 'Día 4', icon: '🏆', color: '#FFD700', title: '¡Logro desbloqueado!', body: '"Sin excusas" — 3 entrenos completados 🏆', type: 'Logro' },
+      { day: 'Día 5', icon: '📊', color: '#44ddaa', title: 'Tu resumen semanal', body: 'Perdiste 0.4 kg · 1,240 XP ganados', type: 'Insight' },
+      { day: 'Día 6', icon: '🍽️', color: '#888', title: 'Registra tu cena', body: 'Te faltan 380 kcal para cerrar el día bien.', type: 'Nutrición' },
+      { day: 'Día 7', icon: '⚡', color: '#FF6B35', title: '¡1 semana completa!', body: 'Eres top 15% en tu liga. ¡Sigue así!', type: 'Hito' },
+    ].map(n => (
+      <div key={n.day} className="notif-pill">
+        <div className="notif-icon" style={{ background: `${n.color}22`, border: `1px solid ${n.color}55`, fontSize: 18 }}>{n.icon}</div>
+        <div style={{ flex: 1 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 2 }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: '#eee' }}>{n.title}</div>
+            <div style={{ fontSize: 11, color: '#555', flexShrink: 0, marginLeft: 6 }}>{n.day}</div>
+          </div>
+          <div style={{ fontSize: 13, color: '#888' }}>{n.body}</div>
+          <div style={{ marginTop: 3 }}>
+            <span style={{ background: `${n.color}22`, border: `1px solid ${n.color}55`, borderRadius: 6, padding: '1px 6px', fontSize: 11, color: n.color }}>{n.type}</span>
+          </div>
+        </div>
+      </div>
+    ))}
+
+    <BottomNav active="" />
+  </Phone>;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SECTION 6 — PROFILE
+// ═══════════════════════════════════════════════════════════════════════════
+
+function ProfileMain() {
+  return <Phone label="Mi perfil">
+    {/* Header */}
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+      <div style={{ fontSize: 20, fontWeight: 700, color: '#eee' }}>Mi perfil</div>
+      <div style={{ fontSize: 14, color: '#CCFF00' }}>Editar</div>
+    </div>
+
+    {/* Avatar + name */}
+    <div style={{ textAlign: 'center', marginBottom: 16 }}>
+      <div style={{ width: 72, height: 72, borderRadius: '50%', background: '#252525', border: '2px solid #CCFF00', margin: '0 auto 8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32 }}>C</div>
+      <div style={{ fontSize: 22, fontWeight: 700, color: '#eee' }}>Carlos Pérez</div>
+      <div style={{ fontSize: 13, color: '#777' }}>carlos@email.com</div>
+      <div style={{ marginTop: 6 }}>
+        <span className="tag active">🔥 Racha 5 días</span>
+        <span className="tag">Nivel 3</span>
+      </div>
+    </div>
+
+    {/* Stats */}
+    <div className="row" style={{ marginBottom: 12 }}>
+      {[{v:'312',l:'Kcal hoy'},{v:'38',l:'Min activo'},{v:'5',l:'Días racha'}].map(s => (
+        <div key={s.l} className="sketch-box" style={{ textAlign: 'center', padding: '10px 4px' }}>
+          <div style={{ fontSize: 22, fontWeight: 700, color: '#CCFF00' }}>{s.v}</div>
+          <div style={{ fontSize: 11, color: '#777' }}>{s.l}</div>
+        </div>
+      ))}
+    </div>
+
+    {/* Biometrics */}
+    <div className="sketch-box" style={{ marginBottom: 10 }}>
+      <div className="sketch-label">Datos biométricos</div>
+      <div className="row" style={{ marginBottom: 0 }}>
+        {[{l:'Peso',v:'78 kg'},{l:'Altura',v:'175 cm'},{l:'IMC',v:'25.5'},{l:'Grasa',v:'18%'}].map(b => (
+          <div key={b.l} style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: 16, fontWeight: 700, color: '#eee' }}>{b.v}</div>
+            <div style={{ fontSize: 11, color: '#666' }}>{b.l}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    {/* Goals */}
+    <div className="sketch-box neon" style={{ marginBottom: 10 }}>
+      <div className="sketch-label">Objetivo activo</div>
+      <div style={{ fontSize: 16, fontWeight: 700, color: '#CCFF00' }}>🔥 Perder grasa</div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }}>
+        <div style={{ fontSize: 13, color: '#888' }}>Peso objetivo: <span style={{ color: '#eee' }}>72 kg</span></div>
+        <div style={{ fontSize: 13, color: '#888' }}>Faltan: <span style={{ color: '#CCFF00' }}>6 kg</span></div>
+      </div>
+      <div className="progress-bar-wrap" style={{ marginTop: 6 }}><div className="progress-bar-fill" style={{ width: '35%' }} /></div>
+    </div>
+
+    {/* Menu items */}
+    {[
+      { icon: '📊', label: 'Historial de entrenamientos' },
+      { icon: '🏆', label: 'Logros y medallas' },
+      { icon: '📷', label: 'Fotos de progreso' },
+      { icon: '⚙️', label: 'Ajustes de cuenta' },
+    ].map(m => (
+      <div key={m.label} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 12px', background: '#252525', border: '1.5px solid #333', borderRadius: 10, marginBottom: 6, cursor: 'pointer' }}>
+        <span style={{ fontSize: 18 }}>{m.icon}</span>
+        <span style={{ flex: 1, fontSize: 15, color: '#eee' }}>{m.label}</span>
+        <span style={{ color: '#555', fontSize: 16 }}>›</span>
+      </div>
+    ))}
+    <BottomNav active="me" />
+  </Phone>;
+}
+
+function ProfileEdit() {
+  return <Phone label="Editar datos">
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+      <div style={{ fontSize: 18, color: '#777' }}>←</div>
+      <div style={{ fontSize: 20, fontWeight: 700, color: '#eee' }}>Editar perfil</div>
+    </div>
+
+    {/* Avatar edit */}
+    <div style={{ textAlign: 'center', marginBottom: 20 }}>
+      <div style={{ position: 'relative', display: 'inline-block' }}>
+        <div style={{ width: 72, height: 72, borderRadius: '50%', background: '#252525', border: '2px solid #444', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32 }}>C</div>
+        <div style={{ position: 'absolute', bottom: 0, right: 0, background: '#CCFF00', borderRadius: '50%', width: 22, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, color: '#111' }}>✎</div>
+      </div>
+    </div>
+
+    <div className="row">
+      <div><div className="sketch-label">Nombre</div><input className="sketch-input" placeholder="Carlos" style={{ marginBottom: 0 }} readOnly /></div>
+      <div><div className="sketch-label">Apellido</div><input className="sketch-input" placeholder="Pérez" style={{ marginBottom: 0 }} readOnly /></div>
+    </div>
+    <div style={{ marginTop: 8 }}><div className="sketch-label">Email</div><input className="sketch-input" placeholder="carlos@email.com" readOnly /></div>
+
+    <hr className="divider" />
+    <div style={{ fontSize: 15, fontWeight: 700, color: '#eee', marginBottom: 8 }}>Datos biométricos</div>
+
+    <div className="row">
+      <div><div className="sketch-label">Peso (kg)</div><input className="sketch-input" placeholder="78" style={{ marginBottom: 0 }} readOnly /></div>
+      <div><div className="sketch-label">Altura (cm)</div><input className="sketch-input" placeholder="175" style={{ marginBottom: 0 }} readOnly /></div>
+    </div>
+    <div style={{ marginTop: 8 }}><div className="sketch-label">Peso objetivo (kg)</div><input className="sketch-input" placeholder="72" readOnly /></div>
+
+    <hr className="divider" />
+    <div style={{ fontSize: 15, fontWeight: 700, color: '#eee', marginBottom: 8 }}>Objetivo</div>
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}>
+      {['Perder grasa','Ganar músculo','Rendimiento','Salud general'].map((g,i) => (
+        <span key={g} className={`tag ${i===0?'active':''}`}>{g}</span>
+      ))}
+    </div>
+
+    <div className="sketch-btn">Guardar cambios</div>
+  </Phone>;
+}
+
+function ProfileSettings() {
+  return <Phone label="Ajustes & cuenta">
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+      <div style={{ fontSize: 18, color: '#777' }}>←</div>
+      <div style={{ fontSize: 20, fontWeight: 700, color: '#eee' }}>Ajustes</div>
+    </div>
+
+    {[
+      { section: 'Notificaciones', items: [
+        { label: 'Recordatorios de entreno', toggle: true },
+        { label: 'Alertas de nutrición', toggle: true },
+        { label: 'Logros y racha', toggle: true },
+        { label: 'Newsletter semanal', toggle: false },
+      ]},
+      { section: 'Privacidad', items: [
+        { label: 'Perfil público en liga', toggle: true },
+        { label: 'Compartir estadísticas', toggle: false },
+      ]},
+      { section: 'App', items: [
+        { label: 'Unidades (kg / cm)', arrow: true },
+        { label: 'Idioma', arrow: true },
+        { label: 'Tema', arrow: true },
+      ]},
+    ].map(group => (
+      <div key={group.section} style={{ marginBottom: 14 }}>
+        <div style={{ fontSize: 11, color: '#555', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>{group.section}</div>
+        {group.items.map(item => (
+          <div key={item.label} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '11px 12px', background: '#252525', border: '1.5px solid #333', borderRadius: 10, marginBottom: 5 }}>
+            <span style={{ fontSize: 15, color: '#eee' }}>{item.label}</span>
+            {item.toggle !== undefined && (
+              <div style={{ width: 40, height: 22, borderRadius: 11, background: item.toggle ? '#CCFF00' : '#333', position: 'relative' }}>
+                <div style={{ position: 'absolute', top: 3, left: item.toggle ? 20 : 3, width: 16, height: 16, borderRadius: '50%', background: item.toggle ? '#111' : '#666', transition: 'left 0.2s' }} />
+              </div>
+            )}
+            {item.arrow && <span style={{ color: '#555' }}>›</span>}
+          </div>
+        ))}
+      </div>
+    ))}
+
+    <div style={{ marginTop: 8 }}>
+      <div style={{ padding: '11px 12px', background: '#1a1a1a', border: '1.5px solid #333', borderRadius: 10, marginBottom: 6, textAlign: 'center', fontSize: 15, color: '#888', cursor: 'pointer' }}>Cambiar contraseña</div>
+      <div style={{ padding: '11px 12px', background: '#1a1a1a', border: '1.5px solid #FF6B35', borderRadius: 10, textAlign: 'center', fontSize: 15, color: '#FF6B35', cursor: 'pointer', fontWeight: 700 }}>Cerrar sesión</div>
+    </div>
+    <BottomNav active="me" />
+  </Phone>;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SECTION 7 — LOGIN
+// ═══════════════════════════════════════════════════════════════════════════
+
+function LoginMain() {
+  return <Phone label="Login principal">
+    <div style={{ textAlign: 'center', paddingTop: 20, marginBottom: 24 }}>
+      <div style={{ fontSize: 48, marginBottom: 6 }}>⚡</div>
+      <div style={{ fontSize: 28, fontWeight: 700, color: '#CCFF00' }}>FITCORE</div>
+      <div style={{ fontSize: 14, color: '#666', marginTop: 2 }}>Bienvenido de nuevo</div>
+    </div>
+
+    {/* Social login */}
+    <div className="sketch-box" style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8, cursor: 'pointer' }}>
+      <div style={{ fontSize: 20 }}>G</div>
+      <div style={{ fontSize: 16, color: '#ccc' }}>Continuar con Google</div>
+    </div>
+    <div className="sketch-box" style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14, cursor: 'pointer' }}>
+      <div style={{ fontSize: 20 }}>🍎</div>
+      <div style={{ fontSize: 16, color: '#ccc' }}>Continuar con Apple</div>
+    </div>
+
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+      <hr style={{ flex: 1, border: 'none', borderTop: '1px dashed #333' }} />
+      <span style={{ fontSize: 13, color: '#555' }}>o con email</span>
+      <hr style={{ flex: 1, border: 'none', borderTop: '1px dashed #333' }} />
+    </div>
+
+    <div className="sketch-label">Email</div>
+    <input className="sketch-input" placeholder="carlos@email.com" readOnly />
+    <div className="sketch-label">Contraseña</div>
+    <div style={{ position: 'relative', marginBottom: 8 }}>
+      <input className="sketch-input" placeholder="••••••••" style={{ marginBottom: 0, width: '100%' }} readOnly />
+      <div style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 14, color: '#666' }}>👁</div>
+    </div>
+
+    <div style={{ textAlign: 'right', marginBottom: 16 }}>
+      <span style={{ fontSize: 14, color: '#CCFF00' }}>¿Olvidaste tu contraseña?</span>
+    </div>
+
+    <div className="sketch-btn">Iniciar sesión</div>
+
+    <div style={{ textAlign: 'center', marginTop: 14, fontSize: 15, color: '#666' }}>
+      ¿No tienes cuenta? <span style={{ color: '#CCFF00' }}>Regístrate gratis</span>
+    </div>
+  </Phone>;
+}
+
+function LoginRecover() {
+  return <Phone label="Recuperar contraseña">
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+      <div style={{ fontSize: 18, color: '#777' }}>←</div>
+      <div style={{ fontSize: 20, fontWeight: 700, color: '#eee' }}>Recuperar acceso</div>
+    </div>
+
+    <div style={{ textAlign: 'center', marginBottom: 24 }}>
+      <div style={{ fontSize: 48, marginBottom: 8 }}>🔑</div>
+      <div style={{ fontSize: 16, color: '#888', lineHeight: 1.5 }}>
+        Ingresa tu email y te enviamos<br />un link para resetear tu contraseña
+      </div>
+    </div>
+
+    <div className="sketch-label">Email registrado</div>
+    <input className="sketch-input" placeholder="carlos@email.com" readOnly />
+
+    <div className="sketch-btn" style={{ marginTop: 12 }}>Enviar link de acceso</div>
+
+    <div className="sketch-box" style={{ marginTop: 14, textAlign: 'center', background: 'rgba(204,255,0,0.06)', borderColor: '#CCFF00' }}>
+      <div style={{ fontSize: 22, marginBottom: 4 }}>✉️</div>
+      <div style={{ fontSize: 15, color: '#CCFF00', fontWeight: 700 }}>Link enviado</div>
+      <div style={{ fontSize: 13, color: '#777', marginTop: 4 }}>Revisa tu bandeja · expira en 15 min</div>
+    </div>
+
+    <div style={{ textAlign: 'center', marginTop: 16, fontSize: 14, color: '#555' }}>
+      ¿No llegó? <span style={{ color: '#CCFF00' }}>Reenviar</span>
+    </div>
+  </Phone>;
+}
+
+function LoginRegister() {
+  return <Phone label="Registro rápido">
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+      <div style={{ fontSize: 18, color: '#777' }}>←</div>
+      <div style={{ fontSize: 20, fontWeight: 700, color: '#eee' }}>Crear cuenta</div>
+    </div>
+    <div style={{ fontSize: 14, color: '#666', marginBottom: 16 }}>Es gratis · Sin tarjeta de crédito</div>
+
+    <div className="row">
+      <div>
+        <div className="sketch-label">Nombre</div>
+        <input className="sketch-input" placeholder="Carlos" style={{ marginBottom: 0 }} readOnly />
+      </div>
+      <div>
+        <div className="sketch-label">Apellido</div>
+        <input className="sketch-input" placeholder="Pérez" style={{ marginBottom: 0 }} readOnly />
+      </div>
+    </div>
+    <div style={{ marginTop: 8 }}>
+      <div className="sketch-label">Email</div>
+      <input className="sketch-input" placeholder="carlos@email.com" readOnly />
+    </div>
+    <div>
+      <div className="sketch-label">Contraseña</div>
+      <input className="sketch-input" placeholder="Mín. 8 caracteres" readOnly />
+    </div>
+
+    {/* Password strength */}
+    <div style={{ marginBottom: 12 }}>
+      <div style={{ display: 'flex', gap: 4, marginBottom: 4 }}>
+        {[1,2,3,4].map(i => (
+          <div key={i} style={{ flex: 1, height: 4, borderRadius: 2, background: i <= 2 ? '#CCFF00' : '#2a2a2a' }} />
+        ))}
+      </div>
+      <div style={{ fontSize: 12, color: '#777' }}>Seguridad: Media · añade un símbolo</div>
+    </div>
+
+    <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', marginBottom: 14 }}>
+      <div style={{ width: 18, height: 18, border: '1.5px solid #CCFF00', borderRadius: 4, flexShrink: 0, marginTop: 2, background: 'rgba(204,255,0,0.15)' }} />
+      <div style={{ fontSize: 13, color: '#777', lineHeight: 1.4 }}>
+        Acepto los <span style={{ color: '#CCFF00' }}>Términos de uso</span> y la <span style={{ color: '#CCFF00' }}>Política de privacidad</span>
+      </div>
+    </div>
+
+    <div className="sketch-btn">Crear cuenta gratis</div>
+
+    <div style={{ textAlign: 'center', marginTop: 12, fontSize: 14, color: '#555' }}>
+      ¿Ya tienes cuenta? <span style={{ color: '#CCFF00' }}>Iniciar sesión</span>
+    </div>
+  </Phone>;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SECTION 7 — POST-WORKOUT
+// ═══════════════════════════════════════════════════════════════════════════
+
+function PostSummary() {
+  return <Phone label="Resumen de sesión">
+    {/* Header celebration */}
+    <div style={{ textAlign: 'center', paddingTop: 8, marginBottom: 16 }}>
+      <div style={{ fontSize: 44, marginBottom: 4 }}>🎉</div>
+      <div style={{ fontSize: 24, fontWeight: 700, color: '#CCFF00' }}>¡Entreno completado!</div>
+      <div style={{ fontSize: 14, color: '#777' }}>Upper Body Power · Día 3</div>
+    </div>
+
+    {/* Stats grid */}
+    <div className="row" style={{ marginBottom: 10 }}>
+      <div className="sketch-box" style={{ textAlign: 'center' }}>
+        <div style={{ fontSize: 26, fontWeight: 700, color: '#CCFF00' }}>38</div>
+        <div style={{ fontSize: 12, color: '#777' }}>minutos</div>
+      </div>
+      <div className="sketch-box" style={{ textAlign: 'center' }}>
+        <div style={{ fontSize: 26, fontWeight: 700, color: '#FF6B35' }}>312</div>
+        <div style={{ fontSize: 12, color: '#777' }}>calorías</div>
+      </div>
+      <div className="sketch-box" style={{ textAlign: 'center' }}>
+        <div style={{ fontSize: 26, fontWeight: 700, color: '#44ddaa' }}>6/6</div>
+        <div style={{ fontSize: 12, color: '#777' }}>ejercicios</div>
+      </div>
+    </div>
+
+    {/* Performance */}
+    <div className="sketch-box neon" style={{ marginBottom: 10 }}>
+      <div className="sketch-label">Rendimiento IA</div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{ fontSize: 42, fontWeight: 700, color: '#CCFF00' }}>85%</div>
+        <div>
+          <div style={{ fontSize: 15, color: '#eee' }}>Precisión de forma</div>
+          <div style={{ fontSize: 13, color: '#888' }}>Mejor que tu sesión anterior (+7%)</div>
+        </div>
+      </div>
+      <div className="progress-bar-wrap" style={{ marginTop: 8 }}><div className="progress-bar-fill" style={{ width: '85%' }} /></div>
+    </div>
+
+    {/* XP gained */}
+    <div className="badge-card" style={{ marginBottom: 10 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <div style={{ fontSize: 13, color: '#CCFF00', fontWeight: 700 }}>+180 XP ganados</div>
+          <div style={{ fontSize: 12, color: '#777' }}>Bonus precisión +30 XP · Racha +20 XP</div>
+        </div>
+        <div style={{ fontSize: 28 }}>⭐</div>
+      </div>
+    </div>
+
+    {/* CTA */}
+    <div className="sketch-btn" style={{ marginBottom: 8 }}>Elongación guiada (5 min)</div>
+    <div className="sketch-btn ghost">Saltar por ahora</div>
+
+    <BottomNav active="train" />
+  </Phone>;
+}
+
+function PostStretch() {
+  const stretches = [
+    { name: 'Pecho en pared', time: '30s c/lado', muscle: 'Pectoral', done: true },
+    { name: 'Triceps sobre cabeza', time: '30s c/lado', muscle: 'Triceps', done: true },
+    { name: 'Hombro cruzado', time: '30s c/lado', muscle: 'Deltoides', active: true },
+    { name: 'Apertura torácica', time: '45s', muscle: 'Espalda' },
+    { name: 'Cuello lateral', time: '20s c/lado', muscle: 'Cuello' },
+  ];
+  return <Phone label="Elongación guiada">
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+      <div>
+        <div style={{ fontSize: 18, fontWeight: 700, color: '#eee' }}>Elongación</div>
+        <div style={{ fontSize: 13, color: '#777' }}>5 ejercicios · ~5 min</div>
+      </div>
+      <div style={{ background: '#1e1e1e', border: '1px solid #333', borderRadius: 8, padding: '4px 10px', fontSize: 13, color: '#aaa' }}>Saltar</div>
+    </div>
+
+    {/* Active stretch */}
+    <div style={{ background: '#1e1e1e', border: '1.5px dashed #555', borderRadius: 12, height: 150, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', marginBottom: 10, position: 'relative' }}>
+      <div style={{ fontSize: 14, color: '#555' }}>[ ilustración: hombro cruzado ]</div>
+      <div style={{ position: 'absolute', top: 8, left: 8 }}>
+        <div className="pose-badge">3 de 5</div>
+      </div>
+      <div style={{ position: 'absolute', bottom: 8, right: 8 }}>
+        <div style={{ background: 'rgba(204,255,0,0.15)', border: '1px solid #CCFF00', borderRadius: 8, padding: '3px 8px', fontSize: 13, color: '#CCFF00', fontWeight: 700 }}>00:18</div>
+      </div>
+    </div>
+
+    {/* Current */}
+    <div className="sketch-box neon" style={{ marginBottom: 10 }}>
+      <div style={{ fontSize: 11, color: '#CCFF00', fontWeight: 700, marginBottom: 2 }}>AHORA · DELTOIDES</div>
+      <div style={{ fontSize: 18, fontWeight: 700, color: '#eee' }}>Hombro cruzado</div>
+      <div style={{ fontSize: 14, color: '#888' }}>30 seg cada lado · Respira profundo</div>
+      <div className="progress-bar-wrap" style={{ marginTop: 8 }}>
+        <div className="progress-bar-fill" style={{ width: '60%' }} />
+      </div>
+    </div>
+
+    {/* List */}
+    {stretches.map(s => (
+      <div key={s.name} className="exercise-row" style={{ opacity: s.done ? 0.45 : 1, background: s.active ? 'rgba(204,255,0,0.06)' : '#252525', borderColor: s.active ? '#CCFF00' : '#333' }}>
+        <div className="ex-icon" style={{ background: s.active ? 'rgba(204,255,0,0.15)' : '#333', fontSize: 16 }}>
+          {s.done ? '✓' : s.active ? '▶' : '○'}
+        </div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 15, color: s.done ? '#666' : '#eee', textDecoration: s.done ? 'line-through' : 'none' }}>{s.name}</div>
+          <div style={{ fontSize: 12, color: '#666' }}>{s.muscle} · {s.time}</div>
+        </div>
+      </div>
+    ))}
+
+    <div style={{ marginTop: 10 }}><div className="sketch-btn">Siguiente →</div></div>
+    <BottomNav active="train" />
+  </Phone>;
+}
+
+function PostRecovery() {
+  return <Phone label="Protocolo de recuperación">
+    <div style={{ fontSize: 20, fontWeight: 700, color: '#eee', marginBottom: 4 }}>Recuperación</div>
+    <div style={{ fontSize: 13, color: '#777', marginBottom: 14 }}>Basado en tu sesión de hoy</div>
+
+    {/* Recovery score */}
+    <div className="sketch-box" style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 10 }}>
+      <Ring pct={74} size={80} color="#44ddaa" label="74" sub="score" />
+      <div>
+        <div style={{ fontSize: 18, fontWeight: 700, color: '#eee' }}>Recuperación buena</div>
+        <div style={{ fontSize: 13, color: '#888', marginTop: 2 }}>Listo para entrenar en ~20h</div>
+        <div style={{ fontSize: 12, color: '#44ddaa', marginTop: 4 }}>Próximo entreno: mañana 7am</div>
+      </div>
+    </div>
+
+    {/* Recommendations */}
+    <div className="section-head" style={{ marginBottom: 6 }}>
+      <div style={{ fontSize: 16, fontWeight: 700, color: '#eee' }}>Protocolo recomendado</div>
+    </div>
+
+    {[
+      { icon: '💧', color: '#44ddaa', title: 'Hidratación', body: 'Bebe 500ml de agua en los próximos 30 min', tag: 'Ahora' },
+      { icon: '🥩', color: '#CCFF00', title: 'Ventana anabólica', body: 'Consume 30-40g proteína en los próximos 45 min', tag: '45 min' },
+      { icon: '🧊', color: '#66aaff', title: 'Crioterapia opcional', body: 'Ducha fría 2 min si sientes fatiga muscular alta', tag: 'Opcional' },
+      { icon: '😴', color: '#aa88ff', title: 'Sueño reparador', body: 'Apunta a 7-8h esta noche · muscle repair peak', tag: 'Esta noche' },
+    ].map(r => (
+      <div key={r.title} className="notif-pill" style={{ marginBottom: 8 }}>
+        <div className="notif-icon" style={{ background: `${r.color}22`, border: `1px solid ${r.color}55`, fontSize: 18 }}>{r.icon}</div>
+        <div style={{ flex: 1 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 2 }}>
+            <div style={{ fontSize: 15, fontWeight: 700, color: '#eee' }}>{r.title}</div>
+            <span style={{ background: `${r.color}22`, border: `1px solid ${r.color}55`, borderRadius: 6, padding: '1px 6px', fontSize: 11, color: r.color }}>{r.tag}</span>
+          </div>
+          <div style={{ fontSize: 13, color: '#888' }}>{r.body}</div>
+        </div>
+      </div>
+    ))}
+
+    {/* Muscle fatigue map placeholder */}
+    <div style={{ background: '#1e1e1e', border: '1.5px dashed #444', borderRadius: 12, height: 80, display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 4 }}>
+      <div style={{ fontSize: 13, color: '#555', textAlign: 'center' }}>[ mapa muscular corporal — fatiga por zona ]</div>
+    </div>
+
+    <BottomNav active="train" />
+  </Phone>;
+}
+
+function PostCheckin() {
+  return <Phone label="Check-in muscular">
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+      <div style={{ fontSize: 18, color: '#777' }}>←</div>
+      <div>
+        <div style={{ fontSize: 18, fontWeight: 700, color: '#eee' }}>¿Cómo te sientes?</div>
+        <div style={{ fontSize: 13, color: '#777' }}>Post-entrenamiento · Upper Body</div>
+      </div>
+    </div>
+
+    {/* Feeling selector */}
+    <div style={{ fontSize: 14, color: '#888', marginBottom: 10 }}>Nivel de esfuerzo percibido (RPE)</div>
+    <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
+      {[1,2,3,4,5,6,7,8,9,10].map(n => (
+        <div key={n} style={{
+          flex: 1, height: 36, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 13, fontWeight: 700,
+          background: n === 7 ? '#CCFF00' : '#252525',
+          color: n === 7 ? '#111' : '#666',
+          border: `1.5px solid ${n === 7 ? '#CCFF00' : '#333'}`
+        }}>{n}</div>
+      ))}
+    </div>
+
+    {/* Muscle soreness */}
+    <div style={{ fontSize: 14, color: '#888', marginBottom: 8 }}>Zonas con fatiga o dolor muscular</div>
+    {[
+      { name: 'Pecho', lvl: 3 },
+      { name: 'Hombros', lvl: 4 },
+      { name: 'Tríceps', lvl: 2 },
+      { name: 'Core', lvl: 1 },
+    ].map(m => (
+      <div key={m.name} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+        <div style={{ width: 70, fontSize: 14, color: '#aaa' }}>{m.name}</div>
+        <div style={{ flex: 1, display: 'flex', gap: 4 }}>
+          {[1,2,3,4,5].map(i => (
+            <div key={i} style={{
+              flex: 1, height: 22, borderRadius: 4,
+              background: i <= m.lvl ? (m.lvl >= 4 ? '#FF6B35' : m.lvl >= 3 ? '#CCFF00' : '#44ddaa') : '#252525',
+              border: `1px solid ${i <= m.lvl ? 'transparent' : '#333'}`
+            }} />
+          ))}
+        </div>
+        <div style={{ width: 50, fontSize: 12, color: '#666', textAlign: 'right' }}>
+          {m.lvl <= 1 ? 'Leve' : m.lvl <= 2 ? 'Normal' : m.lvl <= 3 ? 'Moderado' : 'Alto'}
+        </div>
+      </div>
+    ))}
+
+    <hr className="divider" />
+
+    {/* Mood */}
+    <div style={{ fontSize: 14, color: '#888', marginBottom: 8 }}>Estado de ánimo post-entreno</div>
+    <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+      {[{e:'😴',l:'Agotado'},{e:'😐',l:'Normal'},{e:'⚡',l:'Cargado'},{e:'🔥',l:'Top'}].map(m => (
+        <div key={m.l} className="sketch-box" style={{ flex: 1, textAlign: 'center', padding: '8px 4px', cursor: 'pointer', borderColor: m.l === 'Cargado' ? '#CCFF00' : '#333' }}>
+          <div style={{ fontSize: 20 }}>{m.e}</div>
+          <div style={{ fontSize: 11, color: m.l === 'Cargado' ? '#CCFF00' : '#777' }}>{m.l}</div>
+        </div>
+      ))}
+    </div>
+
+    <div className="sketch-btn">Guardar y cerrar</div>
+    <BottomNav active="train" />
+  </Phone>;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MAIN APP
+// ═══════════════════════════════════════════════════════════════════════════
+
+const DCCanvas = window.DesignCanvas;
+const DCSection = window.DCSection;
+const DCArtboard = window.DCArtboard;
+
+function App() {
+  return (
+    <DCCanvas title="FITCORE — Wireframes">
+
+      <DCSection id="s1" title="① ONBOARDING FLOW — Captura biométrica → Plan personalizado">
+        <DCArtboard id="ow" label="Bienvenida" width={320} height={680}>
+          <OnboardWelcome />
+        </DCArtboard>
+        <DCArtboard id="ob" label="Biométricos" width={320} height={780}>
+          <OnboardBio />
+        </DCArtboard>
+        <DCArtboard id="og" label="Objetivo" width={320} height={700}>
+          <OnboardGoal />
+        </DCArtboard>
+        <DCArtboard id="op" label="Plan listo" width={320} height={680}>
+          <OnboardPlan />
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="s2" title="② DASHBOARD CENTRAL — Resumen de actividad + macros + acceso rápido">
+        <DCArtboard id="dm" label="Home Dashboard" width={320} height={800}>
+          <DashboardMain />
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="s3" title="③ ENTRENAMIENTO — Rutina + Corrección de postura por IA (función innovadora #1)">
+        <DCArtboard id="ws" label="Lista de ejercicios" width={320} height={780}>
+          <WorkoutScreen />
+        </DCArtboard>
+        <DCArtboard id="wa" label="Sesión activa + IA" width={320} height={760}>
+          <WorkoutActive />
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="s4" title="④ NUTRICIÓN — Tracker de macros + Modo Despensa IA (función innovadora #2)">
+        <DCArtboard id="nl" label="Registro de comidas" width={320} height={820}>
+          <NutritionLog />
+        </DCArtboard>
+        <DCArtboard id="pm" label="Modo Despensa ★" width={320} height={820}>
+          <PantryMode />
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="s5" title="⑤ GAMIFICACIÓN + RETENCIÓN — Logros, liga social y sistema de notificaciones 7 días (función innovadora #3)">
+        <DCArtboard id="gm" label="Logros & Liga" width={320} height={860}>
+          <GamificationScreen />
+        </DCArtboard>
+        <DCArtboard id="ns" label="Notificaciones 7 días" width={320} height={860}>
+          <NotificationSystem />
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="s6" title="⑥ PERFIL — Gestión de cuenta, métricas personales y ajustes">
+        <DCArtboard id="pr1" label="Mi perfil" width={320} height={820}>
+          <ProfileMain />
+        </DCArtboard>
+        <DCArtboard id="pr2" label="Editar datos" width={320} height={780}>
+          <ProfileEdit />
+        </DCArtboard>
+        <DCArtboard id="pr3" label="Ajustes & cuenta" width={320} height={820}>
+          <ProfileSettings />
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="s7" title="⑦ LOGIN — Inicio de sesión y recuperación de cuenta">
+        <DCArtboard id="l1" label="Login principal" width={320} height={680}>
+          <LoginMain />
+        </DCArtboard>
+        <DCArtboard id="l2" label="Recuperar contraseña" width={320} height={620}>
+          <LoginRecover />
+        </DCArtboard>
+        <DCArtboard id="l3" label="Registro rápido" width={320} height={720}>
+          <LoginRegister />
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="s7" title="⑦ POST-ENTRENAMIENTO — Resumen · Elongación guiada · Recuperación activa">
+        <DCArtboard id="p1" label="Resumen de sesión" width={320} height={820}>
+          <PostSummary />
+        </DCArtboard>
+        <DCArtboard id="p2" label="Elongación guiada" width={320} height={820}>
+          <PostStretch />
+        </DCArtboard>
+        <DCArtboard id="p3" label="Protocolo de recuperación" width={320} height={820}>
+          <PostRecovery />
+        </DCArtboard>
+        <DCArtboard id="p4" label="Check-in muscular" width={320} height={760}>
+          <PostCheckin />
+        </DCArtboard>
+      </DCSection>
+
+    </DCCanvas>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+<div id="root"></div>
+</body>
+</html>
