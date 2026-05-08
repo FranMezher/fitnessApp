@@ -1,8 +1,8 @@
 import { eq } from 'drizzle-orm';
-import { leagueEntries, userAchievements, achievements, streaks, foodLog, workoutSessions } from '@/db/schema';
-import type { DB } from '@/db/client';
+import { db } from '../db/client';
+import { leagueEntries, userAchievements, achievements, streaks, foodLog, workoutSessions } from '../db/schema';
 
-export async function awardXp(db: DB, userId: string, xp: number) {
+export async function awardXp(userId: string, xp: number) {
   const weekStart = currentWeekMonday();
 
   const [existing] = await db
@@ -19,10 +19,10 @@ export async function awardXp(db: DB, userId: string, xp: number) {
     await db.insert(leagueEntries).values({ userId, weekStart, xpTotal: xp });
   }
 
-  await checkAchievements(db, userId);
+  await checkAchievements(userId);
 }
 
-async function checkAchievements(db: DB, userId: string) {
+async function checkAchievements(userId: string) {
   const allAchievements = await db.select().from(achievements);
   const unlocked = await db
     .select()
@@ -35,9 +35,9 @@ async function checkAchievements(db: DB, userId: string) {
   const meals = await db.select().from(foodLog).where(eq(foodLog.userId, userId));
 
   const metrics: Record<string, number> = {
-    sessions:     sessions.filter((s) => s.endedAt).length,
-    streak:       streak?.currentStreak ?? 0,
-    meals_logged: meals.length,
+    sessions:      sessions.filter((s) => s.endedAt).length,
+    streak:        streak?.currentStreak ?? 0,
+    meals_logged:  meals.length,
     form_accuracy: sessions
       .filter((s) => s.formAccuracyPct !== null)
       .reduce((acc, s) => Math.max(acc, s.formAccuracyPct ?? 0), 0),

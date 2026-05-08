@@ -2,36 +2,29 @@ import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import { eq, and } from 'drizzle-orm';
-import { getDb } from '@/db/client';
-import { workoutSessions, sessionSets, streaks } from '@/db/schema';
-import { authMiddleware } from '@/middleware/auth';
-import { awardXp } from '@/lib/gamification';
-import type { Env } from '@/env';
+import { db } from '../db/client';
+import { workoutSessions, sessionSets, streaks } from '../db/schema';
+import { authMiddleware } from '../middleware/auth';
+import { awardXp } from '../lib/gamification';
 
-export const workoutsRouter = new Hono<{ Bindings: Env }>()
-  .use('*', authMiddleware);
+export const workoutsRouter = new Hono().use('*', authMiddleware);
 
 // GET /workouts/sessions
 workoutsRouter.get('/sessions', async (c) => {
-  const db = getDb(c.env);
   const user = c.get('user');
   const sessions = await db
     .select()
     .from(workoutSessions)
     .where(eq(workoutSessions.userId, user.id));
-
   return c.json({ sessions });
 });
 
 // POST /workouts/sessions — start a new session
 workoutsRouter.post('/sessions', async (c) => {
-  const db = getDb(c.env);
   const user = c.get('user');
-
   const id = crypto.randomUUID();
   const startedAt = new Date().toISOString();
   await db.insert(workoutSessions).values({ id, userId: user.id, startedAt });
-
   return c.json({ id, startedAt }, 201);
 });
 
@@ -48,7 +41,6 @@ const finishSchema = z.object({
 });
 
 workoutsRouter.patch('/sessions/:id', zValidator('json', finishSchema), async (c) => {
-  const db = getDb(c.env);
   const user = c.get('user');
   const { id } = c.req.param();
   const { caloriesBurned, formAccuracyPct, sets } = c.req.valid('json');
@@ -59,24 +51,22 @@ workoutsRouter.patch('/sessions/:id', zValidator('json', finishSchema), async (c
     .set({ endedAt, caloriesBurned, formAccuracyPct })
     .where(and(eq(workoutSessions.id, id), eq(workoutSessions.userId, user.id)));
 
-  // Insert session sets
   if (sets.length > 0) {
     await db.insert(sessionSets).values(
       sets.map((s) => ({ id: crypto.randomUUID(), sessionId: id, ...s })),
     );
   }
 
-  // Update streak + award XP
   const today = endedAt.slice(0, 10);
-  await updateStreak(db, user.id, today);
+  await updateStreak(user.id, today);
 
   const xp = 100 + (formAccuracyPct >= 80 ? 30 : 0);
-  await awardXp(db, user.id, xp);
+  await awardXp(user.id, xp);
 
   return c.json({ ok: true, xpEarned: xp });
 });
 
-async function updateStreak(db: ReturnType<typeof getDb>, userId: string, today: string) {
+async function updateStreak(userId: string, today: string) {
   const [row] = await db.select().from(streaks).where(eq(streaks.userId, userId));
   if (!row) {
     await db.insert(streaks).values({
@@ -91,7 +81,6 @@ async function updateStreak(db: ReturnType<typeof getDb>, userId: string, today:
   const last = row.lastActivityDate;
   const isConsecutive = last && diffDays(last, today) === 1;
   const alreadyToday = last === today;
-
   if (alreadyToday) return;
 
   const next = isConsecutive ? row.currentStreak + 1 : 1;

@@ -1,14 +1,13 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
-import { profileRouter } from '@/routes/profile';
-import { nutritionRouter } from '@/routes/nutrition';
-import { workoutsRouter } from '@/routes/workouts';
-import { gamificationRouter } from '@/routes/gamification';
-import { aiRouter } from '@/routes/ai';
-import type { Env } from '@/env';
+import { profileRouter } from './routes/profile';
+import { nutritionRouter } from './routes/nutrition';
+import { workoutsRouter } from './routes/workouts';
+import { gamificationRouter } from './routes/gamification';
+import { aiRouter } from './routes/ai';
 
-const app = new Hono<{ Bindings: Env }>();
+const app = new Hono();
 
 app.use('*', logger());
 app.use('*', cors({ origin: '*', allowHeaders: ['Authorization', 'Content-Type'] }));

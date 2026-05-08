@@ -3,24 +3,26 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "wrangler dev --port 8787",
-    "deploy": "wrangler deploy",
+    "dev": "vercel dev",
+    "deploy": "vercel deploy --prod",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
     "hono": "^4.6.0",
+    "@hono/vercel": "^0.6.0",
     "@hono/zod-validator": "^0.4.1",
+    "@neondatabase/serverless": "^0.10.0",
     "drizzle-orm": "^0.36.0",
     "@supabase/supabase-js": "^2.45.0",
     "zod": "^3.23.0",
     "@anthropic-ai/sdk": "^0.32.0"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20241004.0",
+    "@types/node": "^22.0.0",
     "drizzle-kit": "^0.28.0",
     "typescript": "^5.3.0",
-    "wrangler": "^3.80.0"
+    "vercel": "^37.0.0"
   }
 }

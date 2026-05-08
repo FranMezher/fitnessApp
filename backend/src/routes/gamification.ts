@@ -1,16 +1,13 @@
 import { Hono } from 'hono';
 import { eq } from 'drizzle-orm';
-import { getDb } from '@/db/client';
-import { streaks, userAchievements, achievements, leagueEntries } from '@/db/schema';
-import { authMiddleware } from '@/middleware/auth';
-import type { Env } from '@/env';
+import { db } from '../db/client';
+import { streaks, userAchievements, achievements, leagueEntries } from '../db/schema';
+import { authMiddleware } from '../middleware/auth';
 
-export const gamificationRouter = new Hono<{ Bindings: Env }>()
-  .use('*', authMiddleware);
+export const gamificationRouter = new Hono().use('*', authMiddleware);
 
 // GET /gamification/streak
 gamificationRouter.get('/streak', async (c) => {
-  const db = getDb(c.env);
   const user = c.get('user');
   const [row] = await db.select().from(streaks).where(eq(streaks.userId, user.id));
   return c.json(row ?? { currentStreak: 0, longestStreak: 0, lastActivityDate: null });
@@ -18,15 +15,12 @@ gamificationRouter.get('/streak', async (c) => {
 
 // GET /gamification/achievements
 gamificationRouter.get('/achievements', async (c) => {
-  const db = getDb(c.env);
   const user = c.get('user');
-
   const all = await db.select().from(achievements);
   const unlocked = await db
     .select()
     .from(userAchievements)
     .where(eq(userAchievements.userId, user.id));
-
   const unlockedIds = new Set(unlocked.map((u) => u.achievementId));
 
   return c.json({
@@ -40,9 +34,7 @@ gamificationRouter.get('/achievements', async (c) => {
 
 // GET /gamification/league?week=YYYY-MM-DD
 gamificationRouter.get('/league', async (c) => {
-  const db = getDb(c.env);
   const weekStart = c.req.query('week') ?? currentWeekMonday();
-
   const entries = await db
     .select()
     .from(leagueEntries)

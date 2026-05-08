@@ -2,20 +2,15 @@ import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import { eq } from 'drizzle-orm';
-import { getDb } from '@/db/client';
-import { profiles } from '@/db/schema';
-import { authMiddleware } from '@/middleware/auth';
-import type { Env } from '@/env';
+import { db } from '../db/client';
+import { profiles } from '../db/schema';
+import { authMiddleware } from '../middleware/auth';
 
-export const profileRouter = new Hono<{ Bindings: Env }>()
-  .use('*', authMiddleware);
+export const profileRouter = new Hono().use('*', authMiddleware);
 
-// GET /profile
 profileRouter.get('/', async (c) => {
-  const db = getDb(c.env);
   const user = c.get('user');
   const [profile] = await db.select().from(profiles).where(eq(profiles.userId, user.id));
-
   if (!profile) return c.json({ error: 'Profile not found' }, 404);
   return c.json(profile);
 });
@@ -31,19 +26,14 @@ const profileSchema = z.object({
   targetWeightKg: z.number().positive().optional(),
 });
 
-// POST /profile — create or update (upsert)
 profileRouter.post('/', zValidator('json', profileSchema), async (c) => {
-  const db = getDb(c.env);
   const user = c.get('user');
   const body = c.req.valid('json');
 
   await db
     .insert(profiles)
     .values({ userId: user.id, ...body })
-    .onConflictDoUpdate({
-      target: profiles.userId,
-      set: body,
-    });
+    .onConflictDoUpdate({ target: profiles.userId, set: body });
 
   return c.json({ ok: true });
 });
