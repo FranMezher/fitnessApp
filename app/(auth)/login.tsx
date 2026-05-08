@@ -1,11 +1,55 @@
-import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { colors, glass } from '@/constants/colors';
 import { Btn } from '@/components/ui/Btn';
 import { Label } from '@/components/ui/Label';
+import { supabase } from '@/lib/supabase';
+import { useAuthStore } from '@/stores/useAuthStore';
 
 export default function LoginScreen() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const setSession = useAuthStore((s) => s.setSession);
+
+  async function handleEmailLogin() {
+    if (!email || !password) {
+      Alert.alert('Campos requeridos', 'Ingresá tu email y contraseña.');
+      return;
+    }
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      if (data.session) {
+        setSession(data.session.access_token, data.session.user.id, data.session.user.email ?? '');
+        router.replace('/(tabs)');
+      }
+    } catch (err: any) {
+      Alert.alert('Error al iniciar sesión', err.message ?? 'Intentá de nuevo.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleGoogleLogin() {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: 'fitcore://auth/callback' },
+    });
+    if (error) Alert.alert('Error', error.message);
+  }
+
+  async function handleAppleLogin() {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'apple',
+      options: { redirectTo: 'fitcore://auth/callback' },
+    });
+    if (error) Alert.alert('Error', error.message);
+  }
+
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
@@ -16,17 +60,19 @@ export default function LoginScreen() {
         </View>
 
         {/* Social login */}
-        {[
-          { icon: 'G', label: 'Continuar con Google' },
-          { icon: '🍎', label: 'Continuar con Apple' },
-        ].map((s) => (
-          <TouchableOpacity key={s.label} style={styles.socialBtn} activeOpacity={0.7}>
-            <View style={styles.socialIcon}>
-              <Text style={styles.socialIconText}>{s.icon}</Text>
-            </View>
-            <Text style={styles.socialLabel}>{s.label}</Text>
-          </TouchableOpacity>
-        ))}
+        <TouchableOpacity style={styles.socialBtn} activeOpacity={0.7} onPress={handleGoogleLogin}>
+          <View style={styles.socialIcon}>
+            <Text style={styles.socialIconText}>G</Text>
+          </View>
+          <Text style={styles.socialLabel}>Continuar con Google</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.socialBtn} activeOpacity={0.7} onPress={handleAppleLogin}>
+          <View style={styles.socialIcon}>
+            <Text style={styles.socialIconText}>🍎</Text>
+          </View>
+          <Text style={styles.socialLabel}>Continuar con Apple</Text>
+        </TouchableOpacity>
 
         {/* Divider */}
         <View style={styles.divider}>
@@ -44,6 +90,8 @@ export default function LoginScreen() {
           keyboardType="email-address"
           autoCapitalize="none"
           selectionColor={colors.neon}
+          value={email}
+          onChangeText={setEmail}
         />
 
         <Label>Contraseña</Label>
@@ -53,13 +101,17 @@ export default function LoginScreen() {
           placeholderTextColor={colors.dim}
           secureTextEntry
           selectionColor={colors.neon}
+          value={password}
+          onChangeText={setPassword}
         />
 
         <TouchableOpacity style={styles.forgotWrap}>
           <Text style={styles.forgotText}>¿Olvidaste tu contraseña?</Text>
         </TouchableOpacity>
 
-        <Btn onPress={() => router.replace('/(tabs)')}>Iniciar sesión</Btn>
+        <Btn onPress={handleEmailLogin}>
+          {loading ? 'Iniciando...' : 'Iniciar sesión'}
+        </Btn>
 
         <View style={styles.registerWrap}>
           <Text style={styles.registerText}>¿Sin cuenta? </Text>

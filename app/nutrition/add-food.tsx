@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity,
-  ScrollView, StyleSheet,
+  ScrollView, StyleSheet, Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -9,6 +9,7 @@ import { colors, glass, glassNeon } from '@/constants/colors';
 import { Btn } from '@/components/ui/Btn';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { Label } from '@/components/ui/Label';
+import { useNutritionStore } from '@/stores/useNutritionStore';
 
 const MEAL_LABELS: Record<string, string> = {
   breakfast: 'Desayuno',
@@ -26,6 +27,8 @@ export default function AddFoodScreen() {
 
   const [grams, setGrams] = useState('100');
   const [selectedServing, setSelectedServing] = useState('100g');
+  const [saving, setSaving] = useState(false);
+  const addFood = useNutritionStore((s) => s.addFood);
 
   const multiplier = parseFloat(grams || '0') / 100;
   const calc = (v: number) => Math.round(v * multiplier * 10) / 10;
@@ -38,10 +41,27 @@ export default function AddFoodScreen() {
   const dailyGoals = { calories: 1840, protein: 145, carbs: 200, fat: 55 };
   const pctOf = (v: number, goal: number) => Math.min(100, Math.round((v / goal) * 100));
 
-  function handleAdd() {
-    // In production: call api.addFoodLog(token, { date, mealType: params.meal, foodName: food.name, calories, ... })
+  async function handleAdd() {
+    setSaving(true);
+    try {
+      const today = new Date().toISOString().slice(0, 10);
+      await addFood({
+        userId: '',
+        date: today,
+        mealType: params.meal as 'breakfast' | 'lunch' | 'snack' | 'dinner',
+        foodName: food.name,
+        calories: Math.round(calories),
+        proteinG: protein,
+        carbsG: carbs,
+        fatG: fat,
+      });
+    } catch {
+      Alert.alert('Error', 'No se pudo guardar. Verificá tu conexión.');
+    } finally {
+      setSaving(false);
+    }
     router.back();
-    router.back(); // go back past search to nutrition tab
+    router.back();
   }
 
   return (
@@ -133,7 +153,7 @@ export default function AddFoodScreen() {
           <ImpactRow label="Grasas" value={fat} unit="g" goal={dailyGoals.fat} color={colors.orange} />
         </View>
 
-        <Btn onPress={handleAdd}>Añadir a {mealLabel}</Btn>
+        <Btn onPress={handleAdd}>{saving ? 'Guardando...' : `Añadir a ${mealLabel}`}</Btn>
       </ScrollView>
     </SafeAreaView>
   );
