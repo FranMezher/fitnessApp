@@ -30,7 +30,7 @@ ios/
 .env.*.local
 .dev.vars
 
-# Build outputs
+# Build outputs — drizzle generated migrations (but not seed files)
 backend/drizzle/
 
 # OS

@@ -11,9 +11,8 @@
   },
   "dependencies": {
     "hono": "^4.6.0",
-    "@hono/vercel": "^0.6.0",
     "@hono/zod-validator": "^0.4.1",
-    "@neondatabase/serverless": "^0.10.0",
+    "postgres": "^3.4.5",
     "drizzle-orm": "^0.36.0",
     "@supabase/supabase-js": "^2.45.0",
     "zod": "^3.23.0",
