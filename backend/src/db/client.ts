@@ -1,8 +1,13 @@
-import { drizzle } from 'drizzle-orm/postgres-js';
-import postgres from 'postgres';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { Pool } from 'pg';
 import * as schema from './schema';
 
-const client = postgres(process.env.POSTGRES_URL ?? process.env.DATABASE_URL!, { max: 1, ssl: 'require' });
-export const db = drizzle(client, { schema });
+const pool = new Pool({
+  connectionString: process.env.POSTGRES_URL ?? process.env.DATABASE_URL!,
+  ssl: { rejectUnauthorized: false },
+  max: 1,
+});
+
+export const db = drizzle(pool, { schema });
 
 export type DB = typeof db;
