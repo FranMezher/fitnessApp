@@ -7,7 +7,7 @@ import { workoutsRouter } from './routes/workouts.js';
 import { gamificationRouter } from './routes/gamification.js';
 import { aiRouter } from './routes/ai.js';
 
-const app = new Hono();
+const app = new Hono().basePath('/api');
 
 app.use('*', logger());
 app.use('*', cors({ origin: '*', allowHeaders: ['Authorization', 'Content-Type'] }));
