@@ -1,6 +1,6 @@
 import { eq } from 'drizzle-orm';
-import { db } from '../db/client';
-import { leagueEntries, userAchievements, achievements, streaks, foodLog, workoutSessions } from '../db/schema';
+import { db } from '../db/client.js';
+import { leagueEntries, userAchievements, achievements, streaks, foodLog, workoutSessions } from '../db/schema.js';
 
 export async function awardXp(userId: string, xp: number) {
   const weekStart = currentWeekMonday();
