@@ -1,8 +1,8 @@
 import { Hono } from 'hono';
 import { eq } from 'drizzle-orm';
-import { db } from '../db/client';
-import { streaks, userAchievements, achievements, leagueEntries } from '../db/schema';
-import { authMiddleware } from '../middleware/auth';
+import { db } from '../db/client.js';
+import { streaks, userAchievements, achievements, leagueEntries } from '../db/schema.js';
+import { authMiddleware } from '../middleware/auth.js';
 
 export const gamificationRouter = new Hono().use('*', authMiddleware);
 

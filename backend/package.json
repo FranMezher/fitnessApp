@@ -4,8 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "node --import tsx/esm src/server.ts",
-    "dev": "tsx watch src/server.ts",
+    "dev": "vercel dev",
     "deploy": "vercel deploy --prod",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",

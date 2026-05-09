@@ -2,10 +2,10 @@ import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import { eq, and } from 'drizzle-orm';
-import { db } from '../db/client';
-import { workoutSessions, sessionSets, streaks } from '../db/schema';
-import { authMiddleware } from '../middleware/auth';
-import { awardXp } from '../lib/gamification';
+import { db } from '../db/client.js';
+import { workoutSessions, sessionSets, streaks } from '../db/schema.js';
+import { authMiddleware } from '../middleware/auth.js';
+import { awardXp } from '../lib/gamification.js';
 
 export const workoutsRouter = new Hono().use('*', authMiddleware);
 

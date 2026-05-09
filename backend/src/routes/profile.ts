@@ -2,9 +2,9 @@ import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import { eq } from 'drizzle-orm';
-import { db } from '../db/client';
-import { profiles } from '../db/schema';
-import { authMiddleware } from '../middleware/auth';
+import { db } from '../db/client.js';
+import { profiles } from '../db/schema.js';
+import { authMiddleware } from '../middleware/auth.js';
 
 export const profileRouter = new Hono().use('*', authMiddleware);
 

@@ -2,9 +2,9 @@ import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import { eq, and } from 'drizzle-orm';
-import { db } from '../db/client';
-import { foodLog, pantryItems } from '../db/schema';
-import { authMiddleware } from '../middleware/auth';
+import { db } from '../db/client.js';
+import { foodLog, pantryItems } from '../db/schema.js';
+import { authMiddleware } from '../middleware/auth.js';
 
 export const nutritionRouter = new Hono().use('*', authMiddleware);
 

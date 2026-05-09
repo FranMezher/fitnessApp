@@ -1,11 +1,11 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
-import { profileRouter } from './routes/profile';
-import { nutritionRouter } from './routes/nutrition';
-import { workoutsRouter } from './routes/workouts';
-import { gamificationRouter } from './routes/gamification';
-import { aiRouter } from './routes/ai';
+import { profileRouter } from './routes/profile.js';
+import { nutritionRouter } from './routes/nutrition.js';
+import { workoutsRouter } from './routes/workouts.js';
+import { gamificationRouter } from './routes/gamification.js';
+import { aiRouter } from './routes/ai.js';
 
 const app = new Hono().basePath('/api');
 
