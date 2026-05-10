@@ -40,7 +40,10 @@ export default function RootLayout() {
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session) {
         setSession(session.access_token, session.user.id, session.user.email ?? '');
-        router.replace('/(tabs)');
+        // New users are routed by register.tsx → goal.tsx; skip auto-redirect
+        if (!useAuthStore.getState().isNewUser) {
+          router.replace('/(tabs)');
+        }
       } else {
         clearSession();
         router.replace('/(auth)/login');

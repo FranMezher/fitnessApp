@@ -6,6 +6,7 @@ import { nutritionRouter } from './routes/nutrition.js';
 import { workoutsRouter } from './routes/workouts.js';
 import { gamificationRouter } from './routes/gamification.js';
 import { aiRouter } from './routes/ai.js';
+import { groupsRouter } from './routes/groups.js';
 
 const app = new Hono().basePath('/api');
 
@@ -19,6 +20,7 @@ app.route('/nutrition',     nutritionRouter);
 app.route('/workouts',      workoutsRouter);
 app.route('/gamification',  gamificationRouter);
 app.route('/ai',            aiRouter);
+app.route('/groups',        groupsRouter);
 
 app.onError((err, c) => {
   console.error(err);

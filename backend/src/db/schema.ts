@@ -105,3 +105,18 @@ export const leagueEntries = pgTable('league_entries', {
   xpTotal:   integer('xp_total').notNull().default(0),
   rank:      integer('rank'),
 });
+
+// ─── Social Nutrition Groups ────────────────────────────────────────────────
+export const nutritionGroups = pgTable('nutrition_groups', {
+  id:        text('id').primaryKey(),
+  name:      text('name').notNull(),
+  code:      text('code').notNull().unique(),   // 6-char invite code
+  createdBy: text('created_by').notNull(),
+  createdAt: text('created_at').default(sql`now()`),
+});
+
+export const groupMembers = pgTable('group_members', {
+  groupId:  text('group_id').notNull(),
+  userId:   text('user_id').notNull(),
+  joinedAt: text('joined_at').default(sql`now()`),
+});

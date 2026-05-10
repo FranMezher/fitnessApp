@@ -62,6 +62,55 @@ Genera exactamente 3 recetas simples. Responde SOLO con este JSON:
   }
 });
 
+const receiptSchema = z.object({
+  imageBase64: z.string().min(1),
+  mediaType: z.enum(['image/jpeg', 'image/png', 'image/webp']).default('image/jpeg'),
+});
+
+// POST /ai/receipt — scan supermarket receipt and extract food items
+aiRouter.post('/receipt', zValidator('json', receiptSchema), async (c) => {
+  const { imageBase64, mediaType } = c.req.valid('json');
+  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
+  const message = await client.messages.create({
+    model: 'claude-sonnet-4-6',
+    max_tokens: 2048,
+    messages: [{
+      role: 'user',
+      content: [
+        {
+          type: 'image',
+          source: { type: 'base64', media_type: mediaType, data: imageBase64 },
+        },
+        {
+          type: 'text',
+          text: `Analizá este ticket de supermercado. Identificá todos los productos alimenticios (ignorá productos de limpieza, higiene, etc).
+Para cada alimento, estimá sus macros nutricionales basándote en valores estándar por 100g.
+Respondé SOLO con este JSON sin markdown:
+{
+  "items": [
+    {
+      "name": "string",
+      "kcalPer100g": number,
+      "proteinPer100g": number,
+      "carbsPer100g": number,
+      "fatPer100g": number
+    }
+  ]
+}`,
+        },
+      ],
+    }],
+  });
+
+  const text = message.content[0].type === 'text' ? message.content[0].text : '{}';
+  try {
+    return c.json(JSON.parse(text));
+  } catch {
+    return c.json({ error: 'Failed to parse AI response', raw: text }, 502);
+  }
+});
+
 const insightSchema = z.object({
   sessionData: z.object({
     durationMin:     z.number(),

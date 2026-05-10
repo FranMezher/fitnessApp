@@ -7,9 +7,10 @@ interface BtnProps {
   variant?: 'primary' | 'ghost' | 'orange';
   onPress?: () => void;
   style?: ViewStyle;
+  disabled?: boolean;
 }
 
-export function Btn({ children, variant = 'primary', onPress, style }: BtnProps) {
+export function Btn({ children, variant = 'primary', onPress, style, disabled }: BtnProps) {
   const variantStyle =
     variant === 'primary'
       ? styles.primary
@@ -28,7 +29,8 @@ export function Btn({ children, variant = 'primary', onPress, style }: BtnProps)
     <TouchableOpacity
       onPress={onPress}
       activeOpacity={0.8}
-      style={[styles.base, variantStyle, style]}
+      disabled={disabled}
+      style={[styles.base, variantStyle, style, disabled && { opacity: 0.4 }]}
     >
       <Text style={[styles.text, textStyle]}>{children}</Text>
     </TouchableOpacity>

@@ -1,9 +1,11 @@
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { colors, glass, glassNeon } from '@/constants/colors';
 import { Btn } from '@/components/ui/Btn';
+import { api } from '@/lib/api';
+import { useAuthStore } from '@/stores/useAuthStore';
 
 const GOALS = [
   { id: 'fat_loss', icon: '🔥', title: 'Perder grasa', sub: 'Déficit calórico inteligente' },
@@ -14,6 +16,26 @@ const GOALS = [
 
 export default function OnboardGoalScreen() {
   const [selected, setSelected] = useState('fat_loss');
+  const [loading, setLoading] = useState(false);
+  const { token, email, setIsNewUser } = useAuthStore();
+
+  async function handleContinue() {
+    setLoading(true);
+    try {
+      if (token) {
+        await api.upsertProfile(token, {
+          name: email?.split('@')[0] ?? 'Usuario',
+          goal: selected as 'fat_loss' | 'muscle' | 'performance' | 'wellness',
+        });
+      }
+    } catch {
+      // Non-blocking: profile save failure shouldn't block onboarding
+    } finally {
+      setIsNewUser(false);
+      setLoading(false);
+      router.replace('/(tabs)');
+    }
+  }
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -56,7 +78,7 @@ export default function OnboardGoalScreen() {
         })}
 
         <View style={styles.btnWrap}>
-          <Btn onPress={() => router.replace('/(tabs)')}>Continuar</Btn>
+          <Btn onPress={handleContinue}>{loading ? 'Guardando...' : 'Continuar'}</Btn>
         </View>
       </ScrollView>
     </SafeAreaView>

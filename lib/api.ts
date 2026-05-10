@@ -59,8 +59,12 @@ export const api = {
   getSessions: (token: string) =>
     request<{ sessions: WorkoutSession[] }>('/workouts/sessions', { token }),
 
-  startSession: (token: string) =>
-    request<{ id: string; startedAt: string }>('/workouts/sessions', { method: 'POST', token }),
+  startSession: (token: string, planId?: string) =>
+    request<{ id: string; startedAt: string }>('/workouts/sessions', {
+      method: 'POST',
+      token,
+      body: planId ? JSON.stringify({ planId }) : undefined,
+    }),
 
   finishSession: (token: string, id: string, data: FinishSessionData) =>
     request<{ ok: boolean; xpEarned: number }>(

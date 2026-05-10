@@ -1,185 +1,341 @@
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { useState } from 'react';
+import {
+  View, Text, TouchableOpacity, StyleSheet, Alert,
+  ScrollView, TextInput, ActivityIndicator,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
-import { colors } from '@/constants/colors';
+import * as ImagePicker from 'expo-image-picker';
+import { colors, glass, glassNeon } from '@/constants/colors';
 import { Btn } from '@/components/ui/Btn';
+import { useAuthStore } from '@/stores/useAuthStore';
+import { useNutritionStore } from '@/stores/useNutritionStore';
 
-// Real implementation: use expo-barcode-scanner or expo-camera with barcode scanning
-// then call an open food API (Open Food Facts) with the scanned EAN code
+interface DetectedItem {
+  name: string;
+  kcalPer100g: number;
+  proteinPer100g: number;
+  carbsPer100g: number;
+  fatPer100g: number;
+  grams: number;
+  selected: boolean;
+}
+
+const API_URL = process.env.EXPO_PUBLIC_API_URL ?? '';
 
 export default function ScannerScreen() {
-  const { meal } = useLocalSearchParams<{ meal: string }>();
+  const params = useLocalSearchParams<{ meal?: string; date?: string; mode?: string }>();
+  const [step, setStep] = useState<'idle' | 'loading' | 'review'>('idle');
+  const [items, setItems] = useState<DetectedItem[]>([]);
+  const { token } = useAuthStore();
+  const { addFood } = useNutritionStore();
 
-  function handleManualEntry() {
-    router.replace({ pathname: '/nutrition/search', params: { meal } });
+  async function pickAndScan() {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      const cam = await ImagePicker.requestCameraPermissionsAsync();
+      if (cam.status !== 'granted') {
+        Alert.alert('Permiso requerido', 'Necesitamos acceso a la cámara o galería.');
+        return;
+      }
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: 'images',
+      quality: 0.7,
+      base64: true,
+    });
+
+    if (result.canceled || !result.assets[0].base64) return;
+
+    setStep('loading');
+    try {
+      const res = await fetch(`${API_URL}/ai/receipt`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          imageBase64: result.assets[0].base64,
+          mediaType: 'image/jpeg',
+        }),
+      });
+
+      if (!res.ok) throw new Error('Error al analizar el ticket');
+      const data = await res.json();
+
+      if (!data.items?.length) {
+        Alert.alert('Sin resultados', 'No se detectaron alimentos en la imagen. Intentá con mejor iluminación.');
+        setStep('idle');
+        return;
+      }
+
+      setItems(data.items.map((i: any) => ({ ...i, grams: 100, selected: true })));
+      setStep('review');
+    } catch (err: any) {
+      Alert.alert('Error', err.message ?? 'No se pudo analizar el ticket.');
+      setStep('idle');
+    }
   }
 
+  async function pickFromGallery() {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: 'images',
+      quality: 0.7,
+      base64: true,
+    });
+
+    if (result.canceled || !result.assets[0].base64) return;
+
+    setStep('loading');
+    try {
+      const res = await fetch(`${API_URL}/ai/receipt`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          imageBase64: result.assets[0].base64,
+          mediaType: 'image/jpeg',
+        }),
+      });
+
+      if (!res.ok) throw new Error('Error al analizar el ticket');
+      const data = await res.json();
+
+      if (!data.items?.length) {
+        Alert.alert('Sin resultados', 'No se detectaron alimentos en la imagen.');
+        setStep('idle');
+        return;
+      }
+
+      setItems(data.items.map((i: any) => ({ ...i, grams: 100, selected: true })));
+      setStep('review');
+    } catch (err: any) {
+      Alert.alert('Error', err.message ?? 'No se pudo analizar el ticket.');
+      setStep('idle');
+    }
+  }
+
+  function toggleItem(idx: number) {
+    setItems((prev) => prev.map((it, i) => i === idx ? { ...it, selected: !it.selected } : it));
+  }
+
+  function updateGrams(idx: number, val: string) {
+    const g = parseFloat(val) || 100;
+    setItems((prev) => prev.map((it, i) => i === idx ? { ...it, grams: g } : it));
+  }
+
+  async function addSelected() {
+    const today = params.date ?? new Date().toISOString().slice(0, 10);
+    const mealType = (params.meal ?? 'lunch') as 'breakfast' | 'lunch' | 'snack' | 'dinner';
+    const selected = items.filter((i) => i.selected);
+
+    for (const item of selected) {
+      const ratio = item.grams / 100;
+      await addFood({
+        date: today,
+        mealType,
+        foodName: item.name,
+        calories: Math.round(item.kcalPer100g * ratio),
+        proteinG: +(item.proteinPer100g * ratio).toFixed(1),
+        carbsG:   +(item.carbsPer100g * ratio).toFixed(1),
+        fatG:     +(item.fatPer100g * ratio).toFixed(1),
+      });
+    }
+
+    Alert.alert('Listo', `${selected.length} alimento${selected.length !== 1 ? 's' : ''} agregado${selected.length !== 1 ? 's' : ''} al log.`, [
+      { text: 'OK', onPress: () => router.back() },
+    ]);
+  }
+
+  if (step === 'loading') {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <View style={styles.center}>
+          <ActivityIndicator color={colors.neon} size="large" />
+          <Text style={styles.loadingText}>Analizando ticket con IA...</Text>
+          <Text style={styles.loadingSub}>Esto puede tomar unos segundos</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (step === 'review') {
+    const selectedCount = items.filter((i) => i.selected).length;
+    return (
+      <SafeAreaView style={styles.safe}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => setStep('idle')}>
+            <Text style={styles.backText}>←</Text>
+          </TouchableOpacity>
+          <Text style={styles.title}>Alimentos detectados</Text>
+          <Text style={styles.countBadge}>{selectedCount} sel.</Text>
+        </View>
+
+        <ScrollView contentContainerStyle={styles.reviewList}>
+          <Text style={styles.reviewHint}>Seleccioná los alimentos y ajustá las cantidades.</Text>
+
+          {items.map((item, idx) => (
+            <TouchableOpacity
+              key={idx}
+              style={[glass, styles.reviewItem, !item.selected && styles.reviewItemDim]}
+              onPress={() => toggleItem(idx)}
+              activeOpacity={0.8}
+            >
+              <View style={styles.reviewCheck}>
+                <Text style={[styles.checkBox, item.selected && styles.checkBoxActive]}>
+                  {item.selected ? '✓' : '○'}
+                </Text>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.reviewName}>{item.name}</Text>
+                <Text style={styles.reviewMacros}>
+                  {item.kcalPer100g} kcal · P{item.proteinPer100g}g · C{item.carbsPer100g}g · G{item.fatPer100g}g /100g
+                </Text>
+              </View>
+              <View style={styles.gramsWrap}>
+                <TextInput
+                  style={styles.gramsInput}
+                  value={String(item.grams)}
+                  onChangeText={(v) => updateGrams(idx, v)}
+                  keyboardType="numeric"
+                  selectTextOnFocus
+                />
+                <Text style={styles.gramsLabel}>g</Text>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
+        <View style={styles.addBtnWrap}>
+          <Btn onPress={addSelected} disabled={selectedCount === 0}>
+            Agregar {selectedCount > 0 ? `${selectedCount} alimento${selectedCount !== 1 ? 's' : ''}` : 'seleccionados'}
+          </Btn>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // idle
   return (
     <SafeAreaView style={styles.safe}>
-      {/* Fake camera viewfinder */}
-      <View style={styles.viewfinder}>
-        {/* Corner markers */}
-        <View style={[styles.corner, styles.cornerTL]} />
-        <View style={[styles.corner, styles.cornerTR]} />
-        <View style={[styles.corner, styles.cornerBL]} />
-        <View style={[styles.corner, styles.cornerBR]} />
-
-        {/* Scan line animation placeholder */}
-        <View style={styles.scanLine} />
-
-        <Text style={styles.cameraPlaceholder}>[ Cámara activa ]</Text>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()}>
+          <Text style={styles.backText}>←</Text>
+        </TouchableOpacity>
+        <Text style={styles.title}>Escanear</Text>
+        <View style={{ width: 40 }} />
       </View>
 
-      {/* Overlay UI */}
-      <View style={styles.overlay}>
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.closeBtn}>
-            <Text style={styles.closeText}>✕</Text>
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Escanear código</Text>
-          <View style={{ width: 36 }} />
+      <View style={styles.idleContent}>
+        <View style={styles.heroIcon}>
+          <Text style={styles.heroEmoji}>🧾</Text>
         </View>
+        <Text style={styles.heroTitle}>Escanear ticket de supermercado</Text>
+        <Text style={styles.heroSub}>
+          La IA detecta los alimentos del ticket y estima sus macros automáticamente.
+        </Text>
 
-        <View style={styles.bottom}>
-          <View style={styles.instructionCard}>
-            <Text style={styles.instructionIcon}>▣</Text>
-            <Text style={styles.instructionText}>
-              Apunta la cámara al código de barras del producto
-            </Text>
-          </View>
+        <TouchableOpacity style={[glassNeon, styles.primaryBtn]} onPress={pickAndScan} activeOpacity={0.8}>
+          <Text style={styles.primaryBtnIcon}>📷</Text>
+          <Text style={styles.primaryBtnText}>Fotografiar ticket</Text>
+        </TouchableOpacity>
 
-          <View style={styles.divider}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>o</Text>
-            <View style={styles.dividerLine} />
-          </View>
+        <TouchableOpacity style={[glass, styles.secondaryBtn]} onPress={pickFromGallery} activeOpacity={0.8}>
+          <Text style={styles.secondaryBtnText}>Elegir de galería</Text>
+        </TouchableOpacity>
 
-          <Btn variant="ghost" onPress={handleManualEntry}>
-            Buscar manualmente
-          </Btn>
-
-          <Text style={styles.hint}>
-            Compatible con EAN-13 · EAN-8 · UPC-A
-          </Text>
-        </View>
+        <TouchableOpacity
+          style={styles.searchLink}
+          onPress={() => router.push({ pathname: '/nutrition/search', params: { meal: params.meal, date: params.date } })}
+        >
+          <Text style={styles.searchLinkText}>Buscar alimento manualmente →</Text>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: '#000',
-  },
-  viewfinder: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#0a0a0a',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  corner: {
-    position: 'absolute',
-    width: 28,
-    height: 28,
-    borderColor: colors.neon,
-    borderWidth: 3,
-  },
-  cornerTL: { top: '35%', left: '15%', borderRightWidth: 0, borderBottomWidth: 0, borderTopLeftRadius: 4 },
-  cornerTR: { top: '35%', right: '15%', borderLeftWidth: 0, borderBottomWidth: 0, borderTopRightRadius: 4 },
-  cornerBL: { bottom: '45%', left: '15%', borderRightWidth: 0, borderTopWidth: 0, borderBottomLeftRadius: 4 },
-  cornerBR: { bottom: '45%', right: '15%', borderLeftWidth: 0, borderTopWidth: 0, borderBottomRightRadius: 4 },
-  scanLine: {
-    position: 'absolute',
-    top: '50%',
-    left: '15%',
-    right: '15%',
-    height: 2,
-    backgroundColor: `${colors.neon}88`,
-  },
-  cameraPlaceholder: {
-    color: '#333',
-    fontSize: 13,
-    fontFamily: 'SpaceGrotesk_400Regular',
-  },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    justifyContent: 'space-between',
-  },
+  safe: { flex: 1, backgroundColor: colors.bg },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 20,
-    paddingTop: 16,
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 8,
+    gap: 10,
   },
-  closeBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  closeText: {
-    color: '#fff',
-    fontSize: 16,
-  },
-  headerTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#fff',
-    fontFamily: 'SpaceGrotesk_700Bold',
-  },
-  bottom: {
-    backgroundColor: colors.bg,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 24,
-    gap: 14,
-  },
-  instructionCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    backgroundColor: 'rgba(204,255,0,0.06)',
+  backText: { fontSize: 22, color: colors.text, width: 40 },
+  title: { flex: 1, fontSize: 18, fontWeight: '700', color: colors.text, fontFamily: 'SpaceGrotesk_700Bold', textAlign: 'center' },
+  countBadge: { fontSize: 13, color: colors.neon, fontFamily: 'SpaceGrotesk_600SemiBold', width: 40, textAlign: 'right' },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12 },
+  loadingText: { fontSize: 16, fontWeight: '700', color: colors.text, fontFamily: 'SpaceGrotesk_700Bold' },
+  loadingSub: { fontSize: 13, color: colors.muted, fontFamily: 'SpaceGrotesk_400Regular' },
+  idleContent: { flex: 1, padding: 24, alignItems: 'center', justifyContent: 'center', gap: 16 },
+  heroIcon: {
+    width: 100,
+    height: 100,
+    borderRadius: 24,
+    backgroundColor: 'rgba(204,255,0,0.07)',
     borderWidth: 1,
     borderColor: colors.borderAccent,
-    borderRadius: 12,
-    padding: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
   },
-  instructionIcon: {
-    fontSize: 24,
-    color: colors.neon,
-  },
-  instructionText: {
-    flex: 1,
-    fontSize: 14,
-    color: colors.text,
-    fontFamily: 'SpaceGrotesk_400Regular',
-    lineHeight: 20,
-  },
-  divider: {
+  heroEmoji: { fontSize: 48 },
+  heroTitle: { fontSize: 20, fontWeight: '700', color: colors.text, fontFamily: 'SpaceGrotesk_700Bold', textAlign: 'center' },
+  heroSub: { fontSize: 13, color: colors.muted, fontFamily: 'SpaceGrotesk_400Regular', textAlign: 'center', lineHeight: 20 },
+  primaryBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
+    paddingVertical: 14,
+    paddingHorizontal: 28,
+    borderRadius: 14,
+    marginTop: 8,
+    alignSelf: 'stretch',
+    justifyContent: 'center',
   },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: colors.border,
+  primaryBtnIcon: { fontSize: 20 },
+  primaryBtnText: { fontSize: 16, fontWeight: '700', color: colors.neon, fontFamily: 'SpaceGrotesk_700Bold' },
+  secondaryBtn: {
+    paddingVertical: 12,
+    paddingHorizontal: 28,
+    borderRadius: 14,
+    alignSelf: 'stretch',
+    alignItems: 'center',
   },
-  dividerText: {
-    fontSize: 13,
-    color: colors.dim,
-    fontFamily: 'SpaceGrotesk_400Regular',
-  },
-  hint: {
+  secondaryBtnText: { fontSize: 15, color: colors.text, fontFamily: 'SpaceGrotesk_600SemiBold' },
+  searchLink: { marginTop: 8 },
+  searchLinkText: { fontSize: 13, color: colors.muted, fontFamily: 'SpaceGrotesk_400Regular' },
+  reviewList: { padding: 16, gap: 8, paddingBottom: 120 },
+  reviewHint: { fontSize: 13, color: colors.muted, fontFamily: 'SpaceGrotesk_400Regular', marginBottom: 4 },
+  reviewItem: { padding: 12, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  reviewItemDim: { opacity: 0.45 },
+  reviewCheck: { width: 24 },
+  checkBox: { fontSize: 18, color: colors.dim },
+  checkBoxActive: { color: colors.neon },
+  reviewName: { fontSize: 14, fontWeight: '700', color: colors.text, fontFamily: 'SpaceGrotesk_700Bold', marginBottom: 2 },
+  reviewMacros: { fontSize: 11, color: colors.dim, fontFamily: 'SpaceGrotesk_400Regular' },
+  gramsWrap: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  gramsInput: {
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    color: colors.text,
+    fontSize: 14,
+    fontFamily: 'SpaceGrotesk_600SemiBold',
+    width: 52,
     textAlign: 'center',
-    fontSize: 11,
-    color: colors.dim,
-    fontFamily: 'SpaceGrotesk_400Regular',
-    letterSpacing: 0.5,
   },
+  gramsLabel: { fontSize: 12, color: colors.muted, fontFamily: 'SpaceGrotesk_400Regular' },
+  addBtnWrap: { padding: 16, paddingBottom: 24 },
 });

@@ -120,7 +120,6 @@ const styles = StyleSheet.create({
     fontFamily: 'SpaceGrotesk_700Bold',
   },
   levelCard: {
-    background: 'linear-gradient(135deg, rgba(204,255,0,0.08), rgba(204,255,0,0.03))',
     backgroundColor: 'rgba(204,255,0,0.06)',
     borderWidth: 1,
     borderColor: colors.borderAccent,

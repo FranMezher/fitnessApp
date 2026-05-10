@@ -46,7 +46,6 @@ export default function AddFoodScreen() {
     try {
       const today = new Date().toISOString().slice(0, 10);
       await addFood({
-        userId: '',
         date: today,
         mealType: params.meal as 'breakfast' | 'lunch' | 'snack' | 'dinner',
         foodName: food.name,
