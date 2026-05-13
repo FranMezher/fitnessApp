@@ -1,21 +1,14 @@
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import Anthropic from '@anthropic-ai/sdk';
 import { authMiddleware } from '../middleware/auth.js';
 
 export const aiRouter = new Hono().use('*', authMiddleware);
 
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY!);
+const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-// Para endpoints que devuelven JSON estructurado
-const model = genAI.getGenerativeModel({
-  model: 'gemini-2.0-flash-lite',
-  generationConfig: { responseMimeType: 'application/json' },
-});
-
-// Para endpoints que devuelven texto libre (insight)
-const textModel = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-lite' });
+const MODEL = 'claude-haiku-4-5-20251001'; // más económico, ideal para extracción de datos
 
 function cleanBase64(raw: string): string {
   return raw.replace(/^data:image\/\w+;base64,/, '');
@@ -26,10 +19,10 @@ async function withRetry<T>(fn: () => Promise<T>, maxAttempts = 3): Promise<T> {
     try {
       return await fn();
     } catch (err: any) {
-      const is429 = err?.status === 429 || err?.message?.includes('429') || err?.message?.includes('quota');
+      const is429 = err?.status === 429 || err?.message?.includes('429') || err?.message?.includes('overloaded');
       if (is429 && attempt < maxAttempts) {
-        const delay = 1000 * 2 ** (attempt - 1); // 1s, 2s, 4s
-        console.warn(`Gemini 429 — intento ${attempt}/${maxAttempts}, reintento en ${delay}ms`);
+        const delay = 1000 * 2 ** (attempt - 1);
+        console.warn(`Claude 429 — intento ${attempt}/${maxAttempts}, reintento en ${delay}ms`);
         await new Promise((r) => setTimeout(r, delay));
       } else {
         throw err;
@@ -37,6 +30,34 @@ async function withRetry<T>(fn: () => Promise<T>, maxAttempts = 3): Promise<T> {
     }
   }
   throw new Error('unreachable');
+}
+
+async function generateJSON(prompt: string): Promise<string> {
+  const msg = await withRetry(() =>
+    anthropic.messages.create({
+      model: MODEL,
+      max_tokens: 1024,
+      messages: [{ role: 'user', content: prompt }],
+    })
+  );
+  return (msg.content[0] as { type: 'text'; text: string }).text;
+}
+
+async function generateWithImage(prompt: string, imageBase64: string, mediaType: 'image/jpeg' | 'image/png' | 'image/webp'): Promise<string> {
+  const msg = await withRetry(() =>
+    anthropic.messages.create({
+      model: MODEL,
+      max_tokens: 1024,
+      messages: [{
+        role: 'user',
+        content: [
+          { type: 'image', source: { type: 'base64', media_type: mediaType, data: cleanBase64(imageBase64) } },
+          { type: 'text', text: prompt },
+        ],
+      }],
+    })
+  );
+  return (msg.content[0] as { type: 'text'; text: string }).text;
 }
 
 const pantrySchema = z.object({
@@ -58,7 +79,6 @@ const pantrySchema = z.object({
 // POST /ai/recipes — Pantry mode
 aiRouter.post('/recipes', zValidator('json', pantrySchema), async (c) => {
   const { ingredients, remainingMacros } = c.req.valid('json');
-
   const ingredientList = ingredients.map((i) => `${i.name} (${i.quantity})`).join(', ');
 
   const prompt = `Eres un nutricionista experto. Responde SIEMPRE en JSON válido, sin markdown.
@@ -79,12 +99,11 @@ Genera exactamente 3 recetas simples. Responde SOLO con este JSON:
   ]
 }`;
 
-  const result = await withRetry(() => model.generateContent(prompt));
-  const text = result.response.text();
+  const raw = await generateJSON(prompt);
   try {
-    return c.json(JSON.parse(text));
+    return c.json(JSON.parse(raw));
   } catch {
-    return c.json({ error: 'Failed to parse AI response', raw: text }, 502);
+    return c.json({ error: 'Failed to parse AI response', raw }, 502);
   }
 });
 
@@ -97,9 +116,9 @@ const receiptSchema = z.object({
 aiRouter.post('/receipt', zValidator('json', receiptSchema), async (c) => {
   const { imageBase64, mediaType } = c.req.valid('json');
 
-  const promptText = `Analizá este ticket de supermercado. Identificá todos los productos alimenticios (ignorá productos de limpieza, higiene, etc).
+  const prompt = `Analizá este ticket de supermercado. Identificá todos los productos alimenticios (ignorá productos de limpieza, higiene, etc).
 Para cada alimento, estimá sus macros nutricionales basándote en valores estándar por 100g.
-Respondé con este JSON:
+Respondé SOLO con este JSON sin markdown:
 {
   "items": [
     {
@@ -112,15 +131,11 @@ Respondé con este JSON:
   ]
 }`;
 
-  const result = await withRetry(() => model.generateContent([
-    { inlineData: { data: cleanBase64(imageBase64), mimeType: mediaType } },
-    promptText,
-  ]));
-  const text = result.response.text();
+  const raw = await generateWithImage(prompt, imageBase64, mediaType);
   try {
-    return c.json(JSON.parse(text));
+    return c.json(JSON.parse(raw));
   } catch {
-    return c.json({ error: 'Failed to parse AI response', raw: text }, 502);
+    return c.json({ error: 'Failed to parse AI response', raw }, 502);
   }
 });
 
@@ -150,8 +165,7 @@ Respondé SOLO con este JSON:
 }
 Estimá los valores para la cantidad mencionada. Si no se menciona cantidad, asumí una porción estándar.`;
 
-  const result = await withRetry(() => model.generateContent(prompt));
-  const raw = result.response.text();
+  const raw = await generateJSON(prompt);
   try {
     return c.json(JSON.parse(raw));
   } catch {
@@ -168,7 +182,7 @@ const analyzeFoodPhotoSchema = z.object({
 aiRouter.post('/analyze-food-photo', zValidator('json', analyzeFoodPhotoSchema), async (c) => {
   const { imageBase64, mediaType } = c.req.valid('json');
 
-  const promptText = `Identificá los alimentos en esta foto y estimá sus valores nutricionales.
+  const prompt = `Identificá los alimentos en esta foto y estimá sus valores nutricionales.
 Respondé SOLO con este JSON sin markdown:
 {
   "entries": [
@@ -183,11 +197,7 @@ Respondé SOLO con este JSON sin markdown:
 }
 Estimá las cantidades visualmente. Si hay un plato completo, describilo como un ítem.`;
 
-  const result = await withRetry(() => model.generateContent([
-    { inlineData: { data: cleanBase64(imageBase64), mimeType: mediaType } },
-    promptText,
-  ]));
-  const raw = result.response.text();
+  const raw = await generateWithImage(prompt, imageBase64, mediaType);
   try {
     return c.json(JSON.parse(raw));
   } catch {
@@ -215,7 +225,6 @@ aiRouter.post('/insight', zValidator('json', insightSchema), async (c) => {
 
   const prompt = `Sesión de hoy: ${sessionData.durationMin} min, ${sessionData.caloriesBurned} kcal, precisión de forma ${sessionData.formAccuracyPct}%, ${sessionData.exercisesDone} ejercicios. Esta semana: ${weekStats.sessionsCount} sesiones, ${weekStats.avgFormPct}% precisión media. Dame un insight motivacional y un tip de mejora en 2-3 frases, en español, tono enérgico.`;
 
-  const result = await withRetry(() => textModel.generateContent(prompt));
-  const insight = result.response.text();
-  return c.json({ insight });
+  const raw = await generateJSON(prompt);
+  return c.json({ insight: raw });
 });
