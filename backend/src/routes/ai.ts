@@ -10,12 +10,12 @@ const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY!);
 
 // Para endpoints que devuelven JSON estructurado
 const model = genAI.getGenerativeModel({
-  model: 'gemini-2.0-flash',
+  model: 'gemini-2.5-flash-lite-preview-06-17',
   generationConfig: { responseMimeType: 'application/json' },
 });
 
 // Para endpoints que devuelven texto libre (insight)
-const textModel = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+const textModel = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite-preview-06-17' });
 
 function cleanBase64(raw: string): string {
   return raw.replace(/^data:image\/\w+;base64,/, '');
