@@ -33,31 +33,41 @@ async function withRetry<T>(fn: () => Promise<T>, maxAttempts = 3): Promise<T> {
 }
 
 async function generateJSON(prompt: string): Promise<string> {
-  const msg = await withRetry(() =>
-    anthropic.messages.create({
-      model: MODEL,
-      max_tokens: 1024,
-      messages: [{ role: 'user', content: prompt }],
-    })
-  );
-  return (msg.content[0] as { type: 'text'; text: string }).text;
+  try {
+    const msg = await withRetry(() =>
+      anthropic.messages.create({
+        model: MODEL,
+        max_tokens: 1024,
+        messages: [{ role: 'user', content: prompt }],
+      })
+    );
+    return (msg.content[0] as { type: 'text'; text: string }).text;
+  } catch (err: any) {
+    console.error('[AI] generateJSON error:', err?.status, err?.message, err?.error);
+    throw err;
+  }
 }
 
 async function generateWithImage(prompt: string, imageBase64: string, mediaType: 'image/jpeg' | 'image/png' | 'image/webp'): Promise<string> {
-  const msg = await withRetry(() =>
-    anthropic.messages.create({
-      model: MODEL,
-      max_tokens: 1024,
-      messages: [{
-        role: 'user',
-        content: [
-          { type: 'image', source: { type: 'base64', media_type: mediaType, data: cleanBase64(imageBase64) } },
-          { type: 'text', text: prompt },
-        ],
-      }],
-    })
-  );
-  return (msg.content[0] as { type: 'text'; text: string }).text;
+  try {
+    const msg = await withRetry(() =>
+      anthropic.messages.create({
+        model: MODEL,
+        max_tokens: 1024,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'image', source: { type: 'base64', media_type: mediaType, data: cleanBase64(imageBase64) } },
+            { type: 'text', text: prompt },
+          ],
+        }],
+      })
+    );
+    return (msg.content[0] as { type: 'text'; text: string }).text;
+  } catch (err: any) {
+    console.error('[AI] generateWithImage error:', err?.status, err?.message, err?.error);
+    throw err;
+  }
 }
 
 const pantrySchema = z.object({
@@ -99,11 +109,12 @@ Genera exactamente 3 recetas simples. Responde SOLO con este JSON:
   ]
 }`;
 
-  const raw = await generateJSON(prompt);
   try {
+    const raw = await generateJSON(prompt);
     return c.json(JSON.parse(raw));
-  } catch {
-    return c.json({ error: 'Failed to parse AI response', raw }, 502);
+  } catch (err: any) {
+    console.error('[/ai/recipes]', err?.status, err?.message);
+    return c.json({ error: err?.message ?? 'AI error', status: err?.status }, 502);
   }
 });
 
@@ -131,11 +142,12 @@ Respondé SOLO con este JSON sin markdown:
   ]
 }`;
 
-  const raw = await generateWithImage(prompt, imageBase64, mediaType);
   try {
+    const raw = await generateWithImage(prompt, imageBase64, mediaType);
     return c.json(JSON.parse(raw));
-  } catch {
-    return c.json({ error: 'Failed to parse AI response', raw }, 502);
+  } catch (err: any) {
+    console.error('[/ai/receipt]', err?.status, err?.message);
+    return c.json({ error: err?.message ?? 'AI error', status: err?.status }, 502);
   }
 });
 
@@ -165,11 +177,12 @@ Respondé SOLO con este JSON:
 }
 Estimá los valores para la cantidad mencionada. Si no se menciona cantidad, asumí una porción estándar.`;
 
-  const raw = await generateJSON(prompt);
   try {
+    const raw = await generateJSON(prompt);
     return c.json(JSON.parse(raw));
-  } catch {
-    return c.json({ error: 'Failed to parse AI response', raw }, 502);
+  } catch (err: any) {
+    console.error('[/ai/parse-food]', err?.status, err?.message);
+    return c.json({ error: err?.message ?? 'AI error', status: err?.status }, 502);
   }
 });
 
@@ -197,11 +210,12 @@ Respondé SOLO con este JSON sin markdown:
 }
 Estimá las cantidades visualmente. Si hay un plato completo, describilo como un ítem.`;
 
-  const raw = await generateWithImage(prompt, imageBase64, mediaType);
   try {
+    const raw = await generateWithImage(prompt, imageBase64, mediaType);
     return c.json(JSON.parse(raw));
-  } catch {
-    return c.json({ error: 'Failed to parse AI response', raw }, 502);
+  } catch (err: any) {
+    console.error('[/ai/analyze-food-photo]', err?.status, err?.message);
+    return c.json({ error: err?.message ?? 'AI error', status: err?.status }, 502);
   }
 });
 
@@ -225,6 +239,11 @@ aiRouter.post('/insight', zValidator('json', insightSchema), async (c) => {
 
   const prompt = `Sesión de hoy: ${sessionData.durationMin} min, ${sessionData.caloriesBurned} kcal, precisión de forma ${sessionData.formAccuracyPct}%, ${sessionData.exercisesDone} ejercicios. Esta semana: ${weekStats.sessionsCount} sesiones, ${weekStats.avgFormPct}% precisión media. Dame un insight motivacional y un tip de mejora en 2-3 frases, en español, tono enérgico.`;
 
-  const raw = await generateJSON(prompt);
-  return c.json({ insight: raw });
+  try {
+    const raw = await generateJSON(prompt);
+    return c.json({ insight: raw });
+  } catch (err: any) {
+    console.error('[/ai/insight]', err?.status, err?.message);
+    return c.json({ error: err?.message ?? 'AI error', status: err?.status }, 502);
+  }
 });
