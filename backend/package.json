@@ -11,14 +11,14 @@
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
-    "hono": "^4.6.0",
+    "@google/generative-ai": "^0.24.1",
     "@hono/node-server": "^1.13.0",
     "@hono/zod-validator": "^0.4.1",
-    "pg": "^8.13.0",
-    "drizzle-orm": "^0.36.0",
     "@supabase/supabase-js": "^2.45.0",
-    "zod": "^3.23.0",
-    "@anthropic-ai/sdk": "^0.32.0"
+    "drizzle-orm": "^0.36.0",
+    "hono": "^4.6.0",
+    "pg": "^8.13.0",
+    "zod": "^3.23.0"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

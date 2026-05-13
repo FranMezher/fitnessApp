@@ -1,10 +1,25 @@
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
-import Anthropic from '@anthropic-ai/sdk';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import { authMiddleware } from '../middleware/auth.js';
 
 export const aiRouter = new Hono().use('*', authMiddleware);
+
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY!);
+
+// Para endpoints que devuelven JSON estructurado
+const model = genAI.getGenerativeModel({
+  model: 'gemini-2.0-flash',
+  generationConfig: { responseMimeType: 'application/json' },
+});
+
+// Para endpoints que devuelven texto libre (insight)
+const textModel = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+
+function cleanBase64(raw: string): string {
+  return raw.replace(/^data:image\/\w+;base64,/, '');
+}
 
 const pantrySchema = z.object({
   ingredients: z.array(z.object({
@@ -25,17 +40,11 @@ const pantrySchema = z.object({
 // POST /ai/recipes — Pantry mode
 aiRouter.post('/recipes', zValidator('json', pantrySchema), async (c) => {
   const { ingredients, remainingMacros } = c.req.valid('json');
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
   const ingredientList = ingredients.map((i) => `${i.name} (${i.quantity})`).join(', ');
 
-  const message = await client.messages.create({
-    model: 'claude-sonnet-4-6',
-    max_tokens: 1024,
-    system: 'Eres un nutricionista experto. Responde SIEMPRE en JSON válido, sin markdown.',
-    messages: [{
-      role: 'user',
-      content: `Tengo estos ingredientes: ${ingredientList}.
+  const prompt = `Eres un nutricionista experto. Responde SIEMPRE en JSON válido, sin markdown.
+Tengo estos ingredientes: ${ingredientList}.
 Mi objetivo nutricional restante hoy: ${remainingMacros.calories} kcal, ${remainingMacros.proteinG}g proteína, ${remainingMacros.carbsG}g carbos, ${remainingMacros.fatG}g grasas.
 Genera exactamente 3 recetas simples. Responde SOLO con este JSON:
 {
@@ -50,11 +59,10 @@ Genera exactamente 3 recetas simples. Responde SOLO con este JSON:
       "fatG": number
     }
   ]
-}`,
-    }],
-  });
+}`;
 
-  const text = message.content[0].type === 'text' ? message.content[0].text : '{}';
+  const result = await model.generateContent(prompt);
+  const text = result.response.text();
   try {
     return c.json(JSON.parse(text));
   } catch {
@@ -70,23 +78,10 @@ const receiptSchema = z.object({
 // POST /ai/receipt — scan supermarket receipt and extract food items
 aiRouter.post('/receipt', zValidator('json', receiptSchema), async (c) => {
   const { imageBase64, mediaType } = c.req.valid('json');
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-  const message = await client.messages.create({
-    model: 'claude-sonnet-4-6',
-    max_tokens: 2048,
-    messages: [{
-      role: 'user',
-      content: [
-        {
-          type: 'image',
-          source: { type: 'base64', media_type: mediaType, data: imageBase64 },
-        },
-        {
-          type: 'text',
-          text: `Analizá este ticket de supermercado. Identificá todos los productos alimenticios (ignorá productos de limpieza, higiene, etc).
+  const promptText = `Analizá este ticket de supermercado. Identificá todos los productos alimenticios (ignorá productos de limpieza, higiene, etc).
 Para cada alimento, estimá sus macros nutricionales basándote en valores estándar por 100g.
-Respondé SOLO con este JSON sin markdown:
+Respondé con este JSON:
 {
   "items": [
     {
@@ -97,13 +92,13 @@ Respondé SOLO con este JSON sin markdown:
       "fatPer100g": number
     }
   ]
-}`,
-        },
-      ],
-    }],
-  });
+}`;
 
-  const text = message.content[0].type === 'text' ? message.content[0].text : '{}';
+  const result = await model.generateContent([
+    { inlineData: { data: cleanBase64(imageBase64), mimeType: mediaType } },
+    promptText,
+  ]);
+  const text = result.response.text();
   try {
     return c.json(JSON.parse(text));
   } catch {
@@ -118,15 +113,9 @@ const parseFoodSchema = z.object({
 // POST /ai/parse-food — natural language food description → FoodLogEntry[]
 aiRouter.post('/parse-food', zValidator('json', parseFoodSchema), async (c) => {
   const { text } = c.req.valid('json');
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-  const message = await client.messages.create({
-    model: 'claude-sonnet-4-6',
-    max_tokens: 1024,
-    system: 'Eres un nutricionista experto. Responde SIEMPRE en JSON válido, sin markdown ni texto extra.',
-    messages: [{
-      role: 'user',
-      content: `Analizá esta descripción de comida y extraé los alimentos con sus valores nutricionales estimados.
+  const prompt = `Eres un nutricionista experto. Responde SIEMPRE en JSON válido, sin markdown ni texto extra.
+Analizá esta descripción de comida y extraé los alimentos con sus valores nutricionales estimados.
 Descripción: "${text}"
 
 Respondé SOLO con este JSON:
@@ -141,11 +130,10 @@ Respondé SOLO con este JSON:
     }
   ]
 }
-Estimá los valores para la cantidad mencionada. Si no se menciona cantidad, asumí una porción estándar.`,
-    }],
-  });
+Estimá los valores para la cantidad mencionada. Si no se menciona cantidad, asumí una porción estándar.`;
 
-  const raw = message.content[0].type === 'text' ? message.content[0].text : '{}';
+  const result = await model.generateContent(prompt);
+  const raw = result.response.text();
   try {
     return c.json(JSON.parse(raw));
   } catch {
@@ -161,21 +149,8 @@ const analyzeFoodPhotoSchema = z.object({
 // POST /ai/analyze-food-photo — food photo → FoodLogEntry[]
 aiRouter.post('/analyze-food-photo', zValidator('json', analyzeFoodPhotoSchema), async (c) => {
   const { imageBase64, mediaType } = c.req.valid('json');
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-  const message = await client.messages.create({
-    model: 'claude-sonnet-4-6',
-    max_tokens: 1024,
-    messages: [{
-      role: 'user',
-      content: [
-        {
-          type: 'image',
-          source: { type: 'base64', media_type: mediaType, data: imageBase64 },
-        },
-        {
-          type: 'text',
-          text: `Identificá los alimentos en esta foto y estimá sus valores nutricionales.
+  const promptText = `Identificá los alimentos en esta foto y estimá sus valores nutricionales.
 Respondé SOLO con este JSON sin markdown:
 {
   "entries": [
@@ -188,13 +163,13 @@ Respondé SOLO con este JSON sin markdown:
     }
   ]
 }
-Estimá las cantidades visualmente. Si hay un plato completo, describilo como un ítem.`,
-        },
-      ],
-    }],
-  });
+Estimá las cantidades visualmente. Si hay un plato completo, describilo como un ítem.`;
 
-  const raw = message.content[0].type === 'text' ? message.content[0].text : '{}';
+  const result = await model.generateContent([
+    { inlineData: { data: cleanBase64(imageBase64), mimeType: mediaType } },
+    promptText,
+  ]);
+  const raw = result.response.text();
   try {
     return c.json(JSON.parse(raw));
   } catch {
@@ -219,17 +194,10 @@ const insightSchema = z.object({
 // POST /ai/insight — post-workout motivational insight
 aiRouter.post('/insight', zValidator('json', insightSchema), async (c) => {
   const { sessionData, weekStats } = c.req.valid('json');
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-  const message = await client.messages.create({
-    model: 'claude-sonnet-4-6',
-    max_tokens: 300,
-    messages: [{
-      role: 'user',
-      content: `Sesión de hoy: ${sessionData.durationMin} min, ${sessionData.caloriesBurned} kcal, precisión de forma ${sessionData.formAccuracyPct}%, ${sessionData.exercisesDone} ejercicios. Esta semana: ${weekStats.sessionsCount} sesiones, ${weekStats.avgFormPct}% precisión media. Dame un insight motivacional y un tip de mejora en 2-3 frases, en español, tono enérgico.`,
-    }],
-  });
+  const prompt = `Sesión de hoy: ${sessionData.durationMin} min, ${sessionData.caloriesBurned} kcal, precisión de forma ${sessionData.formAccuracyPct}%, ${sessionData.exercisesDone} ejercicios. Esta semana: ${weekStats.sessionsCount} sesiones, ${weekStats.avgFormPct}% precisión media. Dame un insight motivacional y un tip de mejora en 2-3 frases, en español, tono enérgico.`;
 
-  const insight = message.content[0].type === 'text' ? message.content[0].text : '';
+  const result = await textModel.generateContent(prompt);
+  const insight = result.response.text();
   return c.json({ insight });
 });
