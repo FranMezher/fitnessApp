@@ -14,6 +14,11 @@ function cleanBase64(raw: string): string {
   return raw.replace(/^data:image\/\w+;base64,/, '');
 }
 
+function extractJSON(raw: string): string {
+  // Strip markdown code fences if Claude wraps the response
+  return raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+}
+
 async function withRetry<T>(fn: () => Promise<T>, maxAttempts = 3): Promise<T> {
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
@@ -111,7 +116,7 @@ Genera exactamente 3 recetas simples. Responde SOLO con este JSON:
 
   try {
     const raw = await generateJSON(prompt);
-    return c.json(JSON.parse(raw));
+    return c.json(JSON.parse(extractJSON(raw)));
   } catch (err: any) {
     console.error('[/ai/recipes]', err?.status, err?.message);
     return c.json({ error: err?.message ?? 'AI error', status: err?.status }, 502);
@@ -144,7 +149,7 @@ Respondé SOLO con este JSON sin markdown:
 
   try {
     const raw = await generateWithImage(prompt, imageBase64, mediaType);
-    return c.json(JSON.parse(raw));
+    return c.json(JSON.parse(extractJSON(raw)));
   } catch (err: any) {
     console.error('[/ai/receipt]', err?.status, err?.message);
     return c.json({ error: err?.message ?? 'AI error', status: err?.status }, 502);
@@ -179,7 +184,7 @@ Estimá los valores para la cantidad mencionada. Si no se menciona cantidad, asu
 
   try {
     const raw = await generateJSON(prompt);
-    return c.json(JSON.parse(raw));
+    return c.json(JSON.parse(extractJSON(raw)));
   } catch (err: any) {
     console.error('[/ai/parse-food]', err?.status, err?.message);
     return c.json({ error: err?.message ?? 'AI error', status: err?.status }, 502);
@@ -212,7 +217,7 @@ Estimá las cantidades visualmente. Si hay un plato completo, describilo como un
 
   try {
     const raw = await generateWithImage(prompt, imageBase64, mediaType);
-    return c.json(JSON.parse(raw));
+    return c.json(JSON.parse(extractJSON(raw)));
   } catch (err: any) {
     console.error('[/ai/analyze-food-photo]', err?.status, err?.message);
     return c.json({ error: err?.message ?? 'AI error', status: err?.status }, 502);
