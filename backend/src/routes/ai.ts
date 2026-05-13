@@ -21,6 +21,24 @@ function cleanBase64(raw: string): string {
   return raw.replace(/^data:image\/\w+;base64,/, '');
 }
 
+async function withRetry<T>(fn: () => Promise<T>, maxAttempts = 3): Promise<T> {
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await fn();
+    } catch (err: any) {
+      const is429 = err?.status === 429 || err?.message?.includes('429') || err?.message?.includes('quota');
+      if (is429 && attempt < maxAttempts) {
+        const delay = 1000 * 2 ** (attempt - 1); // 1s, 2s, 4s
+        console.warn(`Gemini 429 — intento ${attempt}/${maxAttempts}, reintento en ${delay}ms`);
+        await new Promise((r) => setTimeout(r, delay));
+      } else {
+        throw err;
+      }
+    }
+  }
+  throw new Error('unreachable');
+}
+
 const pantrySchema = z.object({
   ingredients: z.array(z.object({
     name:     z.string(),
@@ -61,7 +79,7 @@ Genera exactamente 3 recetas simples. Responde SOLO con este JSON:
   ]
 }`;
 
-  const result = await model.generateContent(prompt);
+  const result = await withRetry(() => model.generateContent(prompt));
   const text = result.response.text();
   try {
     return c.json(JSON.parse(text));
@@ -94,10 +112,10 @@ Respondé con este JSON:
   ]
 }`;
 
-  const result = await model.generateContent([
+  const result = await withRetry(() => model.generateContent([
     { inlineData: { data: cleanBase64(imageBase64), mimeType: mediaType } },
     promptText,
-  ]);
+  ]));
   const text = result.response.text();
   try {
     return c.json(JSON.parse(text));
@@ -132,7 +150,7 @@ Respondé SOLO con este JSON:
 }
 Estimá los valores para la cantidad mencionada. Si no se menciona cantidad, asumí una porción estándar.`;
 
-  const result = await model.generateContent(prompt);
+  const result = await withRetry(() => model.generateContent(prompt));
   const raw = result.response.text();
   try {
     return c.json(JSON.parse(raw));
@@ -165,10 +183,10 @@ Respondé SOLO con este JSON sin markdown:
 }
 Estimá las cantidades visualmente. Si hay un plato completo, describilo como un ítem.`;
 
-  const result = await model.generateContent([
+  const result = await withRetry(() => model.generateContent([
     { inlineData: { data: cleanBase64(imageBase64), mimeType: mediaType } },
     promptText,
-  ]);
+  ]));
   const raw = result.response.text();
   try {
     return c.json(JSON.parse(raw));
@@ -197,7 +215,7 @@ aiRouter.post('/insight', zValidator('json', insightSchema), async (c) => {
 
   const prompt = `Sesión de hoy: ${sessionData.durationMin} min, ${sessionData.caloriesBurned} kcal, precisión de forma ${sessionData.formAccuracyPct}%, ${sessionData.exercisesDone} ejercicios. Esta semana: ${weekStats.sessionsCount} sesiones, ${weekStats.avgFormPct}% precisión media. Dame un insight motivacional y un tip de mejora en 2-3 frases, en español, tono enérgico.`;
 
-  const result = await textModel.generateContent(prompt);
+  const result = await withRetry(() => textModel.generateContent(prompt));
   const insight = result.response.text();
   return c.json({ insight });
 });
