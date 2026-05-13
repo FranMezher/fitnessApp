@@ -86,7 +86,7 @@ export function AddFoodModal({ visible, mealType, date, onClose, onAdded }: Prop
     try {
       const base64 = result.assets[0].base64!;
       const uri = result.assets[0].uri ?? '';
-      const mediaType = uri.endsWith('.png') ? 'image/png' : 'image/jpeg';
+      const mediaType = uri.endsWith('.png') ? 'image/png' : uri.endsWith('.webp') ? 'image/webp' : 'image/jpeg';
       const { entries } = await api.analyzeFoodPhoto(token, base64, mediaType);
       setPreview(entries as DetectedFood[]);
     } catch {

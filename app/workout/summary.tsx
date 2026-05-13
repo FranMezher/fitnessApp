@@ -1,19 +1,49 @@
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { useEffect, useState } from 'react';
+import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { colors } from '@/constants/colors';
 import { Btn } from '@/components/ui/Btn';
 import { Label } from '@/components/ui/Label';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { GlassCard } from '@/components/ui/GlassCard';
-
-const STATS = [
-  { v: '38', l: 'min', c: colors.neon },
-  { v: '312', l: 'kcal', c: colors.orange },
-  { v: '6/6', l: 'ejerc.', c: colors.teal },
-];
+import { api } from '@/lib/api';
+import { useAuthStore } from '@/stores/useAuthStore';
 
 export default function WorkoutSummaryScreen() {
+  const token = useAuthStore((s) => s.token);
+  const params = useLocalSearchParams<{
+    durationMin?: string;
+    caloriesBurned?: string;
+    formAccuracyPct?: string;
+    exercisesDone?: string;
+  }>();
+
+  const durationMin     = Number(params.durationMin     ?? 38);
+  const caloriesBurned  = Number(params.caloriesBurned  ?? 312);
+  const formAccuracyPct = Number(params.formAccuracyPct ?? 85);
+  const exercisesDone   = Number(params.exercisesDone   ?? 6);
+
+  const [insight, setInsight] = useState<string | null>(null);
+  const [loadingInsight, setLoadingInsight] = useState(true);
+
+  useEffect(() => {
+    if (!token) return;
+    api.getWorkoutInsight(token, {
+      sessionData: { durationMin, caloriesBurned, formAccuracyPct, exercisesDone },
+      weekStats:   { sessionsCount: 3, avgFormPct: 80, totalKcal: caloriesBurned },
+    })
+      .then(({ insight }) => setInsight(insight))
+      .catch(() => setInsight('¡Excelente trabajo! Cada sesión te acerca más a tu meta.'))
+      .finally(() => setLoadingInsight(false));
+  }, [token]);
+
+  const STATS = [
+    { v: String(durationMin),     l: 'min',    c: colors.neon   },
+    { v: String(caloriesBurned),  l: 'kcal',   c: colors.orange },
+    { v: `${exercisesDone}`,      l: 'ejerc.', c: colors.teal   },
+  ];
+
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
@@ -38,13 +68,23 @@ export default function WorkoutSummaryScreen() {
         <GlassCard variant="neon" style={styles.aiCard}>
           <Label>Rendimiento IA</Label>
           <View style={styles.aiRow}>
-            <Text style={styles.aiScore}>85%</Text>
+            <Text style={styles.aiScore}>{formAccuracyPct}%</Text>
             <View>
               <Text style={styles.aiTitle}>Precisión de forma</Text>
               <Text style={styles.aiSub}>+7% vs sesión anterior</Text>
             </View>
           </View>
-          <ProgressBar pct={85} h={6} />
+          <ProgressBar pct={formAccuracyPct} h={6} />
+        </GlassCard>
+
+        {/* Claude insight */}
+        <GlassCard style={styles.insightCard}>
+          <Label>Insight IA</Label>
+          {loadingInsight ? (
+            <ActivityIndicator color={colors.neon} style={{ marginTop: 8 }} />
+          ) : (
+            <Text style={styles.insightText}>{insight}</Text>
+          )}
         </GlassCard>
 
         {/* XP earned */}
@@ -56,10 +96,7 @@ export default function WorkoutSummaryScreen() {
           <Text style={styles.xpStar}>⭐</Text>
         </View>
 
-        <Btn
-          style={styles.primaryBtn}
-          onPress={() => router.push('/workout/stretch')}
-        >
+        <Btn style={styles.primaryBtn} onPress={() => router.push('/workout/stretch')}>
           Elongación guiada (5 min)
         </Btn>
         <Btn variant="ghost" onPress={() => router.replace('/(tabs)')}>
@@ -71,109 +108,26 @@ export default function WorkoutSummaryScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: colors.bg,
-  },
-  container: {
-    padding: 20,
-    gap: 12,
-  },
-  celebrate: {
-    alignItems: 'center',
-    paddingTop: 8,
-    marginBottom: 6,
-  },
-  celebrateEmoji: {
-    fontSize: 48,
-    marginBottom: 6,
-  },
-  celebrateTitle: {
-    fontSize: 26,
-    fontWeight: '700',
-    color: colors.neon,
-    fontFamily: 'SpaceGrotesk_700Bold',
-    textAlign: 'center',
-  },
-  celebrateSub: {
-    fontSize: 14,
-    color: colors.muted,
-    marginTop: 2,
-    fontFamily: 'SpaceGrotesk_400Regular',
-  },
-  statsRow: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  statCard: {
-    flex: 1,
-    padding: 12,
-    paddingHorizontal: 4,
-    alignItems: 'center',
-  },
-  statVal: {
-    fontSize: 26,
-    fontWeight: '700',
-    fontFamily: 'SpaceGrotesk_700Bold',
-  },
-  statLabel: {
-    fontSize: 11,
-    color: colors.muted,
-    fontFamily: 'SpaceGrotesk_400Regular',
-  },
-  aiCard: {
-    padding: 14,
-    paddingHorizontal: 16,
-    gap: 8,
-  },
-  aiRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  aiScore: {
-    fontSize: 44,
-    fontWeight: '700',
-    color: colors.neon,
-    fontFamily: 'SpaceGrotesk_700Bold',
-    lineHeight: 48,
-  },
-  aiTitle: {
-    fontSize: 15,
-    color: colors.text,
-    fontFamily: 'SpaceGrotesk_400Regular',
-  },
-  aiSub: {
-    fontSize: 13,
-    color: colors.muted,
-    fontFamily: 'SpaceGrotesk_400Regular',
-  },
-  xpCard: {
-    backgroundColor: 'rgba(204,255,0,0.06)',
-    borderWidth: 1,
-    borderColor: colors.borderAccent,
-    borderRadius: 14,
-    padding: 12,
-    paddingHorizontal: 16,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  xpTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: colors.neon,
-    fontFamily: 'SpaceGrotesk_700Bold',
-  },
-  xpSub: {
-    fontSize: 12,
-    color: colors.muted,
-    fontFamily: 'SpaceGrotesk_400Regular',
-  },
-  xpStar: {
-    fontSize: 28,
-  },
-  primaryBtn: {
-    marginBottom: 0,
-  },
+  safe: { flex: 1, backgroundColor: colors.bg },
+  container: { padding: 20, gap: 12 },
+  celebrate: { alignItems: 'center', paddingTop: 8, marginBottom: 6 },
+  celebrateEmoji: { fontSize: 48, marginBottom: 6 },
+  celebrateTitle: { fontSize: 26, fontWeight: '700', color: colors.neon, fontFamily: 'SpaceGrotesk_700Bold', textAlign: 'center' },
+  celebrateSub: { fontSize: 14, color: colors.muted, marginTop: 2, fontFamily: 'SpaceGrotesk_400Regular' },
+  statsRow: { flexDirection: 'row', gap: 8 },
+  statCard: { flex: 1, padding: 12, paddingHorizontal: 4, alignItems: 'center' },
+  statVal: { fontSize: 26, fontWeight: '700', fontFamily: 'SpaceGrotesk_700Bold' },
+  statLabel: { fontSize: 11, color: colors.muted, fontFamily: 'SpaceGrotesk_400Regular' },
+  aiCard: { padding: 14, paddingHorizontal: 16, gap: 8 },
+  aiRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  aiScore: { fontSize: 44, fontWeight: '700', color: colors.neon, fontFamily: 'SpaceGrotesk_700Bold', lineHeight: 48 },
+  aiTitle: { fontSize: 15, color: colors.text, fontFamily: 'SpaceGrotesk_400Regular' },
+  aiSub: { fontSize: 13, color: colors.muted, fontFamily: 'SpaceGrotesk_400Regular' },
+  insightCard: { padding: 14, paddingHorizontal: 16, gap: 8 },
+  insightText: { fontSize: 14, color: colors.text, fontFamily: 'SpaceGrotesk_400Regular', lineHeight: 22 },
+  xpCard: { backgroundColor: 'rgba(204,255,0,0.06)', borderWidth: 1, borderColor: colors.borderAccent, borderRadius: 14, padding: 12, paddingHorizontal: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  xpTitle: { fontSize: 14, fontWeight: '700', color: colors.neon, fontFamily: 'SpaceGrotesk_700Bold' },
+  xpSub: { fontSize: 12, color: colors.muted, fontFamily: 'SpaceGrotesk_400Regular' },
+  xpStar: { fontSize: 28 },
+  primaryBtn: { marginBottom: 0 },
 });
