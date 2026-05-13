@@ -55,6 +55,9 @@ export const api = {
   deletePantryItem: (token: string, id: string) =>
     request<{ ok: boolean }>(`/nutrition/pantry/${id}`, { method: 'DELETE', token }),
 
+  deleteFoodLog: (token: string, id: string) =>
+    request<{ ok: boolean }>(`/nutrition/log/${id}`, { method: 'DELETE', token }),
+
   // ── Workouts ──────────────────────────────────────────────────────────────
   getSessions: (token: string) =>
     request<{ sessions: WorkoutSession[] }>('/workouts/sessions', { token }),
@@ -91,6 +94,16 @@ export const api = {
 
   getWorkoutInsight: (token: string, data: InsightRequest) =>
     request<{ insight: string }>('/ai/insight', { method: 'POST', body: JSON.stringify(data), token }),
+
+  parseFoodText: (token: string, text: string) =>
+    request<{ entries: Array<Omit<FoodLogEntry, 'id' | 'date' | 'mealType'>> }>('/ai/parse-food', {
+      method: 'POST', body: JSON.stringify({ text }), token,
+    }),
+
+  analyzeFoodPhoto: (token: string, imageBase64: string, mediaType: 'image/jpeg' | 'image/png' | 'image/webp' = 'image/jpeg') =>
+    request<{ entries: Array<Omit<FoodLogEntry, 'id' | 'date' | 'mealType'>> }>('/ai/analyze-food-photo', {
+      method: 'POST', body: JSON.stringify({ imageBase64, mediaType }), token,
+    }),
 };
 
 // ── Types ────────────────────────────────────────────────────────────────────

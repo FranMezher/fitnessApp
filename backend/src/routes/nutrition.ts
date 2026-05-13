@@ -66,6 +66,16 @@ nutritionRouter.post('/pantry', zValidator('json', pantrySchema), async (c) => {
   return c.json({ id }, 201);
 });
 
+// DELETE /nutrition/log/:id
+nutritionRouter.delete('/log/:id', async (c) => {
+  const user = c.get('user');
+  const { id } = c.req.param();
+  await db
+    .delete(foodLog)
+    .where(and(eq(foodLog.id, id), eq(foodLog.userId, user.id)));
+  return c.json({ ok: true });
+});
+
 // DELETE /nutrition/pantry/:id
 nutritionRouter.delete('/pantry/:id', async (c) => {
   const user = c.get('user');

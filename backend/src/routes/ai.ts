@@ -111,6 +111,97 @@ Respondé SOLO con este JSON sin markdown:
   }
 });
 
+const parseFoodSchema = z.object({
+  text: z.string().min(1),
+});
+
+// POST /ai/parse-food — natural language food description → FoodLogEntry[]
+aiRouter.post('/parse-food', zValidator('json', parseFoodSchema), async (c) => {
+  const { text } = c.req.valid('json');
+  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
+  const message = await client.messages.create({
+    model: 'claude-sonnet-4-6',
+    max_tokens: 1024,
+    system: 'Eres un nutricionista experto. Responde SIEMPRE en JSON válido, sin markdown ni texto extra.',
+    messages: [{
+      role: 'user',
+      content: `Analizá esta descripción de comida y extraé los alimentos con sus valores nutricionales estimados.
+Descripción: "${text}"
+
+Respondé SOLO con este JSON:
+{
+  "entries": [
+    {
+      "foodName": "string",
+      "calories": number,
+      "proteinG": number,
+      "carbsG": number,
+      "fatG": number
+    }
+  ]
+}
+Estimá los valores para la cantidad mencionada. Si no se menciona cantidad, asumí una porción estándar.`,
+    }],
+  });
+
+  const raw = message.content[0].type === 'text' ? message.content[0].text : '{}';
+  try {
+    return c.json(JSON.parse(raw));
+  } catch {
+    return c.json({ error: 'Failed to parse AI response', raw }, 502);
+  }
+});
+
+const analyzeFoodPhotoSchema = z.object({
+  imageBase64: z.string().min(1),
+  mediaType: z.enum(['image/jpeg', 'image/png', 'image/webp']).default('image/jpeg'),
+});
+
+// POST /ai/analyze-food-photo — food photo → FoodLogEntry[]
+aiRouter.post('/analyze-food-photo', zValidator('json', analyzeFoodPhotoSchema), async (c) => {
+  const { imageBase64, mediaType } = c.req.valid('json');
+  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
+  const message = await client.messages.create({
+    model: 'claude-sonnet-4-6',
+    max_tokens: 1024,
+    messages: [{
+      role: 'user',
+      content: [
+        {
+          type: 'image',
+          source: { type: 'base64', media_type: mediaType, data: imageBase64 },
+        },
+        {
+          type: 'text',
+          text: `Identificá los alimentos en esta foto y estimá sus valores nutricionales.
+Respondé SOLO con este JSON sin markdown:
+{
+  "entries": [
+    {
+      "foodName": "string",
+      "calories": number,
+      "proteinG": number,
+      "carbsG": number,
+      "fatG": number
+    }
+  ]
+}
+Estimá las cantidades visualmente. Si hay un plato completo, describilo como un ítem.`,
+        },
+      ],
+    }],
+  });
+
+  const raw = message.content[0].type === 'text' ? message.content[0].text : '{}';
+  try {
+    return c.json(JSON.parse(raw));
+  } catch {
+    return c.json({ error: 'Failed to parse AI response', raw }, 502);
+  }
+});
+
 const insightSchema = z.object({
   sessionData: z.object({
     durationMin:     z.number(),

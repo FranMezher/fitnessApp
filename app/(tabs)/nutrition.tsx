@@ -11,6 +11,7 @@ import { ProgressBar } from '@/components/ui/ProgressBar';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { Label } from '@/components/ui/Label';
 import { useNutritionStore } from '@/stores/useNutritionStore';
+import { useAuthStore } from '@/stores/useAuthStore';
 import { FoodLogEntry } from '@/lib/api';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -98,10 +99,10 @@ function buildCalendarGrid(year: number, month: number): (string | null)[][] {
 
 // ─── Dot color helper ─────────────────────────────────────────────────────────
 
-function dotColor(dateStr: string, logCache: Record<string, { calories: number }>): string {
+function dotColor(dateStr: string, logCache: Record<string, { calories: number }>, calGoal = 2000): string {
   const entry = logCache[dateStr];
   if (!entry || entry.calories === 0) return 'transparent';
-  const pct = entry.calories / DAILY_GOALS.calories;
+  const pct = entry.calories / calGoal;
   if (pct >= 1.0) return colors.neon;
   if (pct >= 0.5) return colors.orange;
   return colors.muted;
@@ -113,10 +114,12 @@ function WeekStrip({
   selectedDate,
   onSelect,
   logCache,
+  calGoal,
 }: {
   selectedDate: string;
   onSelect: (d: string) => void;
   logCache: Record<string, { calories: number; mealsCount: number }>;
+  calGoal: number;
 }) {
   const stripRef = useRef<ScrollView>(null);
   const stripDates = buildStripDates();
@@ -138,7 +141,7 @@ function WeekStrip({
       {stripDates.map((dateStr) => {
         const d = new Date(dateStr + 'T12:00:00');
         const isSelected = dateStr === selectedDate;
-        const dot = dotColor(dateStr, logCache);
+        const dot = dotColor(dateStr, logCache, calGoal);
         const isToday = dateStr === todayStr();
 
         return (
@@ -215,12 +218,14 @@ function CalendarModal({
   visible,
   selectedDate,
   logCache,
+  calGoal,
   onSelect,
   onClose,
 }: {
   visible: boolean;
   selectedDate: string;
   logCache: Record<string, { calories: number; mealsCount: number }>;
+  calGoal: number;
   onSelect: (d: string) => void;
   onClose: () => void;
 }) {
@@ -278,7 +283,7 @@ function CalendarModal({
                 const isFuture = dateStr > today;
                 const isSelected = dateStr === selectedDate;
                 const isToday = dateStr === today;
-                const dot = dotColor(dateStr, logCache);
+                const dot = dotColor(dateStr, logCache, calGoal);
 
                 return (
                   <TouchableOpacity
@@ -435,6 +440,14 @@ export default function NutritionScreen() {
   const [selectedDate, setSelectedDate] = useState(today);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const { foodLog, fetchFoodLog, loading, waterGlasses, setWaterGlasses, logCache } = useNutritionStore();
+  const { profile } = useAuthStore();
+
+  const goals = {
+    calories: profile?.targetCalories ?? DAILY_GOALS.calories,
+    proteinG: profile?.targetProteinG ?? DAILY_GOALS.proteinG,
+    carbsG:   profile?.targetCarbsG   ?? DAILY_GOALS.carbsG,
+    fatG:     profile?.targetFatG     ?? DAILY_GOALS.fatG,
+  };
 
   useEffect(() => {
     fetchFoodLog(selectedDate);
@@ -457,7 +470,7 @@ export default function NutritionScreen() {
   const totalFat = foodLog.reduce((s, e) => s + e.fatG, 0);
 
   const pctOf = (v: number, g: number) => Math.min(100, Math.round((v / g) * 100));
-  const calPct = pctOf(totalCal, DAILY_GOALS.calories);
+  const calPct = pctOf(totalCal, goals.calories);
   const waterPct = Math.round((waterGlasses / WATER_GOAL) * 100);
 
   const isToday = selectedDate === today;
@@ -479,6 +492,7 @@ export default function NutritionScreen() {
         selectedDate={selectedDate}
         onSelect={handleSelectDate}
         logCache={logCache}
+        calGoal={goals.calories}
       />
 
       {/* Past-day banner */}
@@ -487,7 +501,7 @@ export default function NutritionScreen() {
           <Text style={styles.pastDate}>{formatLong(selectedDate)}</Text>
           {cachedDay ? (
             <Text style={styles.pastStats}>
-              {cachedDay.calories} / {DAILY_GOALS.calories} kcal
+              {cachedDay.calories} / {goals.calories} kcal
               {' · '}{cachedDay.mealsCount} {cachedDay.mealsCount === 1 ? 'comida' : 'comidas'}
             </Text>
           ) : null}
@@ -506,13 +520,13 @@ export default function NutritionScreen() {
                 <Text style={styles.remaining}>
                   Restantes:{' '}
                   <Text style={styles.remainingVal}>
-                    {Math.max(0, DAILY_GOALS.calories - totalCal)} kcal
+                    {Math.max(0, goals.calories - totalCal)} kcal
                   </Text>
                 </Text>
                 {[
-                  { name: 'Proteína', val: totalProt,  goal: DAILY_GOALS.proteinG, color: colors.neon   },
-                  { name: 'Carbos',   val: totalCarbs, goal: DAILY_GOALS.carbsG,   color: colors.teal  },
-                  { name: 'Grasas',   val: totalFat,   goal: DAILY_GOALS.fatG,     color: colors.orange },
+                  { name: 'Proteína', val: totalProt,  goal: goals.proteinG, color: colors.neon   },
+                  { name: 'Carbos',   val: totalCarbs, goal: goals.carbsG,   color: colors.teal  },
+                  { name: 'Grasas',   val: totalFat,   goal: goals.fatG,     color: colors.orange },
                 ].map((m) => (
                   <View key={m.name} style={styles.macroRow}>
                     <View style={styles.macroMeta}>
@@ -655,6 +669,7 @@ export default function NutritionScreen() {
         visible={calendarOpen}
         selectedDate={selectedDate}
         logCache={logCache}
+        calGoal={goals.calories}
         onSelect={handleSelectDate}
         onClose={() => setCalendarOpen(false)}
       />

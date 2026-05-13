@@ -19,6 +19,7 @@ interface NutritionState {
   addPantryItem: (item: Omit<PantryItem, 'id'>) => Promise<void>;
   deletePantryItem: (id: string) => Promise<void>;
   setWaterGlasses: (n: number) => void;
+  removeFood: (id: string) => Promise<void>;
 }
 
 export const useNutritionStore = create<NutritionState>((set) => ({
@@ -88,4 +89,11 @@ export const useNutritionStore = create<NutritionState>((set) => ({
   },
 
   setWaterGlasses: (n) => set({ waterGlasses: n }),
+
+  removeFood: async (id) => {
+    const token = useAuthStore.getState().token;
+    if (!token) return;
+    await api.deleteFoodLog(token, id);
+    set((s) => ({ foodLog: s.foodLog.filter((e) => e.id !== id) }));
+  },
 }));
