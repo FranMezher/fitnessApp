@@ -2,11 +2,17 @@ import { create } from 'zustand';
 import { api, FoodLogEntry, PantryItem } from '@/lib/api';
 import { useAuthStore } from './useAuthStore';
 
+interface DaySummary {
+  calories: number;
+  mealsCount: number;
+}
+
 interface NutritionState {
   foodLog: FoodLogEntry[];
   pantryItems: PantryItem[];
   waterGlasses: number;
   loading: boolean;
+  logCache: Record<string, DaySummary>;
   fetchFoodLog: (date: string) => Promise<void>;
   addFood: (entry: Omit<FoodLogEntry, 'id'>) => Promise<void>;
   fetchPantry: () => Promise<void>;
@@ -20,6 +26,7 @@ export const useNutritionStore = create<NutritionState>((set) => ({
   pantryItems: [],
   waterGlasses: 0,
   loading: false,
+  logCache: {},
 
   fetchFoodLog: async (date) => {
     const token = useAuthStore.getState().token;
@@ -27,7 +34,15 @@ export const useNutritionStore = create<NutritionState>((set) => ({
     set({ loading: true });
     try {
       const { entries } = await api.getFoodLog(token, date);
-      set({ foodLog: entries });
+      const calories = entries.reduce((s, e) => s + e.calories, 0);
+      const mealTypes = new Set(entries.map((e) => e.mealType));
+      set((s) => ({
+        foodLog: entries,
+        logCache: {
+          ...s.logCache,
+          [date]: { calories, mealsCount: mealTypes.size },
+        },
+      }));
     } finally {
       set({ loading: false });
     }
@@ -39,7 +54,15 @@ export const useNutritionStore = create<NutritionState>((set) => ({
     await api.addFoodLog(token, entry);
     const today = new Date().toISOString().slice(0, 10);
     const { entries } = await api.getFoodLog(token, today);
-    set({ foodLog: entries });
+    const calories = entries.reduce((s, e) => s + e.calories, 0);
+    const mealTypes = new Set(entries.map((e) => e.mealType));
+    set((s) => ({
+      foodLog: entries,
+      logCache: {
+        ...s.logCache,
+        [today]: { calories, mealsCount: mealTypes.size },
+      },
+    }));
   },
 
   fetchPantry: async () => {

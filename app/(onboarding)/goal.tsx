@@ -1,59 +1,58 @@
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { colors, glass, glassNeon } from '@/constants/colors';
 import { Btn } from '@/components/ui/Btn';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { useOnboardingStore } from '@/stores/useOnboardingStore';
+import type { OnboardingData } from '@/stores/useOnboardingStore';
 
-const GOALS = [
-  { id: 'fat_loss', icon: '🔥', title: 'Perder grasa', sub: 'Déficit calórico inteligente' },
-  { id: 'muscle', icon: '💪', title: 'Ganar músculo', sub: 'Superávit + proteína alta' },
-  { id: 'performance', icon: '⚡', title: 'Rendimiento', sub: 'Fuerza y resistencia' },
-  { id: 'wellness', icon: '🧘', title: 'Bienestar', sub: 'Equilibrio y salud general' },
+const TOTAL_STEPS = 10;
+const STEP = 1;
+
+const GOALS: { id: OnboardingData['goal']; icon: string; title: string; sub: string }[] = [
+  { id: 'fat_loss',  icon: '🔥', title: 'Perder grasa',   sub: 'Déficit calórico inteligente' },
+  { id: 'muscle',    icon: '💪', title: 'Ganar músculo',  sub: 'Superávit + proteína alta' },
+  { id: 'maintain',  icon: '❤️', title: 'Mantener peso',  sub: 'Equilibrio calórico' },
+  { id: 'wellness',  icon: '🧘', title: 'Bienestar',      sub: 'Salud y equilibrio general' },
 ];
 
 export default function OnboardGoalScreen() {
-  const [selected, setSelected] = useState('fat_loss');
-  const [loading, setLoading] = useState(false);
+  const { edit } = useLocalSearchParams<{ edit?: string }>();
+  const isEdit = edit === '1';
+
+  const stored = useOnboardingStore((s) => s.data.goal);
+  const setStore = useOnboardingStore((s) => s.set);
+  const [selected, setSelected] = useState<OnboardingData['goal']>(stored ?? 'fat_loss');
+
   const { token, email, setIsNewUser } = useAuthStore();
 
   async function handleContinue() {
-    setLoading(true);
-    try {
+    setStore({ goal: selected });
+
+    if (isEdit) {
       if (token) {
-        await api.upsertProfile(token, {
-          name: email?.split('@')[0] ?? 'Usuario',
-          goal: selected as 'fat_loss' | 'muscle' | 'performance' | 'wellness',
-        });
+        await api.upsertProfile(token, { goal: selected }).catch(() => {});
       }
-    } catch {
-      // Non-blocking: profile save failure shouldn't block onboarding
-    } finally {
-      setIsNewUser(false);
-      setLoading(false);
-      router.replace('/(tabs)');
+      router.back();
+      return;
     }
+
+    router.push('/(onboarding)/biometrics' as never);
   }
 
   return (
     <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-        {/* Progress dots */}
-        <View style={styles.dots}>
-          {[0, 1, 2, 3].map((i) => (
-            <View
-              key={i}
-              style={[
-                styles.dot,
-                i === 1 ? styles.dotActive : styles.dotInactive,
-              ]}
-            />
-          ))}
-        </View>
+      {/* Progress bar */}
+      <View style={styles.progressTrack}>
+        <View style={[styles.progressFill, { width: `${(STEP / TOTAL_STEPS) * 100}%` }]} />
+      </View>
 
-        <Text style={styles.title}>¿Cuál es tu meta?</Text>
+      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+        <Text style={styles.step}>Paso {STEP} de {TOTAL_STEPS}</Text>
+        <Text style={styles.title}>¿Cuál es tu objetivo?</Text>
         <Text style={styles.subtitle}>Tu plan se adapta automáticamente</Text>
 
         {GOALS.map((g) => {
@@ -70,15 +69,13 @@ export default function OnboardGoalScreen() {
                 <Text style={[styles.goalTitle, active && styles.goalTitleActive]}>{g.title}</Text>
                 <Text style={styles.goalSub}>{g.sub}</Text>
               </View>
-              {active && (
-                <Text style={styles.check}>✓</Text>
-              )}
+              {active && <Text style={styles.check}>✓</Text>}
             </TouchableOpacity>
           );
         })}
 
         <View style={styles.btnWrap}>
-          <Btn onPress={handleContinue}>{loading ? 'Guardando...' : 'Continuar'}</Btn>
+          <Btn onPress={handleContinue}>{isEdit ? 'Guardar' : 'Continuar'}</Btn>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -90,27 +87,24 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.bg,
   },
+  progressTrack: {
+    height: 3,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+  },
+  progressFill: {
+    height: 3,
+    backgroundColor: colors.neon,
+    borderRadius: 2,
+  },
   container: {
     padding: 24,
     paddingTop: 16,
   },
-  dots: {
-    flexDirection: 'row',
-    gap: 5,
-    justifyContent: 'center',
-    marginBottom: 24,
-  },
-  dot: {
-    height: 4,
-    borderRadius: 2,
-  },
-  dotActive: {
-    width: 22,
-    backgroundColor: colors.neon,
-  },
-  dotInactive: {
-    width: 8,
-    backgroundColor: 'rgba(255,255,255,0.12)',
+  step: {
+    fontSize: 12,
+    color: colors.muted,
+    fontFamily: 'SpaceGrotesk_400Regular',
+    marginBottom: 8,
   },
   title: {
     fontSize: 26,

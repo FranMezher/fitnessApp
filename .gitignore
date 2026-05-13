@@ -33,6 +33,9 @@ ios/
 # Build outputs — drizzle generated migrations (but not seed files)
 backend/drizzle/
 
+# Design reference images (local only)
+imgWorkflows/
+
 # OS
 .DS_Store
 Thumbs.db

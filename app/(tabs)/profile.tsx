@@ -1,5 +1,6 @@
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
 import { colors, glass, glassNeon } from '@/constants/colors';
 import { Pill } from '@/components/ui/Pill';
 import { ProgressBar } from '@/components/ui/ProgressBar';
@@ -20,9 +21,10 @@ const BIOMETRICS = [
 ];
 
 const MENU_ITEMS = [
-  { icon: '📊', label: 'Historial de entrenamientos' },
-  { icon: '🏆', label: 'Logros y medallas' },
-  { icon: '⚙️', label: 'Ajustes de cuenta' },
+  { icon: '🥗', label: 'Mi plan nutricional', route: '/profile/nutrition-plan' },
+  { icon: '📊', label: 'Historial de entrenamientos', route: null },
+  { icon: '🏆', label: 'Logros y medallas', route: null },
+  { icon: '⚙️', label: 'Ajustes de cuenta', route: '/profile/settings' },
 ];
 
 export default function ProfileScreen() {
@@ -85,7 +87,12 @@ export default function ProfileScreen() {
 
         {/* Menu */}
         {MENU_ITEMS.map((m) => (
-          <TouchableOpacity key={m.label} style={[glass, styles.menuItem]} activeOpacity={0.7}>
+          <TouchableOpacity
+            key={m.label}
+            style={[glass, styles.menuItem]}
+            activeOpacity={0.7}
+            onPress={() => m.route && router.push(m.route as never)}
+          >
             <Text style={styles.menuIcon}>{m.icon}</Text>
             <Text style={styles.menuLabel}>{m.label}</Text>
             <Text style={styles.menuArrow}>›</Text>

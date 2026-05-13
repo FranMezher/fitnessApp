@@ -96,16 +96,26 @@ export const api = {
 // ── Types ────────────────────────────────────────────────────────────────────
 
 export interface Profile {
-  userId:         string;
-  name:           string;
-  avatarUrl?:     string;
-  weightKg?:      number;
-  heightCm?:      number;
-  age?:           number;
-  sex?:           string;
-  goal?:          string;
-  activityLevel?: string;
-  targetWeightKg?:number;
+  userId:            string;
+  name:              string;
+  avatarUrl?:        string;
+  weightKg?:         number;
+  heightCm?:         number;
+  age?:              number;
+  sex?:              string;
+  goal?:             string;
+  activityLevel?:    string;
+  targetWeightKg?:   number;
+  strengthTraining?: boolean;
+  activityLifestyle?:string;
+  weightLossSpeed?:  string;
+  foodVariety?:      string;
+  availableFoods?:   string[];
+  mealPlanning?:     string;
+  targetCalories?:   number;
+  targetProteinG?:   number;
+  targetCarbsG?:     number;
+  targetFatG?:       number;
 }
 
 export interface FoodLogEntry {
