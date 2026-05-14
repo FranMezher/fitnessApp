@@ -1,11 +1,19 @@
 // Typed API client for the FITCORE Hono backend
 // Usage: import { api } from '@/lib/api'
 
+import { createClient } from '@supabase/supabase-js';
+
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:8787';
+
+const supabaseForRefresh = createClient(
+  process.env.EXPO_PUBLIC_SUPABASE_URL!,
+  process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!,
+);
 
 async function request<T>(
   path: string,
   options: RequestInit & { token?: string } = {},
+  isRetry = false,
 ): Promise<T> {
   const { token, ...init } = options;
   const headers: Record<string, string> = {
@@ -14,7 +22,38 @@ async function request<T>(
     ...(init.headers as Record<string, string>),
   };
 
-  const res = await fetch(`${BASE_URL}${path}`, { ...init, headers });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 30_000);
+
+  let res: Response;
+  try {
+    res = await fetch(`${BASE_URL}${path}`, { ...init, headers, signal: controller.signal });
+  } finally {
+    clearTimeout(timeout);
+  }
+
+  if (res.status === 401 && !isRetry) {
+    try {
+      const { data, error } = await supabaseForRefresh.auth.refreshSession();
+      if (error || !data.session) throw error ?? new Error('No session');
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { useAuthStore } = require('@/stores/useAuthStore');
+      useAuthStore.getState().setSession(
+        data.session.access_token,
+        data.session.user.id,
+        data.session.user.email ?? '',
+      );
+      return request<T>(path, { ...options, token: data.session.access_token }, true);
+    } catch {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { useAuthStore } = require('@/stores/useAuthStore');
+      useAuthStore.getState().clearSession();
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { router } = require('expo-router');
+      router.replace('/(auth)/login');
+      throw new ApiError(401, 'Session expired');
+    }
+  }
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
@@ -59,6 +98,18 @@ export const api = {
     request<{ ok: boolean }>(`/nutrition/log/${id}`, { method: 'DELETE', token }),
 
   // ── Workouts ──────────────────────────────────────────────────────────────
+  getWorkoutPlans: (token: string) =>
+    request<{ plans: WorkoutPlan[] }>('/workouts/plans', { token }),
+
+  getWorkoutPlan: (token: string, id: string) =>
+    request<{ plan: WorkoutPlan; exercises: PlanExerciseDetail[] }>(`/workouts/plans/${id}`, { token }),
+
+  getMyPlan: (token: string) =>
+    request<{ plan: WorkoutPlan | null; exercises: PlanExerciseDetail[] }>('/workouts/my-plan', { token }),
+
+  seedWorkouts: (token: string) =>
+    request<{ ok: boolean; skipped: boolean }>('/workouts/seed', { method: 'POST', token }),
+
   getSessions: (token: string) =>
     request<{ sessions: WorkoutSession[] }>('/workouts/sessions', { token }),
 
@@ -150,6 +201,30 @@ export interface PantryItem {
   proteinG?: number;
   carbsG?:  number;
   fatG?:    number;
+}
+
+export interface WorkoutPlan {
+  id:           string;
+  name:         string;
+  daysPerWeek:  number;
+  difficulty:   'beginner' | 'intermediate' | 'advanced';
+  exerciseCount?: number;
+}
+
+export interface PlanExerciseDetail {
+  id:          string;
+  planId:      string;
+  exerciseId:  string;
+  sets:        number;
+  reps:        number;
+  orderIndex:  number;
+  exercise: {
+    id:          string;
+    name:        string;
+    muscleGroup: string;
+    instructions?: string;
+    videoUrl?:   string;
+  } | null;
 }
 
 export interface WorkoutSession {

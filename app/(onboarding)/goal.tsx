@@ -52,7 +52,10 @@ export default function OnboardGoalScreen() {
 
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
         <Text style={styles.step}>Paso {STEP} de {TOTAL_STEPS}</Text>
-        <Text style={styles.title}>¿Cuál es tu objetivo?</Text>
+        <Text style={styles.title}>
+          ¿Cuál es tu{' '}
+          <Text style={styles.titleAccent}>objetivo</Text>?
+        </Text>
         <Text style={styles.subtitle}>Tu plan se adapta automáticamente</Text>
 
         {GOALS.map((g) => {
@@ -60,7 +63,11 @@ export default function OnboardGoalScreen() {
           return (
             <TouchableOpacity
               key={g.id}
-              style={[active ? glassNeon : glass, styles.goalCard]}
+              style={[
+                active ? glassNeon : glass,
+                styles.goalCard,
+                active && styles.goalCardActive,
+              ]}
               onPress={() => setSelected(g.id)}
               activeOpacity={0.8}
             >
@@ -69,7 +76,11 @@ export default function OnboardGoalScreen() {
                 <Text style={[styles.goalTitle, active && styles.goalTitleActive]}>{g.title}</Text>
                 <Text style={styles.goalSub}>{g.sub}</Text>
               </View>
-              {active && <Text style={styles.check}>✓</Text>}
+              {active && (
+                <View style={styles.checkBadge}>
+                  <Text style={styles.checkText}>✓</Text>
+                </View>
+              )}
             </TouchableOpacity>
           );
         })}
@@ -113,6 +124,9 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     fontFamily: 'SpaceGrotesk_700Bold',
   },
+  titleAccent: {
+    color: colors.neon,
+  },
   subtitle: {
     fontSize: 14,
     color: colors.muted,
@@ -147,9 +161,26 @@ const styles = StyleSheet.create({
     color: colors.muted,
     fontFamily: 'SpaceGrotesk_400Regular',
   },
-  check: {
-    color: colors.neon,
-    fontSize: 18,
+  goalCardActive: {
+    shadowColor: colors.neon,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.35,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  checkBadge: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: colors.neon,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkText: {
+    color: '#111',
+    fontSize: 13,
+    fontWeight: '700',
+    fontFamily: 'SpaceGrotesk_700Bold',
   },
   btnWrap: {
     marginTop: 8,

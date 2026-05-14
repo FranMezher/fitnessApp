@@ -9,33 +9,78 @@ import { ProgressBar } from '@/components/ui/ProgressBar';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { useWorkoutStore } from '@/stores/useWorkoutStore';
 
 export default function WorkoutSummaryScreen() {
   const token = useAuthStore((s) => s.token);
+  const fetchSessions = useWorkoutStore((s) => s.fetchSessions);
   const params = useLocalSearchParams<{
     durationMin?: string;
     caloriesBurned?: string;
     formAccuracyPct?: string;
     exercisesDone?: string;
+    xpEarned?: string;
+    planName?: string;
   }>();
 
   const durationMin     = Number(params.durationMin     ?? 38);
   const caloriesBurned  = Number(params.caloriesBurned  ?? 312);
   const formAccuracyPct = Number(params.formAccuracyPct ?? 85);
   const exercisesDone   = Number(params.exercisesDone   ?? 6);
+  const xpEarned        = Number(params.xpEarned        ?? 130);
+  const planName        = params.planName ?? 'Entrenamiento';
 
   const [insight, setInsight] = useState<string | null>(null);
   const [loadingInsight, setLoadingInsight] = useState(true);
 
+  // Fetch sessions once on mount, then fire insight when done
   useEffect(() => {
-    if (!token) return;
-    api.getWorkoutInsight(token, {
-      sessionData: { durationMin, caloriesBurned, formAccuracyPct, exercisesDone },
-      weekStats:   { sessionsCount: 3, avgFormPct: 80, totalKcal: caloriesBurned },
-    })
-      .then(({ insight }) => setInsight(insight))
-      .catch(() => setInsight('¡Excelente trabajo! Cada sesión te acerca más a tu meta.'))
-      .finally(() => setLoadingInsight(false));
+    if (!token) { setLoadingInsight(false); return; }
+    let mounted = true;
+
+    const fallback = setTimeout(() => {
+      if (mounted) {
+        setInsight('¡Excelente trabajo! Cada sesión te acerca más a tu meta.');
+        setLoadingInsight(false);
+      }
+    }, 8000);
+
+    fetchSessions().then(() => {
+      // sessions are now in the store; read them directly to avoid object-dep loop
+      const { sessions: latestSessions } = require('@/stores/useWorkoutStore').useWorkoutStore.getState();
+      const monday = (() => {
+        const d = new Date();
+        const day = d.getDay();
+        const diff = (day === 0 ? -6 : 1) - day;
+        d.setDate(d.getDate() + diff);
+        return d.toISOString().slice(0, 10);
+      })();
+      const weekSessions = latestSessions.filter(
+        (s: typeof latestSessions[0]) => s.endedAt && s.endedAt.slice(0, 10) >= monday,
+      );
+      const count = weekSessions.length;
+      const avgFormPct = count > 0
+        ? Math.round(weekSessions.reduce((s: number, e: typeof weekSessions[0]) => s + (e.formAccuracyPct ?? 0), 0) / count)
+        : formAccuracyPct;
+      const totalKcal = weekSessions.reduce((s: number, e: typeof weekSessions[0]) => s + (e.caloriesBurned ?? 0), 0) + caloriesBurned;
+
+      if (!mounted) return;
+      api.getWorkoutInsight(token, {
+        sessionData: { durationMin, caloriesBurned, formAccuracyPct, exercisesDone },
+        weekStats: { sessionsCount: count + 1, avgFormPct, totalKcal },
+      })
+        .then(({ insight }) => { if (mounted) setInsight(insight); })
+        .catch(() => { if (mounted) setInsight('¡Excelente trabajo! Cada sesión te acerca más a tu meta.'); })
+        .finally(() => { if (mounted) { setLoadingInsight(false); clearTimeout(fallback); } });
+    }).catch(() => {
+      if (mounted) {
+        setInsight('¡Excelente trabajo! Cada sesión te acerca más a tu meta.');
+        setLoadingInsight(false);
+        clearTimeout(fallback);
+      }
+    });
+
+    return () => { mounted = false; clearTimeout(fallback); };
   }, [token]);
 
   const STATS = [
@@ -51,7 +96,7 @@ export default function WorkoutSummaryScreen() {
         <View style={styles.celebrate}>
           <Text style={styles.celebrateEmoji}>🎉</Text>
           <Text style={styles.celebrateTitle}>¡Entreno completado!</Text>
-          <Text style={styles.celebrateSub}>Upper Body Power · Día 3</Text>
+          <Text style={styles.celebrateSub}>{planName}</Text>
         </View>
 
         {/* Stats row */}
@@ -90,8 +135,8 @@ export default function WorkoutSummaryScreen() {
         {/* XP earned */}
         <View style={styles.xpCard}>
           <View>
-            <Text style={styles.xpTitle}>+180 XP ganados</Text>
-            <Text style={styles.xpSub}>Racha +20 · Precisión +30</Text>
+            <Text style={styles.xpTitle}>+{xpEarned} XP ganados</Text>
+            <Text style={styles.xpSub}>{formAccuracyPct >= 80 ? 'Precisión +30 · ' : ''}Entreno completado</Text>
           </View>
           <Text style={styles.xpStar}>⭐</Text>
         </View>

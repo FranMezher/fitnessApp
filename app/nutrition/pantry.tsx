@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import { useState, useEffect } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { colors, glass, glassNeon } from '@/constants/colors';
@@ -10,22 +10,28 @@ import { api, Recipe } from '@/lib/api';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useNutritionStore } from '@/stores/useNutritionStore';
 
-const PANTRY_ITEMS = [
-  { name: 'Huevos',            quantity: '6 uds',  proteinG: 36, carbsG: 2,  fatG: 30 },
-  { name: 'Pechuga de pollo',  quantity: '300g',   proteinG: 63, carbsG: 0,  fatG: 6  },
-  { name: 'Arroz integral',    quantity: '200g',   proteinG: 7,  carbsG: 76, fatG: 2  },
-  { name: 'Espinacas',         quantity: '100g',   proteinG: 2,  carbsG: 1,  fatG: 0  },
-];
-
 export default function PantryScreen() {
   const token = useAuthStore((s) => s.token);
   const profile = useAuthStore((s) => s.profile);
   const foodLog = useNutritionStore((s) => s.foodLog);
   const addFood = useNutritionStore((s) => s.addFood);
+  const pantryItems = useNutritionStore((s) => s.pantryItems);
+  const fetchPantry = useNutritionStore((s) => s.fetchPantry);
+  const addPantryItem = useNutritionStore((s) => s.addPantryItem);
+  const deletePantryItem = useNutritionStore((s) => s.deletePantryItem);
 
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(false);
   const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
+  const [showAdd, setShowAdd] = useState(false);
+  const [addName, setAddName] = useState('');
+  const [addQty, setAddQty] = useState('');
+  const [addUnit, setAddUnit] = useState('g');
+  const [addLoading, setAddLoading] = useState(false);
+
+  useEffect(() => {
+    fetchPantry();
+  }, []);
 
   const today = new Date().toISOString().split('T')[0];
   const todayLog = foodLog.filter((e) => e.date === today);
@@ -42,13 +48,47 @@ export default function PantryScreen() {
     fatG:     Math.max(0, (profile?.targetFatG    ?? 65)    - consumed.fatG),
   };
 
+  async function handleAddItem() {
+    if (!addName.trim() || !addQty.trim()) return;
+    setAddLoading(true);
+    try {
+      await addPantryItem({
+        foodName: addName.trim(),
+        quantity: parseFloat(addQty) || 1,
+        unit: addUnit.trim() || 'g',
+      });
+      setAddName('');
+      setAddQty('');
+      setAddUnit('g');
+      setShowAdd(false);
+    } catch {
+      Alert.alert('Error', 'No se pudo agregar el ingrediente');
+    } finally {
+      setAddLoading(false);
+    }
+  }
+
   async function handleGenerate() {
-    if (!token) return;
+    if (!token) {
+      Alert.alert('Sesión expirada', 'Iniciá sesión nuevamente');
+      router.replace('/(auth)/login');
+      return;
+    }
+    if (pantryItems.length === 0) {
+      Alert.alert('Despensa vacía', 'Añadí ingredientes primero');
+      return;
+    }
     setLoading(true);
     setRecipes([]);
     try {
       const { recipes: generated } = await api.generateRecipes(token, {
-        ingredients: PANTRY_ITEMS,
+        ingredients: pantryItems.map((i) => ({
+          name: i.foodName,
+          quantity: `${i.quantity} ${i.unit}`,
+          proteinG: i.proteinG,
+          carbsG: i.carbsG,
+          fatG: i.fatG,
+        })),
         remainingMacros,
       });
       setRecipes(generated);
@@ -60,7 +100,11 @@ export default function PantryScreen() {
   }
 
   async function handleRegister(recipe: Recipe) {
-    if (!token) return;
+    if (!token) {
+      Alert.alert('Sesión expirada', 'Iniciá sesión nuevamente');
+      router.replace('/(auth)/login');
+      return;
+    }
     try {
       await addFood({
         foodName: recipe.name,
@@ -103,22 +147,71 @@ export default function PantryScreen() {
         </View>
 
         {/* Ingredient list */}
-        {PANTRY_ITEMS.map((item) => (
-          <View key={item.name} style={[glass, styles.ingredientRow]}>
-            <View>
-              <Text style={styles.ingredientName}>{item.name}</Text>
-              <Text style={styles.ingredientQty}>{item.quantity}</Text>
+        {pantryItems.length === 0 && !showAdd && (
+          <View style={[glass, styles.emptyPantry]}>
+            <Text style={styles.emptyText}>Tu despensa está vacía. Añadí ingredientes para generar recetas.</Text>
+          </View>
+        )}
+        {pantryItems.map((item) => (
+          <View key={item.id} style={[glass, styles.ingredientRow]}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.ingredientName}>{item.foodName}</Text>
+              <Text style={styles.ingredientQty}>{item.quantity} {item.unit}</Text>
             </View>
             <View style={styles.macros}>
-              <Text style={[styles.macroText, { color: colors.neon }]}>{item.proteinG}g P </Text>
-              <Text style={[styles.macroText, { color: colors.teal }]}>{item.carbsG}g C </Text>
-              <Text style={[styles.macroText, { color: colors.orange }]}>{item.fatG}g G</Text>
+              {item.proteinG != null && <Text style={[styles.macroText, { color: colors.neon }]}>{item.proteinG}g P </Text>}
+              {item.carbsG != null && <Text style={[styles.macroText, { color: colors.teal }]}>{item.carbsG}g C </Text>}
+              {item.fatG != null && <Text style={[styles.macroText, { color: colors.orange }]}>{item.fatG}g G </Text>}
+              <TouchableOpacity onPress={() => deletePantryItem(item.id)} hitSlop={8}>
+                <Text style={styles.deleteBtn}>✕</Text>
+              </TouchableOpacity>
             </View>
           </View>
         ))}
 
-        <TouchableOpacity style={styles.addRow}>
-          <Text style={styles.addText}>+ Escanear o añadir ingrediente</Text>
+        {showAdd && (
+          <View style={[glass, styles.addForm]}>
+            <TextInput
+              style={styles.addInput}
+              placeholder="Nombre (ej: Pollo)"
+              placeholderTextColor={colors.dim}
+              value={addName}
+              onChangeText={setAddName}
+            />
+            <View style={styles.addRow2}>
+              <TextInput
+                style={[styles.addInput, { flex: 1 }]}
+                placeholder="Cantidad"
+                placeholderTextColor={colors.dim}
+                value={addQty}
+                onChangeText={setAddQty}
+                keyboardType="numeric"
+              />
+              <TextInput
+                style={[styles.addInput, { width: 60 }]}
+                placeholder="Und"
+                placeholderTextColor={colors.dim}
+                value={addUnit}
+                onChangeText={setAddUnit}
+              />
+            </View>
+            <View style={styles.addFormBtns}>
+              <TouchableOpacity style={styles.cancelBtn} onPress={() => { setShowAdd(false); setAddName(''); setAddQty(''); setAddUnit('g'); }}>
+                <Text style={styles.cancelText}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.confirmBtn, (!addName.trim() || !addQty.trim()) && { opacity: 0.5 }]}
+                onPress={handleAddItem}
+                disabled={addLoading || !addName.trim() || !addQty.trim()}
+              >
+                <Text style={styles.confirmText}>{addLoading ? '...' : 'Añadir'}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+
+        <TouchableOpacity style={styles.addRow} onPress={() => setShowAdd(true)}>
+          <Text style={styles.addText}>+ Añadir ingrediente</Text>
         </TouchableOpacity>
 
         <Btn onPress={handleGenerate} disabled={loading}>
@@ -179,6 +272,27 @@ const styles = StyleSheet.create({
   ingredientQty: { fontSize: 12, color: colors.muted, fontFamily: 'SpaceGrotesk_400Regular' },
   macros: { flexDirection: 'row', alignItems: 'center' },
   macroText: { fontSize: 12, fontFamily: 'SpaceGrotesk_600SemiBold', lineHeight: 18 },
+  emptyPantry: { padding: 16, alignItems: 'center' },
+  emptyText: { fontSize: 13, color: colors.muted, fontFamily: 'SpaceGrotesk_400Regular', textAlign: 'center' },
+  deleteBtn: { fontSize: 12, color: colors.dim, paddingHorizontal: 4 },
+  addForm: { padding: 12, gap: 8 },
+  addInput: {
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    fontSize: 14,
+    color: colors.text,
+    fontFamily: 'SpaceGrotesk_400Regular',
+  },
+  addRow2: { flexDirection: 'row', gap: 8 },
+  addFormBtns: { flexDirection: 'row', gap: 8, marginTop: 4 },
+  cancelBtn: { flex: 1, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 10, padding: 8, alignItems: 'center' },
+  cancelText: { fontSize: 13, color: colors.muted, fontFamily: 'SpaceGrotesk_400Regular' },
+  confirmBtn: { flex: 1, backgroundColor: colors.neon, borderRadius: 10, padding: 8, alignItems: 'center' },
+  confirmText: { fontSize: 13, fontWeight: '700', color: '#111', fontFamily: 'SpaceGrotesk_700Bold' },
   addRow: { borderWidth: 1, borderStyle: 'dashed', borderColor: colors.dim, borderRadius: 16, padding: 10, alignItems: 'center', marginVertical: 4 },
   addText: { fontSize: 13, color: colors.dim, fontFamily: 'SpaceGrotesk_400Regular' },
   recipeCard: { padding: 14, gap: 4, marginTop: 2 },

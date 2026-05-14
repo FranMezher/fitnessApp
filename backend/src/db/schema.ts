@@ -3,17 +3,24 @@ import { sql } from 'drizzle-orm';
 
 // ─── Auth (managed by Supabase, mirrored here for joins) ───────────────────
 export const profiles = pgTable('profiles', {
-  userId:          text('user_id').primaryKey(),
-  name:            text('name').notNull(),
-  avatarUrl:       text('avatar_url'),
-  weightKg:        doublePrecision('weight_kg'),
-  heightCm:        doublePrecision('height_cm'),
-  age:             integer('age'),
-  sex:             text('sex'),
-  goal:            text('goal'),           // fat_loss | muscle | performance | wellness
-  activityLevel:   text('activity_level'), // sedentary | light | moderate | active | very_active
-  targetWeightKg:  doublePrecision('target_weight_kg'),
-  createdAt:       text('created_at').default(sql`now()`),
+  userId:             text('user_id').primaryKey(),
+  name:               text('name').notNull(),
+  avatarUrl:          text('avatar_url'),
+  weightKg:           doublePrecision('weight_kg'),
+  heightCm:           doublePrecision('height_cm'),
+  age:                integer('age'),
+  sex:                text('sex'),
+  goal:               text('goal'),
+  activityLevel:      text('activity_level'),
+  targetWeightKg:     doublePrecision('target_weight_kg'),
+  strengthTraining:   integer('strength_training').default(0), // 0|1 (no boolean in pg-core lite)
+  activityLifestyle:  text('activity_lifestyle'),
+  weightLossSpeed:    text('weight_loss_speed'),
+  targetCalories:     integer('target_calories'),
+  targetProteinG:     integer('target_protein_g'),
+  targetCarbsG:       integer('target_carbs_g'),
+  targetFatG:         integer('target_fat_g'),
+  createdAt:          text('created_at').default(sql`now()`),
 });
 
 // ─── Workouts ───────────────────────────────────────────────────────────────
@@ -40,6 +47,15 @@ export const workoutSessions = pgTable('workout_sessions', {
   endedAt:          text('ended_at'),
   caloriesBurned:   integer('calories_burned'),
   formAccuracyPct:  integer('form_accuracy_pct'),
+});
+
+export const planExercises = pgTable('plan_exercises', {
+  id:          text('id').primaryKey(),
+  planId:      text('plan_id').notNull(),
+  exerciseId:  text('exercise_id').notNull(),
+  sets:        integer('sets').notNull(),
+  reps:        integer('reps').notNull(),
+  orderIndex:  integer('order_index').notNull(),
 });
 
 export const sessionSets = pgTable('session_sets', {

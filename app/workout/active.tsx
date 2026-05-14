@@ -1,14 +1,33 @@
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { useEffect, useState } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { colors, glass } from '@/constants/colors';
 import { Pill } from '@/components/ui/Pill';
 import { Btn } from '@/components/ui/Btn';
 
 const TOTAL_REPS = 12;
 const DONE_REPS = 6;
+const CAMERA_HEIGHT = Math.round(Dimensions.get('window').height * 0.35);
 
 export default function WorkoutActiveScreen() {
+  const params = useLocalSearchParams<{
+    loadedHistory?: string;
+    loadedAgo?: string;
+    exerciseName?: string;
+  }>();
+
+  const exerciseName = params.exerciseName ?? 'Flexiones Diamante';
+  const hasHistory = !!params.loadedHistory;
+
+  const [elapsed, setElapsed] = useState(0);
+  useEffect(() => {
+    const interval = setInterval(() => setElapsed((s) => s + 1), 1000);
+    return () => clearInterval(interval);
+  }, []);
+  const mm = String(Math.floor(elapsed / 60)).padStart(2, '0');
+  const ss = String(elapsed % 60).padStart(2, '0');
+
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
@@ -17,14 +36,28 @@ export default function WorkoutActiveScreen() {
           <TouchableOpacity onPress={() => router.back()}>
             <Text style={styles.exitText}>✕ Salir</Text>
           </TouchableOpacity>
-          <Text style={styles.seriesText}>Serie 2 / 3</Text>
+          <View style={styles.headerCenter}>
+            <Text style={styles.seriesText}>{exerciseName}</Text>
+            <Text style={styles.seriesSub}>Serie 2 / 3 · Ejercicio 3 de 6</Text>
+          </View>
           <Text style={styles.pauseText}>⏸</Text>
         </View>
 
+        {/* Loaded history banner */}
+        {hasHistory && (
+          <View style={styles.historyBanner}>
+            <Text style={styles.historyBannerArrow}>↑</Text>
+            <Text style={styles.historyBannerText}>
+              Cargado de última sesión:{' '}
+              <Text style={{ color: colors.neon, fontWeight: '700' }}>{params.loadedHistory}</Text>
+            </Text>
+            <Pill color={colors.neon}>{params.loadedAgo}</Pill>
+          </View>
+        )}
+
         {/* Timer */}
         <View style={styles.timerWrap}>
-          <Text style={styles.timer}>00:32</Text>
-          <Text style={styles.exerciseName}>Flexiones Diamante</Text>
+          <Text style={styles.timer}>{mm}:{ss}</Text>
         </View>
 
         {/* Camera placeholder */}
@@ -78,6 +111,21 @@ export default function WorkoutActiveScreen() {
           </Text>
         </View>
 
+        {/* Series comparison */}
+        <View style={[glass, styles.seriesCompare]}>
+          {[
+            { label: 'Serie 1 hoy',    value: '12 reps', color: colors.teal,   sub: '✓' },
+            { label: 'Última sesión',  value: '10 reps', color: colors.muted,  sub: 'ref.' },
+            { label: 'Ahora',          value: '6 / 12',  color: colors.orange, sub: '▶' },
+          ].map((col, i) => (
+            <View key={i} style={[styles.seriesCol, i > 0 && styles.seriesColBorder]}>
+              <Text style={styles.seriesColLabel}>{col.label}</Text>
+              <Text style={[styles.seriesColValue, { color: col.color }]}>{col.value}</Text>
+              <Text style={[styles.seriesColSub, { color: col.color }]}>{col.sub}</Text>
+            </View>
+          ))}
+        </View>
+
         <Btn variant="orange" onPress={() => router.push('/workout/summary')}>
           DESCANSO →
         </Btn>
@@ -105,15 +153,76 @@ const styles = StyleSheet.create({
     color: colors.muted,
     fontFamily: 'SpaceGrotesk_400Regular',
   },
+  headerCenter: {
+    flex: 1,
+    alignItems: 'center',
+  },
   seriesText: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '700',
     color: colors.text,
     fontFamily: 'SpaceGrotesk_700Bold',
   },
+  seriesSub: {
+    fontSize: 11,
+    color: colors.muted,
+    fontFamily: 'SpaceGrotesk_400Regular',
+    marginTop: 1,
+  },
   pauseText: {
     fontSize: 15,
     color: colors.neon,
+  },
+  historyBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: 'rgba(204,255,0,0.06)',
+    borderWidth: 1,
+    borderColor: colors.borderAccent,
+    borderRadius: 10,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+  },
+  historyBannerArrow: {
+    color: colors.neon,
+    fontSize: 14,
+  },
+  historyBannerText: {
+    flex: 1,
+    fontSize: 12,
+    color: colors.muted,
+    fontFamily: 'SpaceGrotesk_400Regular',
+  },
+  seriesCompare: {
+    flexDirection: 'row',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+  },
+  seriesCol: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 2,
+  },
+  seriesColBorder: {
+    borderLeftWidth: 1,
+    borderLeftColor: colors.border,
+  },
+  seriesColLabel: {
+    fontSize: 10,
+    color: colors.dim,
+    fontFamily: 'SpaceGrotesk_400Regular',
+    marginBottom: 2,
+  },
+  seriesColValue: {
+    fontSize: 14,
+    fontWeight: '700',
+    fontFamily: 'SpaceGrotesk_700Bold',
+  },
+  seriesColSub: {
+    fontSize: 10,
+    opacity: 0.7,
+    fontFamily: 'SpaceGrotesk_400Regular',
   },
   timerWrap: {
     alignItems: 'center',
@@ -126,18 +235,12 @@ const styles = StyleSheet.create({
     letterSpacing: -2,
     fontFamily: 'SpaceGrotesk_700Bold',
   },
-  exerciseName: {
-    fontSize: 15,
-    color: colors.muted,
-    fontFamily: 'SpaceGrotesk_400Regular',
-    marginTop: 4,
-  },
   camera: {
     backgroundColor: '#0d0d0d',
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: 16,
-    height: 200,
+    height: CAMERA_HEIGHT,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',

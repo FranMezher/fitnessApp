@@ -22,6 +22,8 @@ interface NutritionState {
   removeFood: (id: string) => Promise<void>;
 }
 
+let _latestFetchDate: string | null = null;
+
 export const useNutritionStore = create<NutritionState>((set) => ({
   foodLog: [],
   pantryItems: [],
@@ -32,9 +34,11 @@ export const useNutritionStore = create<NutritionState>((set) => ({
   fetchFoodLog: async (date) => {
     const token = useAuthStore.getState().token;
     if (!token) return;
+    _latestFetchDate = date;
     set({ loading: true });
     try {
       const { entries } = await api.getFoodLog(token, date);
+      if (_latestFetchDate !== date) return; // discard stale response
       const calories = entries.reduce((s, e) => s + e.calories, 0);
       const mealTypes = new Set(entries.map((e) => e.mealType));
       set((s) => ({
@@ -45,25 +49,26 @@ export const useNutritionStore = create<NutritionState>((set) => ({
         },
       }));
     } finally {
-      set({ loading: false });
+      if (_latestFetchDate === date) set({ loading: false });
     }
   },
 
   addFood: async (entry) => {
     const token = useAuthStore.getState().token;
-    if (!token) return;
-    await api.addFoodLog(token, entry);
-    const today = new Date().toISOString().slice(0, 10);
-    const { entries } = await api.getFoodLog(token, today);
-    const calories = entries.reduce((s, e) => s + e.calories, 0);
-    const mealTypes = new Set(entries.map((e) => e.mealType));
-    set((s) => ({
-      foodLog: entries,
-      logCache: {
-        ...s.logCache,
-        [today]: { calories, mealsCount: mealTypes.size },
-      },
-    }));
+    if (!token) throw new Error('Sesión expirada');
+    const { id } = await api.addFoodLog(token, entry);
+    // Optimistic update — avoids race condition when adding multiple items
+    set((s) => {
+      const newEntry: FoodLogEntry = { ...entry, id };
+      const updated = [...s.foodLog, newEntry];
+      const calories = updated.reduce((sum, e) => sum + e.calories, 0);
+      const mealTypes = new Set(updated.map((e) => e.mealType));
+      const date = entry.date;
+      return {
+        foodLog: updated,
+        logCache: { ...s.logCache, [date]: { calories, mealsCount: mealTypes.size } },
+      };
+    });
   },
 
   fetchPantry: async () => {

@@ -12,12 +12,12 @@ import type { OnboardingData } from '@/stores/useOnboardingStore';
 const TOTAL_STEPS = 10;
 const STEP = 4;
 
-const OPTIONS: { id: OnboardingData['activityLevel']; fires: string; label: string; sub: string }[] = [
-  { id: 'none',  fires: '⬜',  label: 'No hago ejercicio',    sub: 'Estilo de vida completamente sedentario' },
-  { id: '1-2',   fires: '🔥',  label: '1–2 días por semana',  sub: 'Actividad física leve' },
-  { id: '3-4',   fires: '🔥🔥', label: '3–4 días por semana',  sub: 'Actividad moderada' },
-  { id: '5-6',   fires: '🔥🔥🔥', label: '5–6 días por semana', sub: 'Actividad intensa' },
-  { id: 'daily', fires: '🔥🔥🔥🔥', label: 'Todos los días',    sub: 'Atleta o entrenamiento diario' },
+const OPTIONS: { id: OnboardingData['activityLevel']; bars: number; label: string; sub: string }[] = [
+  { id: 'none',  bars: 1, label: 'No hago ejercicio',    sub: 'Estilo de vida completamente sedentario' },
+  { id: '1-2',   bars: 2, label: '1–2 días por semana',  sub: 'Actividad física leve' },
+  { id: '3-4',   bars: 3, label: '3–4 días por semana',  sub: 'Actividad moderada' },
+  { id: '5-6',   bars: 4, label: '5–6 días por semana',  sub: 'Actividad intensa' },
+  { id: 'daily', bars: 5, label: 'Todos los días',       sub: 'Atleta o entrenamiento diario' },
 ];
 
 export default function ActivityScreen() {
@@ -52,7 +52,10 @@ export default function ActivityScreen() {
 
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
         <Text style={styles.step}>Paso {STEP} de {TOTAL_STEPS}</Text>
-        <Text style={styles.title}>¿Cuál es tu nivel de actividad?</Text>
+        <Text style={styles.title}>
+          ¿Cuál es tu nivel de{' '}
+          <Text style={styles.titleAccent}>actividad</Text>?
+        </Text>
         <Text style={styles.subtitle}>No te preocupes, lo podés cambiar después</Text>
 
         {OPTIONS.map((o) => {
@@ -60,16 +63,38 @@ export default function ActivityScreen() {
           return (
             <TouchableOpacity
               key={o.id}
-              style={[active ? glassNeon : glass, styles.card]}
+              style={[
+                active ? glassNeon : glass,
+                styles.card,
+                active && styles.cardActive,
+              ]}
               onPress={() => setSelected(o.id)}
               activeOpacity={0.8}
             >
-              <Text style={styles.fires}>{o.fires}</Text>
+              {/* Intensity bars */}
+              <View style={styles.barsContainer}>
+                {Array.from({ length: 5 }, (_, i) => (
+                  <View
+                    key={i}
+                    style={[
+                      styles.bar,
+                      { height: 8 + i * 5 },
+                      i < o.bars
+                        ? { backgroundColor: active ? colors.neon : colors.muted }
+                        : { backgroundColor: colors.dim },
+                    ]}
+                  />
+                ))}
+              </View>
               <View style={styles.cardText}>
                 <Text style={[styles.cardLabel, active && styles.cardLabelActive]}>{o.label}</Text>
                 <Text style={styles.cardSub}>{o.sub}</Text>
               </View>
-              {active && <Text style={styles.check}>✓</Text>}
+              {active && (
+                <View style={styles.checkBadge}>
+                  <Text style={styles.checkText}>✓</Text>
+                </View>
+              )}
             </TouchableOpacity>
           );
         })}
@@ -90,12 +115,22 @@ const styles = StyleSheet.create({
   step: { fontSize: 12, color: colors.muted, fontFamily: 'SpaceGrotesk_400Regular', marginBottom: 8 },
   title: { fontSize: 26, fontWeight: '700', color: colors.text, marginBottom: 4, fontFamily: 'SpaceGrotesk_700Bold' },
   subtitle: { fontSize: 14, color: colors.muted, marginBottom: 20, fontFamily: 'SpaceGrotesk_400Regular' },
+  titleAccent: { color: colors.neon },
   card: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 14, paddingHorizontal: 16, marginBottom: 10 },
-  fires: { fontSize: 20, width: 52 },
+  cardActive: {
+    shadowColor: colors.neon,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  barsContainer: { flexDirection: 'row', alignItems: 'flex-end', gap: 3, width: 40 },
+  bar: { width: 5, borderRadius: 2 },
   cardText: { flex: 1 },
   cardLabel: { fontSize: 15, fontWeight: '700', color: colors.text, fontFamily: 'SpaceGrotesk_700Bold' },
   cardLabelActive: { color: colors.neon },
   cardSub: { fontSize: 12, color: colors.muted, fontFamily: 'SpaceGrotesk_400Regular', marginTop: 2 },
-  check: { color: colors.neon, fontSize: 16 },
+  checkBadge: { width: 24, height: 24, borderRadius: 12, backgroundColor: colors.neon, alignItems: 'center', justifyContent: 'center' },
+  checkText: { color: '#111', fontSize: 13, fontWeight: '700', fontFamily: 'SpaceGrotesk_700Bold' },
   btnWrap: { marginTop: 8 },
 });

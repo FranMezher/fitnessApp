@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
@@ -18,6 +18,7 @@ function NumericPicker({
   min,
   max,
   onChange,
+  accent,
 }: {
   label: string;
   value: number;
@@ -25,28 +26,30 @@ function NumericPicker({
   min: number;
   max: number;
   onChange: (v: number) => void;
+  accent?: string;
 }) {
+  const accentColor = accent ?? colors.neon;
   return (
     <View style={pickerStyles.wrap}>
       <Text style={pickerStyles.label}>{label}</Text>
-      <View style={pickerStyles.row}>
+      <View style={[pickerStyles.row, { borderColor: `${accentColor}22` }]}>
         <TouchableOpacity
-          style={pickerStyles.btn}
+          style={[pickerStyles.btn, { borderRightColor: `${accentColor}22` }]}
           onPress={() => onChange(Math.max(min, value - 1))}
           activeOpacity={0.7}
         >
-          <Text style={pickerStyles.btnText}>−</Text>
+          <Text style={[pickerStyles.btnText, { color: accentColor }]}>−</Text>
         </TouchableOpacity>
         <View style={pickerStyles.valueBox}>
           <Text style={pickerStyles.value}>{value}</Text>
           <Text style={pickerStyles.unit}>{unit}</Text>
         </View>
         <TouchableOpacity
-          style={pickerStyles.btn}
+          style={[pickerStyles.btn, { borderLeftColor: `${accentColor}22` }]}
           onPress={() => onChange(Math.min(max, value + 1))}
           activeOpacity={0.7}
         >
-          <Text style={pickerStyles.btnText}>+</Text>
+          <Text style={[pickerStyles.btnText, { color: accentColor }]}>+</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -68,6 +71,23 @@ export default function BiometricsScreen() {
   const [targetWeight, setTargetWeight] = useState(stored.targetWeightKg ?? weight - 5);
 
   async function handleContinue() {
+    if (age < 16 || age > 90) {
+      Alert.alert('Edad inválida', 'Ingresá una edad entre 16 y 90 años.');
+      return;
+    }
+    if (height < 140 || height > 220) {
+      Alert.alert('Altura inválida', 'Ingresá entre 140 y 220 cm.');
+      return;
+    }
+    if (weight < 40 || weight > 200) {
+      Alert.alert('Peso inválido', 'Ingresá entre 40 y 200 kg.');
+      return;
+    }
+    if (stored.goal === 'fat_loss' && targetWeight >= weight) {
+      Alert.alert('Peso objetivo inválido', 'El peso objetivo debe ser menor al peso actual.');
+      return;
+    }
+
     setStore({
       sex,
       age,
@@ -114,7 +134,7 @@ export default function BiometricsScreen() {
               onPress={() => setSex(s)}
               activeOpacity={0.8}
             >
-              <Text style={styles.sexIcon}>{s === 'male' ? '👨' : '👩'}</Text>
+              <Text style={[styles.sexIcon, s === sex && styles.sexIconActive]}>{s === 'male' ? '♂' : '♀'}</Text>
               <Text style={[styles.sexLabel, s === sex && styles.sexLabelActive]}>
                 {s === 'male' ? 'Hombre' : 'Mujer'}
               </Text>
@@ -122,10 +142,10 @@ export default function BiometricsScreen() {
           ))}
         </View>
 
-        <NumericPicker label="Edad" value={age} unit="años" min={13} max={90} onChange={setAge} />
+        <NumericPicker label="Edad" value={age} unit="años" min={16} max={90} onChange={setAge} />
         <NumericPicker label="Altura" value={height} unit="cm" min={130} max={230} onChange={setHeight} />
         <NumericPicker label="Peso actual" value={weight} unit="kg" min={30} max={250} onChange={setWeight} />
-        <NumericPicker label="Peso objetivo" value={targetWeight} unit="kg" min={30} max={250} onChange={setTargetWeight} />
+        <NumericPicker label="Peso objetivo" value={targetWeight} unit="kg" min={30} max={250} onChange={setTargetWeight} accent={colors.orange} />
 
         <View style={styles.btnWrap}>
           <Btn onPress={handleContinue}>{isEdit ? 'Guardar' : 'Continuar'}</Btn>
@@ -158,10 +178,14 @@ const pickerStyles = StyleSheet.create({
     overflow: 'hidden',
   },
   btn: {
-    width: 52,
-    height: 52,
+    width: 54,
+    height: 54,
     alignItems: 'center',
     justifyContent: 'center',
+    borderRightWidth: 1,
+    borderLeftWidth: 1,
+    borderRightColor: 'transparent',
+    borderLeftColor: 'transparent',
   },
   btnText: {
     fontSize: 22,
@@ -241,11 +265,16 @@ const styles = StyleSheet.create({
   sexBtn: {
     flex: 1,
     alignItems: 'center',
-    paddingVertical: 16,
-    gap: 6,
+    paddingVertical: 22,
+    gap: 8,
   },
   sexIcon: {
-    fontSize: 28,
+    fontSize: 36,
+    color: colors.muted,
+    fontFamily: 'SpaceGrotesk_700Bold',
+  },
+  sexIconActive: {
+    color: colors.neon,
   },
   sexLabel: {
     fontSize: 14,

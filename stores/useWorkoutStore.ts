@@ -1,49 +1,66 @@
 import { create } from 'zustand';
-import { api, WorkoutSession, FinishSessionData } from '@/lib/api';
+import { api, WorkoutPlan, PlanExerciseDetail, WorkoutSession, Streak } from '@/lib/api';
 import { useAuthStore } from './useAuthStore';
 
 interface WorkoutState {
-  activeSession: WorkoutSession | null;
+  plans: WorkoutPlan[];
+  myPlan: WorkoutPlan | null;
+  myPlanExercises: PlanExerciseDetail[];
   sessions: WorkoutSession[];
+  streak: Streak | null;
   loading: boolean;
+  fetchPlans: () => Promise<void>;
+  fetchMyPlan: () => Promise<void>;
   fetchSessions: () => Promise<void>;
-  startSession: (planId?: string) => Promise<string | null>;
-  finishSession: (id: string, data: FinishSessionData) => Promise<{ xpEarned: number } | null>;
-  clearActiveSession: () => void;
+  fetchStreak: () => Promise<void>;
+  ensureSeeded: () => Promise<void>;
 }
 
-export const useWorkoutStore = create<WorkoutState>((set) => ({
-  activeSession: null,
+export const useWorkoutStore = create<WorkoutState>((set, get) => ({
+  plans: [],
+  myPlan: null,
+  myPlanExercises: [],
   sessions: [],
+  streak: null,
   loading: false,
 
-  fetchSessions: async () => {
+  fetchPlans: async () => {
+    const token = useAuthStore.getState().token;
+    if (!token) return;
+    const { plans } = await api.getWorkoutPlans(token);
+    set({ plans });
+  },
+
+  fetchMyPlan: async () => {
     const token = useAuthStore.getState().token;
     if (!token) return;
     set({ loading: true });
     try {
-      const { sessions } = await api.getSessions(token);
-      set({ sessions });
+      const { plan, exercises } = await api.getMyPlan(token);
+      set({ myPlan: plan, myPlanExercises: exercises });
     } finally {
       set({ loading: false });
     }
   },
 
-  startSession: async (planId) => {
+  fetchSessions: async () => {
     const token = useAuthStore.getState().token;
-    if (!token) return null;
-    const session = await api.startSession(token, planId);
-    set({ activeSession: session as unknown as WorkoutSession });
-    return (session as { id: string }).id;
+    if (!token) return;
+    const { sessions } = await api.getSessions(token);
+    set({ sessions });
   },
 
-  finishSession: async (id, data) => {
+  fetchStreak: async () => {
     const token = useAuthStore.getState().token;
-    if (!token) return null;
-    const result = await api.finishSession(token, id, data);
-    set({ activeSession: null });
-    return result as { xpEarned: number };
+    if (!token) return;
+    const streak = await api.getStreak(token);
+    set({ streak });
   },
 
-  clearActiveSession: () => set({ activeSession: null }),
+  ensureSeeded: async () => {
+    const token = useAuthStore.getState().token;
+    if (!token) return;
+    await api.seedWorkouts(token).catch(() => {});
+    if (!get().plans.length) await get().fetchPlans();
+  },
 }));

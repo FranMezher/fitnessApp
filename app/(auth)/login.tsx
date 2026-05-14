@@ -7,6 +7,7 @@ import { Btn } from '@/components/ui/Btn';
 import { Label } from '@/components/ui/Label';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { api } from '@/lib/api';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -24,8 +25,10 @@ export default function LoginScreen() {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
       if (data.session) {
-        setSession(data.session.access_token, data.session.user.id, data.session.user.email ?? '');
-        router.replace('/(tabs)');
+        const token = data.session.access_token;
+        setSession(token, data.session.user.id, data.session.user.email ?? '');
+        const profile = await api.getProfile(token).catch(() => null);
+        router.replace(profile ? '/(tabs)' : '/(onboarding)/goal');
       }
     } catch (err: any) {
       Alert.alert('Error al iniciar sesión', err.message ?? 'Intentá de nuevo.');
@@ -85,7 +88,7 @@ export default function LoginScreen() {
         <Label>Email</Label>
         <TextInput
           style={styles.input}
-          placeholder="carlos@email.com"
+          placeholder="tu@email.com"
           placeholderTextColor={colors.dim}
           keyboardType="email-address"
           autoCapitalize="none"

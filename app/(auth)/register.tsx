@@ -21,6 +21,15 @@ export default function RegisterScreen() {
       Alert.alert('Campos requeridos', 'Completá todos los campos.');
       return;
     }
+    if (name.trim().length > 100) {
+      Alert.alert('Nombre muy largo', 'Máximo 100 caracteres.');
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      Alert.alert('Email inválido', 'Ingresá un email válido.');
+      return;
+    }
     if (password.length < 6) {
       Alert.alert('Contraseña corta', 'Mínimo 6 caracteres.');
       return;
@@ -96,7 +105,7 @@ export default function RegisterScreen() {
         <Label>Email</Label>
         <TextInput
           style={styles.input}
-          placeholder="carlos@email.com"
+          placeholder="tu@email.com"
           placeholderTextColor={colors.dim}
           keyboardType="email-address"
           autoCapitalize="none"

@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -7,35 +8,63 @@ import { Pill } from '@/components/ui/Pill';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { Label } from '@/components/ui/Label';
 import { GlassCard } from '@/components/ui/GlassCard';
+import { useAuthStore } from '@/stores/useAuthStore';
+import { useNutritionStore } from '@/stores/useNutritionStore';
+import { useWorkoutStore } from '@/stores/useWorkoutStore';
 
 const WEEK_DAYS = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
-const STREAK = 5;
 
 const RINGS = [
-  { pct: 72, color: colors.neon, label: '72%', sub: 'mov', name: 'Movimiento' },
-  { pct: 50, color: colors.orange, label: '50%', sub: 'eje', name: 'Ejercicio' },
-  { pct: 88, color: colors.teal, label: '88%', sub: 'H₂O', name: 'Hidrat.' },
-];
-
-const MACROS = [
-  { l: 'Proteína', v: '87g', c: colors.neon },
-  { l: 'Carbos', v: '134g', c: colors.teal },
-  { l: 'Grasas', v: '32g', c: colors.orange },
+  { pct: 72, color: colors.neon,   label: '72%', sub: 'mov', name: 'Movimiento' },
+  { pct: 50, color: colors.orange, label: '50%', sub: 'eje', name: 'Ejercicio'  },
+  { pct: 88, color: colors.teal,   label: '88%', sub: 'H₂O', name: 'Hidrat.'   },
 ];
 
 export default function DashboardScreen() {
+  const { profile, fetchProfile } = useAuthStore();
+  const { foodLog, fetchFoodLog } = useNutritionStore();
+  const { streak, myPlan, fetchStreak, fetchMyPlan, ensureSeeded } = useWorkoutStore();
+  const [dataError, setDataError] = useState<string | null>(null);
+
+  const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
+
+  useEffect(() => {
+    setDataError(null);
+    fetchProfile().catch((err) => setDataError(err?.message ?? 'Error al cargar el perfil'));
+    fetchFoodLog(today).catch(() => {});
+    fetchStreak().catch(() => {});
+    ensureSeeded().then(() => fetchMyPlan()).catch(() => {});
+  }, [today]);
+
+  const totalCal = foodLog.reduce((s, e) => s + e.calories, 0);
+  const totalProt = foodLog.reduce((s, e) => s + e.proteinG, 0);
+  const totalCarbs = foodLog.reduce((s, e) => s + e.carbsG, 0);
+  const totalFat = foodLog.reduce((s, e) => s + e.fatG, 0);
+
+  const goalCal = profile?.targetCalories ?? 2000;
+  const calPct = Math.min(100, Math.round((totalCal / goalCal) * 100));
+
+  const firstName = profile?.name?.split(' ')[0] ?? 'Colega';
+  const avatarLetter = firstName[0]?.toUpperCase() ?? 'F';
+
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+        {/* Error banner */}
+        {dataError && (
+          <View style={styles.errorBanner}>
+            <Text style={styles.errorBannerText}>⚠ {dataError}</Text>
+          </View>
+        )}
         {/* Header */}
         <View style={styles.header}>
           <View>
             <Text style={styles.headerSub}>Buenos días,</Text>
-            <Text style={styles.headerName}>Carlos 👋</Text>
+            <Text style={styles.headerName}>{firstName} 👋</Text>
           </View>
           <View style={styles.avatarWrap}>
             <View style={styles.avatar}>
-              <Text style={styles.avatarText}>C</Text>
+              <Text style={styles.avatarText}>{avatarLetter}</Text>
             </View>
             <View style={styles.notifBadge}>
               <Text style={styles.notifText}>3</Text>
@@ -45,26 +74,19 @@ export default function DashboardScreen() {
 
         {/* Streak */}
         <GlassCard style={styles.streakCard}>
-          <Text style={styles.streakTitle}>🔥 5 días de racha</Text>
+          <Text style={styles.streakTitle}>🔥 {streak?.currentStreak ?? 0} días de racha</Text>
           <View style={styles.streakDays}>
-            {WEEK_DAYS.map((d, i) => (
-              <View
-                key={d}
-                style={[
-                  styles.streakDay,
-                  i < STREAK ? styles.streakDayDone : styles.streakDayPending,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.streakDayText,
-                    i < STREAK ? styles.streakDayTextDone : styles.streakDayTextPending,
-                  ]}
-                >
-                  {i < STREAK ? '✓' : d}
-                </Text>
-              </View>
-            ))}
+            {WEEK_DAYS.map((d, i) => {
+              const current = streak?.currentStreak ?? 0;
+              const done = i < Math.min(current, 7);
+              return (
+                <View key={d} style={[styles.streakDay, done ? styles.streakDayDone : styles.streakDayPending]}>
+                  <Text style={[styles.streakDayText, done ? styles.streakDayTextDone : styles.streakDayTextPending]}>
+                    {done ? '✓' : d}
+                  </Text>
+                </View>
+              );
+            })}
           </View>
         </GlassCard>
 
@@ -82,11 +104,15 @@ export default function DashboardScreen() {
         <GlassCard style={styles.macrosCard}>
           <View style={styles.macrosHeader}>
             <Label>Calorías de hoy</Label>
-            <Text style={styles.macrosKcal}>1,240 / 1,840</Text>
+            <Text style={styles.macrosKcal}>{totalCal.toLocaleString()} / {goalCal.toLocaleString()}</Text>
           </View>
-          <ProgressBar pct={67} />
+          <ProgressBar pct={calPct} />
           <View style={styles.macroItems}>
-            {MACROS.map((m) => (
+            {[
+              { l: 'Proteína', v: `${Math.round(totalProt)}g`, c: colors.neon },
+              { l: 'Carbos',   v: `${Math.round(totalCarbs)}g`, c: colors.teal },
+              { l: 'Grasas',   v: `${Math.round(totalFat)}g`, c: colors.orange },
+            ].map((m) => (
               <View key={m.l} style={styles.macroItem}>
                 <Text style={[styles.macroVal, { color: m.c }]}>{m.v}</Text>
                 <Text style={styles.macroLabel}>{m.l}</Text>
@@ -99,12 +125,14 @@ export default function DashboardScreen() {
         <TouchableOpacity
           style={[glassOrange, styles.workoutCta]}
           activeOpacity={0.8}
-          onPress={() => router.push('/workout/active')}
+          onPress={() => router.push(myPlan ? `/workout/${myPlan.id}` as never : '/workout/active')}
         >
           <View style={styles.workoutInfo}>
-            <Pill color={colors.orange}>HOY · DÍA 3</Pill>
-            <Text style={styles.workoutTitle}>Upper Body Power</Text>
-            <Text style={styles.workoutSub}>6 ejercicios · ~38 min</Text>
+            <Pill color={colors.orange}>HOY · ENTRENA</Pill>
+            <Text style={styles.workoutTitle}>{myPlan?.name ?? 'Tu entrenamiento'}</Text>
+            <Text style={styles.workoutSub}>
+              {myPlan ? `${myPlan.exerciseCount ?? '—'} ejercicios · ${myPlan.daysPerWeek}x semana` : 'Cargando plan...'}
+            </Text>
           </View>
           <View style={styles.playBtn}>
             <Text style={styles.playIcon}>▶</Text>
@@ -123,6 +151,19 @@ const styles = StyleSheet.create({
   container: {
     padding: 20,
     gap: 12,
+  },
+  errorBanner: {
+    backgroundColor: 'rgba(255,107,53,0.12)',
+    borderWidth: 1,
+    borderColor: `${colors.orange}44`,
+    borderRadius: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+  },
+  errorBannerText: {
+    fontSize: 13,
+    color: colors.orange,
+    fontFamily: 'SpaceGrotesk_400Regular',
   },
   header: {
     flexDirection: 'row',

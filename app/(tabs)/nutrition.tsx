@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
   ActivityIndicator, Modal, Dimensions, Pressable,
@@ -122,7 +122,7 @@ function WeekStrip({
   calGoal: number;
 }) {
   const stripRef = useRef<ScrollView>(null);
-  const stripDates = buildStripDates();
+  const stripDates = useMemo(() => buildStripDates(), []);
 
   useEffect(() => {
     const idx = stripDates.indexOf(selectedDate);
@@ -234,7 +234,7 @@ function CalendarModal({
   const [month, setMonth] = useState(initD.getMonth());
   const [year, setYear] = useState(initD.getFullYear());
 
-  const rows = buildCalendarGrid(year, month);
+  const rows = useMemo(() => buildCalendarGrid(year, month), [year, month]);
 
   function prevMonth() {
     if (month === 0) { setMonth(11); setYear((y) => y - 1); }
@@ -436,7 +436,7 @@ const calStyles = StyleSheet.create({
 // ─── Main screen ──────────────────────────────────────────────────────────────
 
 export default function NutritionScreen() {
-  const today = todayStr();
+  const today = useMemo(() => todayStr(), []);
   const [selectedDate, setSelectedDate] = useState(today);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const { foodLog, fetchFoodLog, loading, waterGlasses, setWaterGlasses, logCache } = useNutritionStore();
@@ -458,10 +458,13 @@ export default function NutritionScreen() {
   }, [today]);
 
   // Group entries by mealType
-  const byMeal: Record<string, FoodLogEntry[]> = { breakfast: [], lunch: [], snack: [], dinner: [] };
-  for (const e of foodLog) {
-    if (byMeal[e.mealType]) byMeal[e.mealType].push(e);
-  }
+  const byMeal = useMemo(() => {
+    const m: Record<string, FoodLogEntry[]> = { breakfast: [], lunch: [], snack: [], dinner: [] };
+    for (const e of foodLog) {
+      if (m[e.mealType]) m[e.mealType].push(e);
+    }
+    return m;
+  }, [foodLog]);
 
   // Totals
   const totalCal = foodLog.reduce((s, e) => s + e.calories, 0);
@@ -515,14 +518,8 @@ export default function NutritionScreen() {
             <ActivityIndicator color={colors.neon} style={{ flex: 1, paddingVertical: 16 }} />
           ) : (
             <>
-              <Ring pct={calPct} size={90} color={colors.neon} label={String(totalCal)} sub="kcal" />
+              <Ring pct={calPct} size={90} color={colors.neon} label={String(Math.max(0, goals.calories - totalCal))} sub="restantes" />
               <View style={styles.macrosWrap}>
-                <Text style={styles.remaining}>
-                  Restantes:{' '}
-                  <Text style={styles.remainingVal}>
-                    {Math.max(0, goals.calories - totalCal)} kcal
-                  </Text>
-                </Text>
                 {[
                   { name: 'Proteína', val: totalProt,  goal: goals.proteinG, color: colors.neon   },
                   { name: 'Carbos',   val: totalCarbs, goal: goals.carbsG,   color: colors.teal  },
@@ -742,7 +739,7 @@ const styles = StyleSheet.create({
   mealCard: { padding: 12, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   mealDim: { opacity: 0.65 },
   mealLeft: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, flex: 1 },
-  mealIcon: { fontSize: 20, marginTop: 2 },
+  mealIcon: { fontSize: 28, marginTop: 0 },
   mealName: { fontSize: 15, fontWeight: '700', color: colors.text, fontFamily: 'SpaceGrotesk_700Bold', marginBottom: 2 },
   mealNameDim: { color: colors.muted, fontWeight: '400' },
   mealItem: { fontSize: 12, color: colors.muted, fontFamily: 'SpaceGrotesk_400Regular' },
@@ -759,7 +756,7 @@ const styles = StyleSheet.create({
   },
   addBtnText: { fontSize: 12, color: colors.orange, fontFamily: 'SpaceGrotesk_600SemiBold' },
   mealArrow: { color: colors.dim, fontSize: 18 },
-  pantryCta: { padding: 14, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 4 },
+  pantryCta: { padding: 14, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 4, borderStyle: 'dashed', borderColor: colors.neon, borderWidth: 1.5, backgroundColor: 'rgba(204,255,0,0.05)' },
   pantryEmoji: { fontSize: 22, color: colors.neon },
   pantryTitle: { fontSize: 15, fontWeight: '700', color: colors.neon, fontFamily: 'SpaceGrotesk_700Bold' },
   pantrySub: { fontSize: 12, color: colors.muted, fontFamily: 'SpaceGrotesk_400Regular' },

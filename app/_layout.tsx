@@ -7,6 +7,7 @@ import { router } from 'expo-router';
 import { colors } from '@/constants/colors';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { api } from '@/lib/api';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -25,23 +26,22 @@ export default function RootLayout() {
 
   useEffect(() => {
     // Restore existing session on app start
-    supabase.auth.getSession().then(({ data }) => {
+    supabase.auth.getSession().then(async ({ data }) => {
       if (data.session) {
-        setSession(
-          data.session.access_token,
-          data.session.user.id,
-          data.session.user.email ?? '',
-        );
-        router.replace('/(tabs)');
+        const token = data.session.access_token;
+        setSession(token, data.session.user.id, data.session.user.email ?? '');
+        const profile = await api.getProfile(token).catch(() => null);
+        router.replace(profile ? '/(tabs)' : '/(onboarding)/goal');
       }
     });
 
-    // Listen for auth state changes (login / logout / token refresh)
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+    // Listen for auth state changes — only handle token refresh and logout here.
+    // Login routing is handled by login.tsx / register.tsx to avoid double-navigation.
+    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
         setSession(session.access_token, session.user.id, session.user.email ?? '');
-        // New users are routed by register.tsx → goal.tsx; skip auto-redirect
-        if (!useAuthStore.getState().isNewUser) {
+        // Only redirect on explicit sign-in events, not on TOKEN_REFRESHED
+        if (event === 'SIGNED_IN' && !useAuthStore.getState().isNewUser) {
           router.replace('/(tabs)');
         }
       } else {

@@ -122,7 +122,7 @@ export default function PlanScreen() {
 
     if (token) {
       await api.upsertProfile(token, {
-        name: email?.split('@')[0] ?? 'Usuario',
+        name: (email?.includes('@') ? email.split('@')[0] : null) ?? 'Usuario',
         ...data,
         targetCalories,
         targetProteinG,
@@ -193,7 +193,7 @@ export default function PlanScreen() {
 
 function MacroCard({ label, grams, pct, color }: { label: string; grams: number; pct: number; color: string }) {
   return (
-    <View style={[macroStyles.card, { borderColor: `${color}40` }]}>
+    <View style={[macroStyles.card, { borderLeftColor: color }]}>
       <Text style={[macroStyles.grams, { color }]}>{grams}g</Text>
       <Text style={macroStyles.label}>{label}</Text>
       <Text style={macroStyles.pct}>{pct}%</Text>
@@ -233,6 +233,8 @@ const macroStyles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'rgba(255,255,255,0.04)',
     borderWidth: 1,
+    borderColor: colors.border,
+    borderLeftWidth: 3,
     borderRadius: 12,
     alignItems: 'center',
     paddingVertical: 14,
@@ -258,7 +260,7 @@ const styles = StyleSheet.create({
   step: { fontSize: 12, color: colors.muted, fontFamily: 'SpaceGrotesk_400Regular', marginBottom: 8 },
   title: { fontSize: 22, fontWeight: '700', color: colors.text, marginBottom: 20, fontFamily: 'SpaceGrotesk_700Bold', lineHeight: 30 },
   calorieCard: { alignItems: 'center', paddingVertical: 28, marginBottom: 16 },
-  calorieNum: { fontSize: 52, fontWeight: '700', color: colors.neon, fontFamily: 'SpaceGrotesk_700Bold' },
+  calorieNum: { fontSize: 52, fontWeight: '700', color: colors.neon, fontFamily: 'SpaceGrotesk_700Bold', textShadowColor: `${colors.neon}66`, textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 20 },
   calorieUnit: { fontSize: 14, color: colors.muted, fontFamily: 'SpaceGrotesk_400Regular' },
   macrosRow: { flexDirection: 'row', gap: 10, marginBottom: 16 },
   chartCard: { padding: 16, marginBottom: 16, alignItems: 'center' },
