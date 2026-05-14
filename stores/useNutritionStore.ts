@@ -10,7 +10,7 @@ interface DaySummary {
 interface NutritionState {
   foodLog: FoodLogEntry[];
   pantryItems: PantryItem[];
-  waterGlasses: number;
+  waterByDate: Record<string, number>;
   loading: boolean;
   logCache: Record<string, DaySummary>;
   fetchFoodLog: (date: string) => Promise<void>;
@@ -18,7 +18,8 @@ interface NutritionState {
   fetchPantry: () => Promise<void>;
   addPantryItem: (item: Omit<PantryItem, 'id'>) => Promise<void>;
   deletePantryItem: (id: string) => Promise<void>;
-  setWaterGlasses: (n: number) => void;
+  fetchWater: (date: string) => Promise<void>;
+  setWaterGlasses: (date: string, n: number) => void;
   removeFood: (id: string) => Promise<void>;
 }
 
@@ -27,7 +28,7 @@ let _latestFetchDate: string | null = null;
 export const useNutritionStore = create<NutritionState>((set) => ({
   foodLog: [],
   pantryItems: [],
-  waterGlasses: 0,
+  waterByDate: {},
   loading: false,
   logCache: {},
 
@@ -93,7 +94,22 @@ export const useNutritionStore = create<NutritionState>((set) => ({
     set((s) => ({ pantryItems: s.pantryItems.filter((i) => i.id !== id) }));
   },
 
-  setWaterGlasses: (n) => set({ waterGlasses: n }),
+  fetchWater: async (date) => {
+    const token = useAuthStore.getState().token;
+    if (!token) return;
+    try {
+      const { glasses } = await api.getWaterLog(token, date);
+      set((s) => ({ waterByDate: { ...s.waterByDate, [date]: glasses } }));
+    } catch {
+      // non-critical, keep local value
+    }
+  },
+
+  setWaterGlasses: (date, n) => {
+    set((s) => ({ waterByDate: { ...s.waterByDate, [date]: n } }));
+    const token = useAuthStore.getState().token;
+    if (token) api.setWaterLog(token, date, n).catch(() => {});
+  },
 
   removeFood: async (id) => {
     const token = useAuthStore.getState().token;

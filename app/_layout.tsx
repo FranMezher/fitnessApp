@@ -35,15 +35,11 @@ export default function RootLayout() {
       }
     });
 
-    // Listen for auth state changes — only handle token refresh and logout here.
-    // Login routing is handled by login.tsx / register.tsx to avoid double-navigation.
+    // Listen for auth state changes — only update store and handle logout here.
+    // Login/register routing is handled by those screens to avoid double-navigation.
     const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
         setSession(session.access_token, session.user.id, session.user.email ?? '');
-        // Only redirect on explicit sign-in events, not on TOKEN_REFRESHED
-        if (event === 'SIGNED_IN' && !useAuthStore.getState().isNewUser) {
-          router.replace('/(tabs)');
-        }
       } else {
         clearSession();
         router.replace('/(auth)/login');

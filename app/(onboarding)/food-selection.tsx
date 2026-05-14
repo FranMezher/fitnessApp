@@ -53,12 +53,13 @@ const PAGES: { title: string; note: string; groups: { name: string; items: strin
 ];
 
 const MIN_PER_PAGE = 2;
+const EMPTY_FOODS: string[] = [];
 
 export default function FoodSelectionScreen() {
   const { edit } = useLocalSearchParams<{ edit?: string }>();
   const isEdit = edit === '1';
 
-  const stored = useOnboardingStore((s) => s.data.availableFoods ?? []);
+  const stored = useOnboardingStore((s) => s.data.availableFoods ?? EMPTY_FOODS);
   const setStore = useOnboardingStore((s) => s.set);
   const { token } = useAuthStore();
 

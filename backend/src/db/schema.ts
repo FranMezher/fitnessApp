@@ -1,4 +1,4 @@
-import { pgTable, text, integer, doublePrecision } from 'drizzle-orm/pg-core';
+import { pgTable, text, integer, doublePrecision, primaryKey } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 
 // ─── Auth (managed by Supabase, mirrored here for joins) ───────────────────
@@ -79,6 +79,14 @@ export const foodLog = pgTable('food_log', {
   carbsG:   doublePrecision('carbs_g').notNull(),
   fatG:     doublePrecision('fat_g').notNull(),
 });
+
+export const waterLog = pgTable('water_log', {
+  userId:  text('user_id').notNull(),
+  date:    text('date').notNull(),   // YYYY-MM-DD
+  glasses: integer('glasses').notNull().default(0),
+}, (t) => ({
+  pk: primaryKey({ columns: [t.userId, t.date] }),
+}));
 
 export const pantryItems = pgTable('pantry_items', {
   id:       text('id').primaryKey(),

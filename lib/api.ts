@@ -97,6 +97,12 @@ export const api = {
   deleteFoodLog: (token: string, id: string) =>
     request<{ ok: boolean }>(`/nutrition/log/${id}`, { method: 'DELETE', token }),
 
+  getWaterLog: (token: string, date: string) =>
+    request<{ glasses: number }>(`/nutrition/water?date=${date}`, { token }),
+
+  setWaterLog: (token: string, date: string, glasses: number) =>
+    request<{ ok: boolean }>('/nutrition/water', { method: 'PUT', body: JSON.stringify({ date, glasses }), token }),
+
   // ── Workouts ──────────────────────────────────────────────────────────────
   getWorkoutPlans: (token: string) =>
     request<{ plans: WorkoutPlan[] }>('/workouts/plans', { token }),

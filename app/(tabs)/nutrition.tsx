@@ -439,8 +439,9 @@ export default function NutritionScreen() {
   const today = useMemo(() => todayStr(), []);
   const [selectedDate, setSelectedDate] = useState(today);
   const [calendarOpen, setCalendarOpen] = useState(false);
-  const { foodLog, fetchFoodLog, loading, waterGlasses, setWaterGlasses, logCache } = useNutritionStore();
-  const { profile } = useAuthStore();
+  const { foodLog, fetchFoodLog, loading, waterByDate, fetchWater, setWaterGlasses, logCache } = useNutritionStore();
+  const waterGlasses = waterByDate[selectedDate] ?? 0;
+  const { profile, fetchProfile } = useAuthStore();
 
   const goals = {
     calories: profile?.targetCalories ?? DAILY_GOALS.calories,
@@ -450,7 +451,12 @@ export default function NutritionScreen() {
   };
 
   useEffect(() => {
+    if (!profile) fetchProfile();
+  }, []);
+
+  useEffect(() => {
     fetchFoodLog(selectedDate);
+    fetchWater(selectedDate);
   }, [selectedDate]);
 
   const handleSelectDate = useCallback((d: string) => {
@@ -557,7 +563,7 @@ export default function NutritionScreen() {
             {Array.from({ length: WATER_GOAL }, (_, i) => (
               <TouchableOpacity
                 key={i}
-                onPress={() => setWaterGlasses(i < waterGlasses ? i : i + 1)}
+                onPress={() => setWaterGlasses(selectedDate, i < waterGlasses ? i : i + 1)}
                 style={styles.glassBtn}
                 activeOpacity={0.7}
               >
