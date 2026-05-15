@@ -31,8 +31,8 @@ export default function DashboardScreen() {
   useEffect(() => {
     setDataError(null);
     fetchProfile().catch((err) => setDataError(err?.message ?? 'Error al cargar el perfil'));
-    fetchFoodLog(today).catch(() => {});
-    fetchStreak().catch(() => {});
+    fetchFoodLog(today).catch((err) => console.warn('[Dashboard] fetchFoodLog error:', err?.message));
+    fetchStreak().catch((err) => console.warn('[Dashboard] fetchStreak error:', err?.message));
     ensureSeeded().then(() => fetchMyPlan()).catch(() => {});
   }, [today]);
 
@@ -72,13 +72,15 @@ export default function DashboardScreen() {
           </View>
         </View>
 
-        {/* Streak */}
+        {/* Streak — mark last N days backwards from today within the current week */}
         <GlassCard style={styles.streakCard}>
           <Text style={styles.streakTitle}>🔥 {streak?.currentStreak ?? 0} días de racha</Text>
           <View style={styles.streakDays}>
             {WEEK_DAYS.map((d, i) => {
-              const current = streak?.currentStreak ?? 0;
-              const done = i < Math.min(current, 7);
+              const jsDay = new Date().getDay(); // 0=Sun,1=Mon...
+              const todayIdx = jsDay === 0 ? 6 : jsDay - 1; // Mon=0, Sun=6
+              const current = Math.min(streak?.currentStreak ?? 0, todayIdx + 1);
+              const done = i <= todayIdx && i > todayIdx - current;
               return (
                 <View key={d} style={[styles.streakDay, done ? styles.streakDayDone : styles.streakDayPending]}>
                   <Text style={[styles.streakDayText, done ? styles.streakDayTextDone : styles.streakDayTextPending]}>

@@ -22,6 +22,7 @@ export default function PantryScreen() {
 
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(false);
+  const [generateError, setGenerateError] = useState<string | null>(null);
   const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
   const [showAdd, setShowAdd] = useState(false);
   const [addName, setAddName] = useState('');
@@ -80,6 +81,7 @@ export default function PantryScreen() {
     }
     setLoading(true);
     setRecipes([]);
+    setGenerateError(null);
     try {
       const { recipes: generated } = await api.generateRecipes(token, {
         ingredients: pantryItems.map((i) => ({
@@ -93,7 +95,7 @@ export default function PantryScreen() {
       });
       setRecipes(generated);
     } catch (err: any) {
-      Alert.alert('Error', err?.message ?? 'No se pudieron generar recetas');
+      setGenerateError(err?.message ?? 'No se pudieron generar recetas. Intentá de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -123,7 +125,11 @@ export default function PantryScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={{ flex: 1 }}
+      >
+      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()}>
@@ -220,6 +226,12 @@ export default function PantryScreen() {
 
         {loading && <ActivityIndicator color={colors.neon} style={{ marginTop: 8 }} />}
 
+        {generateError && (
+          <View style={styles.errorBanner}>
+            <Text style={styles.errorText}>⚠ {generateError}</Text>
+          </View>
+        )}
+
         {/* Recipe cards */}
         {recipes.map((recipe, idx) => (
           <GlassCard key={idx} variant="neon" style={styles.recipeCard}>
@@ -252,6 +264,7 @@ export default function PantryScreen() {
           </GlassCard>
         ))}
       </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -295,6 +308,14 @@ const styles = StyleSheet.create({
   confirmText: { fontSize: 13, fontWeight: '700', color: '#111', fontFamily: 'SpaceGrotesk_700Bold' },
   addRow: { borderWidth: 1, borderStyle: 'dashed', borderColor: colors.dim, borderRadius: 16, padding: 10, alignItems: 'center', marginVertical: 4 },
   addText: { fontSize: 13, color: colors.dim, fontFamily: 'SpaceGrotesk_400Regular' },
+  errorBanner: {
+    backgroundColor: 'rgba(255,107,53,0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,107,53,0.3)',
+    borderRadius: 10,
+    padding: 12,
+  },
+  errorText: { fontSize: 13, color: colors.orange, fontFamily: 'SpaceGrotesk_400Regular' },
   recipeCard: { padding: 14, gap: 4, marginTop: 2 },
   recipeTitle: { fontSize: 17, fontWeight: '700', color: colors.text, fontFamily: 'SpaceGrotesk_700Bold', marginTop: 5 },
   recipeMacros: { fontSize: 13, color: colors.muted, fontFamily: 'SpaceGrotesk_400Regular', marginBottom: 6 },

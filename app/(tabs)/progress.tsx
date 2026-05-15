@@ -29,6 +29,8 @@ export default function ProgressScreen() {
 
   useEffect(() => {
     if (!token) {
+      setAchievements([]);
+      setLeague([]);
       setLoading(false);
       return;
     }
@@ -122,27 +124,30 @@ export default function ProgressScreen() {
                 <Text style={styles.emptyText}>Completá un entrenamiento esta semana para entrar a la liga</Text>
               </GlassCard>
             ) : (
-              league.slice(0, 10).map((u) => {
-                const isYou = u.userId === userId;
-                return (
-                  <View key={u.userId} style={[styles.leagueRow,
-                    isYou
-                      ? { backgroundColor: `${colors.neon}0d`, borderColor: colors.borderAccent }
-                      : { backgroundColor: 'rgba(255,255,255,0.04)', borderColor: colors.border },
-                  ]}>
-                    <Text style={[styles.leaguePos, { color: u.rank === 1 ? '#FFD700' : colors.dim }]}>
-                      {u.rank}
-                    </Text>
-                    <View style={styles.leagueAvatar}>
-                      <Text style={styles.leagueAvatarText}>{isYou ? 'Tú' : `U${u.rank}`}</Text>
+              league
+                .filter((u) => u.rank <= 10)
+                .filter((u, _, arr) => arr.findIndex((x) => x.userId === u.userId) === arr.indexOf(u))
+                .map((u) => {
+                  const isYou = u.userId === userId;
+                  return (
+                    <View key={u.userId} style={[styles.leagueRow,
+                      isYou
+                        ? { backgroundColor: `${colors.neon}0d`, borderColor: colors.borderAccent }
+                        : { backgroundColor: 'rgba(255,255,255,0.04)', borderColor: colors.border },
+                    ]}>
+                      <Text style={[styles.leaguePos, { color: u.rank === 1 ? colors.gold : colors.dim }]}>
+                        {u.rank}
+                      </Text>
+                      <View style={styles.leagueAvatar}>
+                        <Text style={styles.leagueAvatarText}>{isYou ? 'Tú' : `U${u.rank}`}</Text>
+                      </View>
+                      <Text style={[styles.leagueName, isYou && styles.leagueNameYou]}>
+                        {isYou ? 'Tú' : `Jugador ${u.rank}`}
+                      </Text>
+                      <Text style={styles.leagueXp}>{u.xpTotal.toLocaleString()} XP</Text>
                     </View>
-                    <Text style={[styles.leagueName, isYou && styles.leagueNameYou]}>
-                      {isYou ? 'Tú' : `Jugador ${u.rank}`}
-                    </Text>
-                    <Text style={styles.leagueXp}>{u.xpTotal.toLocaleString()} XP</Text>
-                  </View>
-                );
-              })
+                  );
+                })
             )}
 
             {/* My position if not in top 10 */}

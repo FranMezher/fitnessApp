@@ -91,6 +91,18 @@ const pantrySchema = z.object({
   }),
 });
 
+const recipeResponseSchema = z.object({
+  recipes: z.array(z.object({
+    name:         z.string(),
+    instructions: z.string(),
+    prepMinutes:  z.number(),
+    calories:     z.number(),
+    proteinG:     z.number(),
+    carbsG:       z.number(),
+    fatG:         z.number(),
+  })).min(1),
+});
+
 // POST /ai/recipes — Pantry mode
 aiRouter.post('/recipes', zValidator('json', pantrySchema), async (c) => {
   const { ingredients, remainingMacros } = c.req.valid('json');
@@ -116,7 +128,8 @@ Genera exactamente 3 recetas simples. Responde SOLO con este JSON:
 
   try {
     const raw = await generateJSON(prompt);
-    return c.json(JSON.parse(extractJSON(raw)));
+    const parsed = recipeResponseSchema.parse(JSON.parse(extractJSON(raw)));
+    return c.json(parsed);
   } catch (err: any) {
     console.error('[/ai/recipes]', err?.status, err?.message);
     return c.json({ error: err?.message ?? 'AI error', status: err?.status }, 502);
@@ -156,6 +169,16 @@ Respondé SOLO con este JSON sin markdown:
   }
 });
 
+const foodEntriesResponseSchema = z.object({
+  entries: z.array(z.object({
+    foodName: z.string(),
+    calories: z.number(),
+    proteinG: z.number(),
+    carbsG:   z.number(),
+    fatG:     z.number(),
+  })).min(1),
+});
+
 const parseFoodSchema = z.object({
   text: z.string().min(1),
 });
@@ -184,7 +207,8 @@ Estimá los valores para la cantidad mencionada. Si no se menciona cantidad, asu
 
   try {
     const raw = await generateJSON(prompt);
-    return c.json(JSON.parse(extractJSON(raw)));
+    const parsed = foodEntriesResponseSchema.parse(JSON.parse(extractJSON(raw)));
+    return c.json(parsed);
   } catch (err: any) {
     console.error('[/ai/parse-food]', err?.status, err?.message);
     return c.json({ error: err?.message ?? 'AI error', status: err?.status }, 502);
@@ -217,7 +241,8 @@ Estimá las cantidades visualmente. Si hay un plato completo, describilo como un
 
   try {
     const raw = await generateWithImage(prompt, imageBase64, mediaType);
-    return c.json(JSON.parse(extractJSON(raw)));
+    const parsed = foodEntriesResponseSchema.parse(JSON.parse(extractJSON(raw)));
+    return c.json(parsed);
   } catch (err: any) {
     console.error('[/ai/analyze-food-photo]', err?.status, err?.message);
     return c.json({ error: err?.message ?? 'AI error', status: err?.status }, 502);

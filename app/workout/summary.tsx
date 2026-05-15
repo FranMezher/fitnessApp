@@ -46,32 +46,40 @@ export default function WorkoutSummaryScreen() {
     }, 8000);
 
     fetchSessions().then(() => {
-      // sessions are now in the store; read them directly to avoid object-dep loop
-      const { sessions: latestSessions } = require('@/stores/useWorkoutStore').useWorkoutStore.getState();
-      const monday = (() => {
-        const d = new Date();
-        const day = d.getDay();
-        const diff = (day === 0 ? -6 : 1) - day;
-        d.setDate(d.getDate() + diff);
-        return d.toISOString().slice(0, 10);
-      })();
-      const weekSessions = latestSessions.filter(
-        (s: typeof latestSessions[0]) => s.endedAt && s.endedAt.slice(0, 10) >= monday,
-      );
-      const count = weekSessions.length;
-      const avgFormPct = count > 0
-        ? Math.round(weekSessions.reduce((s: number, e: typeof weekSessions[0]) => s + (e.formAccuracyPct ?? 0), 0) / count)
-        : formAccuracyPct;
-      const totalKcal = weekSessions.reduce((s: number, e: typeof weekSessions[0]) => s + (e.caloriesBurned ?? 0), 0) + caloriesBurned;
+      try {
+        // sessions are now in the store; read them directly to avoid object-dep loop
+        const { sessions: latestSessions } = require('@/stores/useWorkoutStore').useWorkoutStore.getState();
+        const monday = (() => {
+          const d = new Date();
+          const day = d.getDay();
+          const diff = (day === 0 ? -6 : 1) - day;
+          d.setDate(d.getDate() + diff);
+          return d.toISOString().slice(0, 10);
+        })();
+        const weekSessions = (latestSessions ?? []).filter(
+          (s: typeof latestSessions[0]) => s.endedAt && s.endedAt.slice(0, 10) >= monday,
+        );
+        const count = weekSessions.length;
+        const avgFormPct = count > 0
+          ? Math.round(weekSessions.reduce((s: number, e: typeof weekSessions[0]) => s + (e.formAccuracyPct ?? 0), 0) / count)
+          : formAccuracyPct;
+        const totalKcal = weekSessions.reduce((s: number, e: typeof weekSessions[0]) => s + (e.caloriesBurned ?? 0), 0) + caloriesBurned;
 
-      if (!mounted) return;
-      api.getWorkoutInsight(token, {
-        sessionData: { durationMin, caloriesBurned, formAccuracyPct, exercisesDone },
-        weekStats: { sessionsCount: count + 1, avgFormPct, totalKcal },
-      })
-        .then(({ insight }) => { if (mounted) setInsight(insight); })
-        .catch(() => { if (mounted) setInsight('¡Excelente trabajo! Cada sesión te acerca más a tu meta.'); })
-        .finally(() => { if (mounted) { setLoadingInsight(false); clearTimeout(fallback); } });
+        if (!mounted) return;
+        api.getWorkoutInsight(token, {
+          sessionData: { durationMin, caloriesBurned, formAccuracyPct, exercisesDone },
+          weekStats: { sessionsCount: count + 1, avgFormPct, totalKcal },
+        })
+          .then(({ insight }) => { if (mounted) setInsight(insight); })
+          .catch(() => { if (mounted) setInsight('¡Excelente trabajo! Cada sesión te acerca más a tu meta.'); })
+          .finally(() => { if (mounted) { setLoadingInsight(false); clearTimeout(fallback); } });
+      } catch {
+        if (mounted) {
+          setInsight('¡Excelente trabajo! Cada sesión te acerca más a tu meta.');
+          setLoadingInsight(false);
+          clearTimeout(fallback);
+        }
+      }
     }).catch(() => {
       if (mounted) {
         setInsight('¡Excelente trabajo! Cada sesión te acerca más a tu meta.');

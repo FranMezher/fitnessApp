@@ -1,32 +1,103 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { colors, glass } from '@/constants/colors';
 import { Pill } from '@/components/ui/Pill';
 import { Btn } from '@/components/ui/Btn';
+import { api } from '@/lib/api';
+import { useAuthStore } from '@/stores/useAuthStore';
 
 const TOTAL_REPS = 12;
 const DONE_REPS = 6;
+const FORM_ACCURACY = 85;
+const CALORIES_PER_MIN = 8;
 const CAMERA_HEIGHT = Math.round(Dimensions.get('window').height * 0.35);
 
 export default function WorkoutActiveScreen() {
+  const token = useAuthStore((s) => s.token);
   const params = useLocalSearchParams<{
     loadedHistory?: string;
     loadedAgo?: string;
     exerciseName?: string;
+    planId?: string;
+    planName?: string;
+    exercisesDone?: string;
   }>();
 
   const exerciseName = params.exerciseName ?? 'Flexiones Diamante';
   const hasHistory = !!params.loadedHistory;
+  const planId = params.planId;
+  const planName = params.planName ?? 'Entrenamiento';
+  const exercisesDone = Number(params.exercisesDone ?? 6);
+
+  const sessionIdRef = useRef<string | null>(null);
+  const finishedRef = useRef(false);
+  const elapsedRef = useRef(0);
 
   const [elapsed, setElapsed] = useState(0);
   useEffect(() => {
-    const interval = setInterval(() => setElapsed((s) => s + 1), 1000);
+    const interval = setInterval(() => setElapsed((s) => {
+      elapsedRef.current = s + 1;
+      return s + 1;
+    }), 1000);
     return () => clearInterval(interval);
   }, []);
   const mm = String(Math.floor(elapsed / 60)).padStart(2, '0');
   const ss = String(elapsed % 60).padStart(2, '0');
+
+  // Start backend session on mount
+  useEffect(() => {
+    if (!token) return;
+    api.startSession(token, planId).then(({ id }) => {
+      sessionIdRef.current = id;
+    }).catch((err) => console.warn('[active] startSession error:', err?.message));
+
+    return () => {
+      // Finish session on unmount if not already finished (e.g. user presses back)
+      if (sessionIdRef.current && !finishedRef.current && token) {
+        finishedRef.current = true;
+        api.finishSession(token, sessionIdRef.current, {
+          caloriesBurned: Math.round((elapsedRef.current / 60) * CALORIES_PER_MIN),
+          formAccuracyPct: FORM_ACCURACY,
+          sets: [],
+        }).catch(() => {});
+      }
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
+
+  async function handleFinishAndNavigate() {
+    const durationMin = Math.max(1, Math.round(elapsed / 60));
+    const caloriesBurned = Math.round(durationMin * CALORIES_PER_MIN);
+    let xpEarned = 100 + (FORM_ACCURACY >= 80 ? 30 : 0);
+
+    if (sessionIdRef.current && token && !finishedRef.current) {
+      finishedRef.current = true;
+      try {
+        const result = await api.finishSession(token, sessionIdRef.current, {
+          caloriesBurned,
+          formAccuracyPct: FORM_ACCURACY,
+          sets: [],
+        });
+        xpEarned = result.xpEarned;
+      } catch (err) {
+        console.warn('[active] finishSession error:', err);
+      }
+    }
+
+    router.push({
+      pathname: '/workout/summary',
+      params: {
+        durationMin: String(durationMin),
+        caloriesBurned: String(caloriesBurned),
+        formAccuracyPct: String(FORM_ACCURACY),
+        exercisesDone: String(exercisesDone),
+        xpEarned: String(xpEarned),
+        planName,
+      },
+    });
+  }
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -126,7 +197,7 @@ export default function WorkoutActiveScreen() {
           ))}
         </View>
 
-        <Btn variant="orange" onPress={() => router.push('/workout/summary')}>
+        <Btn variant="orange" onPress={handleFinishAndNavigate}>
           DESCANSO →
         </Btn>
       </ScrollView>

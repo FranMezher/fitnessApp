@@ -79,8 +79,10 @@ export const api = {
     request<{ ok: boolean }>('/profile', { method: 'POST', body: JSON.stringify(data), token }),
 
   // ── Nutrition ─────────────────────────────────────────────────────────────
-  getFoodLog: (token: string, date: string) =>
-    request<{ entries: FoodLogEntry[] }>(`/nutrition/log?date=${date}`, { token }),
+  getFoodLog: (token: string, date: string) => {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new Error(`Invalid date format: ${date}`);
+    return request<{ entries: FoodLogEntry[] }>(`/nutrition/log?date=${date}`, { token });
+  },
 
   addFoodLog: (token: string, entry: Omit<FoodLogEntry, 'id'>) =>
     request<{ id: string }>('/nutrition/log', { method: 'POST', body: JSON.stringify(entry), token }),

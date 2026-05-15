@@ -56,8 +56,12 @@ export default function ProfileScreen() {
   const goalLabel = GOAL_LABELS[goalKey] ?? '—';
   const targetWeight = profile?.targetWeightKg;
   const weightDiff = weightKg && targetWeight ? Math.abs(weightKg - targetWeight) : null;
+  // Progress: how close current weight is to target, proportional to target weight
+  // 100% when at goal, decreases as distance grows. Works for both fat-loss and muscle-gain.
   const weightProgress = weightKg && targetWeight
-    ? Math.max(0, Math.min(100, Math.round(((weightKg - targetWeight) / (weightKg - targetWeight + 1)) * 100)))
+    ? weightKg === targetWeight
+      ? 100
+      : Math.max(0, Math.min(100, Math.round((1 - Math.abs(weightKg - targetWeight) / targetWeight) * 100)))
     : 0;
 
   return (

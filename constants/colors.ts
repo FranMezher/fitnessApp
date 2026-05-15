@@ -11,6 +11,7 @@ export const colors = {
   text:         '#F2F2F2',
   muted:        '#888888',
   dim:          '#444444',
+  gold:         '#FFD700',
 };
 
 export const glass = {

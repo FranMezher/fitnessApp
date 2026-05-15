@@ -39,7 +39,7 @@ export const useNutritionStore = create<NutritionState>((set) => ({
     set({ loading: true });
     try {
       const { entries } = await api.getFoodLog(token, date);
-      if (_latestFetchDate !== date) return; // discard stale response
+      if (_latestFetchDate !== date) return; // discard stale data
       const calories = entries.reduce((s, e) => s + e.calories, 0);
       const mealTypes = new Set(entries.map((e) => e.mealType));
       set((s) => ({
@@ -50,6 +50,8 @@ export const useNutritionStore = create<NutritionState>((set) => ({
         },
       }));
     } finally {
+      // Only clear loading when the latest request finishes; stale requests leave
+      // loading=true so the in-flight latest request can clear it when it resolves.
       if (_latestFetchDate === date) set({ loading: false });
     }
   },
