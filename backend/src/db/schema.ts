@@ -20,6 +20,9 @@ export const profiles = pgTable('profiles', {
   targetProteinG:     integer('target_protein_g'),
   targetCarbsG:       integer('target_carbs_g'),
   targetFatG:         integer('target_fat_g'),
+  foodVariety:        text('food_variety'),
+  mealPlanning:       text('meal_planning'),
+  availableFoods:     text('available_foods').array(),
   createdAt:          text('created_at').default(sql`now()`),
 });
 

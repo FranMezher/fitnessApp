@@ -36,6 +36,12 @@ backend/drizzle/
 # Design reference images (local only)
 imgWorkflows/
 
+# Internal docs (no commitear)
+FITCORE.postman_collection.json
+PENDIENTES.md
+FITCORE_QA_Audit_Report.txt
+FITCORE_QA_Bugs.txt
+
 # OS
 .DS_Store
 Thumbs.db

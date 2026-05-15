@@ -43,12 +43,13 @@ workoutsRouter.get('/my-plan', async (c) => {
   if (!plans.length) return c.json({ plan: null });
 
   const goal = profile?.goal ?? 'maintain';
-  const difficulty = goal === 'muscle' ? 'advanced'
-    : goal === 'fat_loss' ? 'intermediate'
-    : 'beginner';
+  const preferredId = goal === 'muscle' ? 'plan-cbum'
+    : goal === 'fat_loss' ? 'plan-upperlower'
+    : goal === 'performance' ? 'plan-ppl'
+    : 'plan-fullbody';
 
-  const match = plans.find((p) => p.difficulty === difficulty)
-    ?? plans.find((p) => p.difficulty === 'intermediate')
+  const match = plans.find((p) => p.id === preferredId)
+    ?? plans.find((p) => p.difficulty === 'beginner')
     ?? plans[0];
 
   const planExs = await db.select().from(planExercises).where(eq(planExercises.planId, match.id));
@@ -61,63 +62,92 @@ workoutsRouter.get('/my-plan', async (c) => {
   return c.json({ plan: match, exercises: exerciseDetails });
 });
 
-// POST /workouts/seed — insert default plans + exercises (idempotent)
+// POST /workouts/seed — upsert default plans + exercises (always idempotent, re-runnable)
 workoutsRouter.post('/seed', async (_c) => {
-  const existingPlans = await db.select().from(workoutPlans);
-  if (existingPlans.length > 0) return _c.json({ ok: true, skipped: true });
-
   const PLANS = [
-    { id: 'plan-beginner',     name: 'Cuerpo Completo',    daysPerWeek: 3, difficulty: 'beginner' },
-    { id: 'plan-intermediate', name: 'Upper Body Power',   daysPerWeek: 4, difficulty: 'intermediate' },
-    { id: 'plan-advanced',     name: 'Hipertrofia Total',  daysPerWeek: 5, difficulty: 'advanced' },
+    { id: 'plan-fullbody',    name: 'Full Body · Fuerza',   daysPerWeek: 3, difficulty: 'beginner'     },
+    { id: 'plan-upperlower',  name: 'Upper / Lower',         daysPerWeek: 4, difficulty: 'intermediate' },
+    { id: 'plan-ppl',         name: 'Push · Pull · Legs',    daysPerWeek: 6, difficulty: 'advanced'     },
+    { id: 'plan-cbum',        name: 'CBum Classic',          daysPerWeek: 5, difficulty: 'advanced'     },
   ];
 
   const EXERCISES_DATA = [
-    { id: 'ex-pushup',     name: 'Flexiones',            muscleGroup: 'Pecho',    instructions: 'Manos a la altura de los hombros, cuerpo recto.' },
-    { id: 'ex-squat',      name: 'Sentadilla',           muscleGroup: 'Piernas',  instructions: 'Pies al ancho de hombros, bajar hasta 90°.' },
-    { id: 'ex-plank',      name: 'Plancha',              muscleGroup: 'Core',     instructions: 'Cuerpo recto apoyado en antebrazos y puntas de pie.' },
-    { id: 'ex-lunge',      name: 'Zancada',              muscleGroup: 'Piernas',  instructions: 'Un pie adelante, bajar la rodilla trasera al suelo.' },
-    { id: 'ex-row',        name: 'Remo con Mancuerna',   muscleGroup: 'Espalda',  instructions: 'Apoyar rodilla en banco, tirar el codo hacia atrás.' },
-    { id: 'ex-press',      name: 'Press de Banca',       muscleGroup: 'Pecho',    instructions: 'Barra a la altura del pecho, bajar controlado.' },
-    { id: 'ex-deadlift',   name: 'Peso Muerto',          muscleGroup: 'Espalda',  instructions: 'Espalda recta, empujar el suelo con los pies.' },
-    { id: 'ex-overhead',   name: 'Press Militar',        muscleGroup: 'Hombros',  instructions: 'Empujar la barra sobre la cabeza, core activo.' },
-    { id: 'ex-curl',       name: 'Curl de Bíceps',       muscleGroup: 'Bíceps',   instructions: 'Codos pegados al cuerpo, subir con control.' },
-    { id: 'ex-tricep',     name: 'Extensión de Tríceps', muscleGroup: 'Tríceps',  instructions: 'Codos fijos, extender completamente.' },
-    { id: 'ex-hiit-jump',  name: 'Saltos en Estrella',   muscleGroup: 'Full Body',instructions: 'Saltar abriendo piernas y brazos simultáneamente.' },
-    { id: 'ex-mountain',   name: 'Mountain Climbers',    muscleGroup: 'Core',     instructions: 'En posición de plancha, llevar rodillas al pecho alternadas.' },
+    { id: 'ex-squat',       name: 'Sentadilla',              muscleGroup: 'Cuádriceps',   instructions: 'Pies al ancho de hombros, rodillas en dirección de los pies. Bajar hasta que los muslos estén paralelos al suelo, core activo.' },
+    { id: 'ex-deadlift',    name: 'Peso Muerto',             muscleGroup: 'Cadena Post.', instructions: 'Barra sobre los pies, espalda recta. Empujar el suelo con los pies mientras extendés cadera y rodillas al mismo tiempo.' },
+    { id: 'ex-bench',       name: 'Press de Banca',          muscleGroup: 'Pecho',        instructions: 'Agarre a 1.5x el ancho de hombros. Bajar la barra controlado hasta el pecho, codos a ~75°. Empujar explosivo.' },
+    { id: 'ex-ohpress',     name: 'Press Militar',           muscleGroup: 'Hombros',      instructions: 'De pie o sentado, barra a la altura del cuello. Empujar sobre la cabeza extendiendo completamente los codos. Core firme.' },
+    { id: 'ex-barrow',      name: 'Remo con Barra',          muscleGroup: 'Espalda',      instructions: 'Torso inclinado a 45°, barra colgando. Llevar la barra hacia el abdomen apretando los omóplatos. Bajar controlado.' },
+    { id: 'ex-pulldown',    name: 'Jalones al Pecho',        muscleGroup: 'Dorsal',       instructions: 'Agarre prono a 1.5x hombros. Llevar la barra hacia el pecho superior apretando los codos hacia abajo y atrás.' },
+    { id: 'ex-curl',        name: 'Curl de Bíceps',          muscleGroup: 'Bíceps',       instructions: 'Codos pegados al cuerpo, sin balancear el torso. Subir hasta la contracción máxima y bajar en 3 segundos.' },
+    { id: 'ex-tricepext',   name: 'Extensión de Tríceps',    muscleGroup: 'Tríceps',      instructions: 'Codos fijos apuntando al techo. Extender completamente. Mantener los codos quietos en todo el movimiento.' },
+    { id: 'ex-lunge',       name: 'Zancada con Mancuernas',  muscleGroup: 'Piernas',      instructions: 'Paso largo adelante, bajar la rodilla trasera sin tocar el suelo. Torso erguido. Alternar piernas.' },
+    { id: 'ex-hipthrust',   name: 'Hip Thrust',              muscleGroup: 'Glúteos',      instructions: 'Hombros apoyados en banco, barra sobre las caderas. Empujar las caderas al techo apretando el glúteo en la parte superior.' },
+    { id: 'ex-facepull',    name: 'Face Pull',               muscleGroup: 'Hombros Post.',instructions: 'Polea alta con cuerda. Llevar las manos hacia la cara abriendo los codos. Excelente para salud del manguito rotador.' },
+    { id: 'ex-incbench',    name: 'Press Inclinado Mancuerna', muscleGroup: 'Pecho Sup.', instructions: 'Banco a 30–45°. Mancuernas al lado del pecho, codos a 75°. Empujar hacia arriba y ligeramente adentro.' },
+    { id: 'ex-hammercurl',  name: 'Curl Martillo',           muscleGroup: 'Braquial',     instructions: 'Agarre neutro (palmas enfrentadas). Subir sin girar la muñeca. Trabaja braquial y braquiorradial.' },
+    { id: 'ex-dips',        name: 'Dips en Paralelas',       muscleGroup: 'Tríceps/Pecho',instructions: 'Cuerpo ligeramente inclinado para el pecho, vertical para tríceps. Bajar hasta 90° en codos. Control total.' },
+    { id: 'ex-pullup',      name: 'Pull-up (Dominadas)',     muscleGroup: 'Dorsal',       instructions: 'Agarre prono a 1.5x hombros. Llevar el pecho a la barra. Sin balanceo. Bajar completamente entre reps.' },
+    { id: 'ex-plank',       name: 'Plancha Isométrica',      muscleGroup: 'Core',         instructions: 'Apoyar en antebrazos y puntas de pie. Cuerpo recto de cabeza a talones. No dejar caer las caderas.' },
+    { id: 'ex-mountain',    name: 'Mountain Climbers',       muscleGroup: 'Core',         instructions: 'Posición de plancha alta. Llevar rodillas al pecho alternando rápido. Mantener las caderas bajas.' },
+    { id: 'ex-pushup',      name: 'Flexiones',               muscleGroup: 'Pecho',        instructions: 'Manos a 1.5x hombros, cuerpo recto. Bajar hasta rozar el suelo con el pecho. Codos a ~45° del torso.' },
   ];
 
   const PLAN_EXERCISES = [
-    // beginner
-    { planId: 'plan-beginner', exerciseId: 'ex-pushup',    sets: 3, reps: 10, orderIndex: 1 },
-    { planId: 'plan-beginner', exerciseId: 'ex-squat',     sets: 3, reps: 12, orderIndex: 2 },
-    { planId: 'plan-beginner', exerciseId: 'ex-lunge',     sets: 2, reps: 10, orderIndex: 3 },
-    { planId: 'plan-beginner', exerciseId: 'ex-plank',     sets: 3, reps: 30, orderIndex: 4 },
-    { planId: 'plan-beginner', exerciseId: 'ex-mountain',  sets: 2, reps: 20, orderIndex: 5 },
-    // intermediate
-    { planId: 'plan-intermediate', exerciseId: 'ex-press',    sets: 4, reps: 10, orderIndex: 1 },
-    { planId: 'plan-intermediate', exerciseId: 'ex-row',      sets: 4, reps: 12, orderIndex: 2 },
-    { planId: 'plan-intermediate', exerciseId: 'ex-overhead', sets: 3, reps: 10, orderIndex: 3 },
-    { planId: 'plan-intermediate', exerciseId: 'ex-curl',     sets: 3, reps: 12, orderIndex: 4 },
-    { planId: 'plan-intermediate', exerciseId: 'ex-tricep',   sets: 3, reps: 12, orderIndex: 5 },
-    { planId: 'plan-intermediate', exerciseId: 'ex-plank',    sets: 3, reps: 45, orderIndex: 6 },
-    // advanced
-    { planId: 'plan-advanced', exerciseId: 'ex-deadlift',  sets: 5, reps: 5,  orderIndex: 1 },
-    { planId: 'plan-advanced', exerciseId: 'ex-press',     sets: 5, reps: 8,  orderIndex: 2 },
-    { planId: 'plan-advanced', exerciseId: 'ex-squat',     sets: 5, reps: 8,  orderIndex: 3 },
-    { planId: 'plan-advanced', exerciseId: 'ex-row',       sets: 4, reps: 10, orderIndex: 4 },
-    { planId: 'plan-advanced', exerciseId: 'ex-overhead',  sets: 4, reps: 10, orderIndex: 5 },
-    { planId: 'plan-advanced', exerciseId: 'ex-hiit-jump', sets: 3, reps: 20, orderIndex: 6 },
-    { planId: 'plan-advanced', exerciseId: 'ex-mountain',  sets: 3, reps: 30, orderIndex: 7 },
+    // Full Body · Fuerza (beginner, 3x/sem) — compuestos básicos
+    { planId: 'plan-fullbody', exerciseId: 'ex-squat',    sets: 3, reps: 10, orderIndex: 1 },
+    { planId: 'plan-fullbody', exerciseId: 'ex-bench',    sets: 3, reps: 10, orderIndex: 2 },
+    { planId: 'plan-fullbody', exerciseId: 'ex-barrow',   sets: 3, reps: 10, orderIndex: 3 },
+    { planId: 'plan-fullbody', exerciseId: 'ex-ohpress',  sets: 3, reps: 10, orderIndex: 4 },
+    { planId: 'plan-fullbody', exerciseId: 'ex-deadlift', sets: 3, reps: 8,  orderIndex: 5 },
+    { planId: 'plan-fullbody', exerciseId: 'ex-plank',    sets: 3, reps: 45, orderIndex: 6 },
+    // Upper / Lower (intermediate, 4x/sem)
+    { planId: 'plan-upperlower', exerciseId: 'ex-bench',      sets: 4, reps: 8,  orderIndex: 1 },
+    { planId: 'plan-upperlower', exerciseId: 'ex-barrow',     sets: 4, reps: 8,  orderIndex: 2 },
+    { planId: 'plan-upperlower', exerciseId: 'ex-ohpress',    sets: 3, reps: 10, orderIndex: 3 },
+    { planId: 'plan-upperlower', exerciseId: 'ex-pulldown',   sets: 3, reps: 10, orderIndex: 4 },
+    { planId: 'plan-upperlower', exerciseId: 'ex-squat',      sets: 4, reps: 8,  orderIndex: 5 },
+    { planId: 'plan-upperlower', exerciseId: 'ex-deadlift',   sets: 3, reps: 6,  orderIndex: 6 },
+    { planId: 'plan-upperlower', exerciseId: 'ex-lunge',      sets: 3, reps: 12, orderIndex: 7 },
+    { planId: 'plan-upperlower', exerciseId: 'ex-hipthrust',  sets: 3, reps: 12, orderIndex: 8 },
+    // Push · Pull · Legs (advanced, 6x/sem)
+    { planId: 'plan-ppl', exerciseId: 'ex-bench',      sets: 4, reps: 8,  orderIndex: 1 },
+    { planId: 'plan-ppl', exerciseId: 'ex-incbench',   sets: 3, reps: 10, orderIndex: 2 },
+    { planId: 'plan-ppl', exerciseId: 'ex-ohpress',    sets: 3, reps: 10, orderIndex: 3 },
+    { planId: 'plan-ppl', exerciseId: 'ex-dips',       sets: 3, reps: 12, orderIndex: 4 },
+    { planId: 'plan-ppl', exerciseId: 'ex-pullup',     sets: 4, reps: 8,  orderIndex: 5 },
+    { planId: 'plan-ppl', exerciseId: 'ex-barrow',     sets: 4, reps: 8,  orderIndex: 6 },
+    { planId: 'plan-ppl', exerciseId: 'ex-pulldown',   sets: 3, reps: 10, orderIndex: 7 },
+    { planId: 'plan-ppl', exerciseId: 'ex-facepull',   sets: 3, reps: 15, orderIndex: 8 },
+    // CBum Classic (advanced, 5x/sem) — estilo Chris Bumstead
+    { planId: 'plan-cbum', exerciseId: 'ex-incbench',   sets: 4, reps: 8,  orderIndex: 1 },
+    { planId: 'plan-cbum', exerciseId: 'ex-bench',      sets: 4, reps: 8,  orderIndex: 2 },
+    { planId: 'plan-cbum', exerciseId: 'ex-pulldown',   sets: 4, reps: 10, orderIndex: 3 },
+    { planId: 'plan-cbum', exerciseId: 'ex-barrow',     sets: 4, reps: 8,  orderIndex: 4 },
+    { planId: 'plan-cbum', exerciseId: 'ex-squat',      sets: 4, reps: 10, orderIndex: 5 },
+    { planId: 'plan-cbum', exerciseId: 'ex-lunge',      sets: 4, reps: 12, orderIndex: 6 },
+    { planId: 'plan-cbum', exerciseId: 'ex-hammercurl', sets: 4, reps: 12, orderIndex: 7 },
+    { planId: 'plan-cbum', exerciseId: 'ex-facepull',   sets: 3, reps: 15, orderIndex: 8 },
   ];
 
-  await db.insert(workoutPlans).values(PLANS);
-  await db.insert(exercises).values(EXERCISES_DATA);
+  for (const plan of PLANS) {
+    await db.insert(workoutPlans).values(plan)
+      .onConflictDoUpdate({ target: workoutPlans.id, set: { name: plan.name, daysPerWeek: plan.daysPerWeek, difficulty: plan.difficulty } });
+  }
+  for (const ex of EXERCISES_DATA) {
+    await db.insert(exercises).values(ex)
+      .onConflictDoUpdate({ target: exercises.id, set: { name: ex.name, muscleGroup: ex.muscleGroup, instructions: ex.instructions } });
+  }
+
+  // Delete existing plan_exercises for these plans and re-insert (cleanest upsert for junction table)
+  const planIds = PLANS.map((p) => p.id);
+  for (const planId of planIds) {
+    await db.delete(planExercises).where(eq(planExercises.planId, planId));
+  }
   await db.insert(planExercises).values(
     PLAN_EXERCISES.map((pe) => ({ id: crypto.randomUUID(), ...pe }))
   );
 
-  return _c.json({ ok: true, skipped: false });
+  return _c.json({ ok: true });
 });
 
 // GET /workouts/sessions

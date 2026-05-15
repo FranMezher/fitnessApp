@@ -2,7 +2,6 @@ import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-nat
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
-import Svg, { Path, Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 import { colors, glass, glassNeon } from '@/constants/colors';
 import { Btn } from '@/components/ui/Btn';
 import { api } from '@/lib/api';
@@ -48,45 +47,33 @@ function calcMacros(data: ReturnType<typeof useOnboardingStore.getState>['data']
   return { targetCalories, targetProteinG, targetFatG, targetCarbsG };
 }
 
-function ProgressChart({ startKg, endKg }: { startKg: number; endKg: number }) {
-  const W = 300;
-  const H = 120;
-  const weeks = 8;
-  const pts = Array.from({ length: weeks + 1 }, (_, i) => {
-    const x = (i / weeks) * W;
-    const y = H - 10 - ((startKg - (startKg - endKg) * (i / weeks)) / startKg) * (H - 20);
-    return { x, y };
-  });
+const WEEKS = 8;
 
-  const pathD = pts.reduce((acc, pt, i) => {
-    if (i === 0) return `M ${pt.x},${pt.y}`;
-    const prev = pts[i - 1];
-    const cx = (prev.x + pt.x) / 2;
-    return `${acc} C ${cx},${prev.y} ${cx},${pt.y} ${pt.x},${pt.y}`;
-  }, '');
-
-  const areaD = `${pathD} L ${W},${H} L 0,${H} Z`;
+function ProgressChart({ startKg, endKg, goal }: { startKg: number; endKg: number; goal: string }) {
+  const barColor = goal === 'muscle' ? colors.orange : colors.neon;
+  const kgPerWeek = (endKg - startKg) / WEEKS;
+  const sign = kgPerWeek >= 0 ? '+' : '';
+  const label = `${sign}${kgPerWeek.toFixed(2)} kg / semana`;
 
   return (
     <View style={chartStyles.wrap}>
-      <View style={chartStyles.row}>
-        <Text style={chartStyles.kgLabel}>{startKg} kg</Text>
-        <Text style={chartStyles.kgLabel}>{endKg} kg</Text>
+      <View style={chartStyles.bars}>
+        {Array.from({ length: WEEKS }, (_, i) => {
+          const pct = (i + 1) / WEEKS;
+          return (
+            <View key={i} style={chartStyles.barCol}>
+              <View style={chartStyles.barTrack}>
+                <View style={[chartStyles.barFill, { height: `${Math.round(pct * 100)}%`, backgroundColor: barColor }]} />
+              </View>
+              <Text style={chartStyles.weekNum}>{i + 1}</Text>
+            </View>
+          );
+        })}
       </View>
-      <Svg width={W} height={H}>
-        <Defs>
-          <LinearGradient id="grad" x1="0" y1="0" x2="0" y2="1">
-            <Stop offset="0%" stopColor={colors.neon} stopOpacity={0.25} />
-            <Stop offset="100%" stopColor={colors.neon} stopOpacity={0} />
-          </LinearGradient>
-        </Defs>
-        <Path d={areaD} fill="url(#grad)" />
-        <Path d={pathD} stroke={colors.neon} strokeWidth={2.5} fill="none" />
-        <Circle cx={pts[weeks].x} cy={pts[weeks].y} r={5} fill={colors.neon} />
-      </Svg>
-      <View style={chartStyles.row}>
-        <Text style={chartStyles.weekLabel}>Hoy</Text>
-        <Text style={chartStyles.weekLabel}>8 semanas</Text>
+      <View style={chartStyles.footer}>
+        <Text style={chartStyles.startKg}>{startKg} kg</Text>
+        <Text style={chartStyles.rateLabel}>{label}</Text>
+        <Text style={chartStyles.endKg}>{endKg} kg</Text>
       </View>
     </View>
   );
@@ -170,7 +157,7 @@ export default function PlanScreen() {
         {showChart && (
           <View style={[glass, styles.chartCard]}>
             <Text style={styles.chartTitle}>...y así será tu progreso</Text>
-            <ProgressChart startKg={weightKg} endKg={targetWeightKg} />
+            <ProgressChart startKg={weightKg} endKg={targetWeightKg} goal={data.goal ?? 'fat_loss'} />
           </View>
         )}
 
@@ -222,10 +209,48 @@ function activityLabel(level?: string) {
 }
 
 const chartStyles = StyleSheet.create({
-  wrap: { alignItems: 'center' },
-  row: { flexDirection: 'row', justifyContent: 'space-between', width: 300 },
-  kgLabel: { fontSize: 13, color: colors.muted, fontFamily: 'SpaceGrotesk_600SemiBold' },
-  weekLabel: { fontSize: 11, color: colors.dim, fontFamily: 'SpaceGrotesk_400Regular' },
+  wrap: { width: '100%' },
+  bars: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 6,
+    height: 100,
+    marginBottom: 6,
+  },
+  barCol: {
+    flex: 1,
+    alignItems: 'center',
+    gap: 4,
+    height: '100%',
+    justifyContent: 'flex-end',
+  },
+  barTrack: {
+    flex: 1,
+    width: '100%',
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderRadius: 4,
+    justifyContent: 'flex-end',
+    overflow: 'hidden',
+  },
+  barFill: {
+    width: '100%',
+    borderRadius: 4,
+    opacity: 0.85,
+  },
+  weekNum: {
+    fontSize: 9,
+    color: colors.dim,
+    fontFamily: 'SpaceGrotesk_400Regular',
+  },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  startKg: { fontSize: 12, color: colors.muted, fontFamily: 'SpaceGrotesk_600SemiBold' },
+  endKg: { fontSize: 12, color: colors.muted, fontFamily: 'SpaceGrotesk_600SemiBold' },
+  rateLabel: { fontSize: 11, color: colors.dim, fontFamily: 'SpaceGrotesk_400Regular' },
 });
 
 const macroStyles = StyleSheet.create({

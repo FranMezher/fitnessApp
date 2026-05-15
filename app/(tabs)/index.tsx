@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { colors, glass, glassOrange } from '@/constants/colors';
+import { colors, glassOrange } from '@/constants/colors';
 import { Ring } from '@/components/ui/Ring';
 import { Pill } from '@/components/ui/Pill';
 import { ProgressBar } from '@/components/ui/ProgressBar';
@@ -13,17 +13,12 @@ import { useNutritionStore } from '@/stores/useNutritionStore';
 import { useWorkoutStore } from '@/stores/useWorkoutStore';
 
 const WEEK_DAYS = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
-
-const RINGS = [
-  { pct: 72, color: colors.neon,   label: '72%', sub: 'mov', name: 'Movimiento' },
-  { pct: 50, color: colors.orange, label: '50%', sub: 'eje', name: 'Ejercicio'  },
-  { pct: 88, color: colors.teal,   label: '88%', sub: 'H₂O', name: 'Hidrat.'   },
-];
+const WATER_GOAL = 8;
 
 export default function DashboardScreen() {
   const { profile, fetchProfile } = useAuthStore();
-  const { foodLog, fetchFoodLog } = useNutritionStore();
-  const { streak, myPlan, fetchStreak, fetchMyPlan, ensureSeeded } = useWorkoutStore();
+  const { foodLog, waterByDate, fetchFoodLog, fetchWater } = useNutritionStore();
+  const { streak, myPlan, sessions, fetchStreak, fetchMyPlan, fetchSessions, ensureSeeded } = useWorkoutStore();
   const [dataError, setDataError] = useState<string | null>(null);
 
   const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
@@ -32,9 +27,29 @@ export default function DashboardScreen() {
     setDataError(null);
     fetchProfile().catch((err) => setDataError(err?.message ?? 'Error al cargar el perfil'));
     fetchFoodLog(today).catch((err) => console.warn('[Dashboard] fetchFoodLog error:', err?.message));
+    fetchWater(today).catch(() => {});
     fetchStreak().catch((err) => console.warn('[Dashboard] fetchStreak error:', err?.message));
+    fetchSessions().catch(() => {});
     ensureSeeded().then(() => fetchMyPlan()).catch(() => {});
   }, [today]);
+
+  const weekStart = useMemo(() => {
+    const d = new Date();
+    const day = d.getDay();
+    d.setDate(d.getDate() - (day === 0 ? 6 : day - 1));
+    return d.toISOString().slice(0, 10);
+  }, []);
+
+  const waterGlasses = waterByDate[today] ?? 0;
+  const waterPct = Math.min(100, Math.round((waterGlasses / WATER_GOAL) * 100));
+  const sessionsThisWeek = sessions.filter((s) => s.startedAt.slice(0, 10) >= weekStart).length;
+  const exercisePct = Math.min(100, Math.round((sessionsThisWeek / (myPlan?.daysPerWeek ?? 3)) * 100));
+
+  const rings = [
+    { pct: 0,          color: colors.neon,   label: '—%',              sub: 'mov', name: 'Movimiento' },
+    { pct: exercisePct, color: colors.orange, label: `${exercisePct}%`, sub: 'eje', name: 'Ejercicio'  },
+    { pct: waterPct,   color: colors.teal,   label: `${waterPct}%`,    sub: 'H₂O', name: 'Hidrat.'   },
+  ];
 
   const totalCal = foodLog.reduce((s, e) => s + e.calories, 0);
   const totalProt = foodLog.reduce((s, e) => s + e.proteinG, 0);
@@ -62,13 +77,8 @@ export default function DashboardScreen() {
             <Text style={styles.headerSub}>Buenos días,</Text>
             <Text style={styles.headerName}>{firstName} 👋</Text>
           </View>
-          <View style={styles.avatarWrap}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>{avatarLetter}</Text>
-            </View>
-            <View style={styles.notifBadge}>
-              <Text style={styles.notifText}>3</Text>
-            </View>
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>{avatarLetter}</Text>
           </View>
         </View>
 
@@ -94,7 +104,7 @@ export default function DashboardScreen() {
 
         {/* Activity rings */}
         <View style={styles.rings}>
-          {RINGS.map((r) => (
+          {rings.map((r) => (
             <GlassCard key={r.name} style={styles.ringCard}>
               <Ring pct={r.pct} size={64} color={r.color} label={r.label} sub={r.sub} />
               <Text style={styles.ringName}>{r.name}</Text>

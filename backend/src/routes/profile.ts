@@ -12,7 +12,7 @@ profileRouter.get('/', async (c) => {
   const user = c.get('user');
   const [profile] = await db.select().from(profiles).where(eq(profiles.userId, user.id));
   if (!profile) return c.json({ error: 'Profile not found' }, 404);
-  return c.json(profile);
+  return c.json({ ...profile, strengthTraining: profile.strengthTraining === 1 });
 });
 
 const profileSchema = z.object({
@@ -38,7 +38,7 @@ const profileSchema = z.object({
 
 profileRouter.post('/', zValidator('json', profileSchema), async (c) => {
   const user = c.get('user');
-  const { availableFoods, mealPlanning, foodVariety, strengthTraining, ...rest } = c.req.valid('json');
+  const { strengthTraining, ...rest } = c.req.valid('json');
 
   const dbBody = {
     ...rest,

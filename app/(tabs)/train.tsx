@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { colors, glass, glassOrange } from '@/constants/colors';
+import { colors, glass, glassNeon } from '@/constants/colors';
 import { Pill } from '@/components/ui/Pill';
 import { useWorkoutStore } from '@/stores/useWorkoutStore';
 import { Btn } from '@/components/ui/Btn';
@@ -39,7 +39,7 @@ export default function TrainScreen() {
           return (
             <TouchableOpacity
               key={plan.id}
-              style={isRecommended ? [glassOrange, styles.card] : [glass, styles.card]}
+              style={isRecommended ? [glassNeon, styles.card] : [glass, styles.card]}
               activeOpacity={0.8}
               onPress={() => router.push(`/workout/${plan.id}` as never)}
             >
