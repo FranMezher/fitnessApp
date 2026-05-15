@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { colors, glass, glassNeon } from '@/constants/colors';
+import { colors, glass } from '@/constants/colors';
 import { Pill } from '@/components/ui/Pill';
 import { useWorkoutStore } from '@/stores/useWorkoutStore';
 import { Btn } from '@/components/ui/Btn';
@@ -14,7 +14,7 @@ const DIFFICULTY_LABEL: Record<string, string> = {
 };
 
 export default function TrainScreen() {
-  const { plans, myPlan, loading, fetchPlans, ensureSeeded } = useWorkoutStore();
+  const { plans, loading, fetchPlans, ensureSeeded } = useWorkoutStore();
   const [fetchError, setFetchError] = useState<string | null>(null);
 
   function load() {
@@ -34,31 +34,27 @@ export default function TrainScreen() {
 
         {loading && <ActivityIndicator color={colors.neon} style={{ marginTop: 20 }} />}
 
-        {!loading && plans.map((plan, i) => {
-          const isRecommended = myPlan?.id === plan.id;
-          return (
-            <TouchableOpacity
-              key={plan.id}
-              style={isRecommended ? [glassNeon, styles.card] : [glass, styles.card]}
-              activeOpacity={0.8}
-              onPress={() => router.push(`/workout/${plan.id}` as never)}
-            >
-              <View style={styles.cardContent}>
-                {isRecommended && <Pill color={colors.orange}>HOY · RECOMENDADO</Pill>}
-                <Text style={styles.cardTitle}>{plan.name}</Text>
-                <Text style={styles.cardSub}>
-                  {plan.exerciseCount ?? '—'} ejercicios · {plan.daysPerWeek}x semana
-                </Text>
-                <Pill color={isRecommended ? colors.neon : colors.muted}>
-                  {DIFFICULTY_LABEL[plan.difficulty] ?? plan.difficulty}
-                </Pill>
-              </View>
-              <View style={[styles.playBtn, { backgroundColor: isRecommended ? colors.orange : 'rgba(255,255,255,0.06)' }]}>
-                <Text style={[styles.playIcon, { color: isRecommended ? '#fff' : colors.muted }]}>▶</Text>
-              </View>
-            </TouchableOpacity>
-          );
-        })}
+        {!loading && plans.map((plan) => (
+          <TouchableOpacity
+            key={plan.id}
+            style={[glass, styles.card]}
+            activeOpacity={0.8}
+            onPress={() => router.push(`/workout/${plan.id}` as never)}
+          >
+            <View style={styles.cardContent}>
+              <Text style={styles.cardTitle}>{plan.name}</Text>
+              <Text style={styles.cardSub}>
+                {plan.exerciseCount ?? '—'} ejercicios · {plan.daysPerWeek}x semana
+              </Text>
+              <Pill color={colors.muted}>
+                {DIFFICULTY_LABEL[plan.difficulty] ?? plan.difficulty}
+              </Pill>
+            </View>
+            <View style={styles.playBtn}>
+              <Text style={styles.playIcon}>▶</Text>
+            </View>
+          </TouchableOpacity>
+        ))}
 
         {fetchError && (
           <View style={[glass, { padding: 20, alignItems: 'center', gap: 12 }]}>
@@ -130,10 +126,12 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
+    backgroundColor: 'rgba(255,255,255,0.06)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   playIcon: {
     fontSize: 18,
+    color: colors.muted,
   },
 });

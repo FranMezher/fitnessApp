@@ -3,7 +3,7 @@ import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import { eq, and } from 'drizzle-orm';
 import { db } from '../db/client.js';
-import { workoutSessions, sessionSets, streaks, workoutPlans, exercises, planExercises, profiles } from '../db/schema.js';
+import { workoutSessions, sessionSets, streaks, workoutPlans, exercises, planExercises } from '../db/schema.js';
 import { authMiddleware } from '../middleware/auth.js';
 import { awardXp } from '../lib/gamification.js';
 
@@ -35,31 +35,9 @@ workoutsRouter.get('/plans/:id', async (c) => {
   return c.json({ plan, exercises: exerciseDetails });
 });
 
-// GET /workouts/my-plan — recommended plan based on user goal + activity
+// GET /workouts/my-plan — no recommendation, returns null
 workoutsRouter.get('/my-plan', async (c) => {
-  const user = c.get('user');
-  const [profile] = await db.select().from(profiles).where(eq(profiles.userId, user.id));
-  const plans = await db.select().from(workoutPlans);
-  if (!plans.length) return c.json({ plan: null });
-
-  const goal = profile?.goal ?? 'maintain';
-  const preferredId = goal === 'muscle' ? 'plan-cbum'
-    : goal === 'fat_loss' ? 'plan-upperlower'
-    : goal === 'performance' ? 'plan-ppl'
-    : 'plan-fullbody';
-
-  const match = plans.find((p) => p.id === preferredId)
-    ?? plans.find((p) => p.difficulty === 'beginner')
-    ?? plans[0];
-
-  const planExs = await db.select().from(planExercises).where(eq(planExercises.planId, match.id));
-  const exerciseDetails = await Promise.all(planExs.map(async (pe) => {
-    const [ex] = await db.select().from(exercises).where(eq(exercises.id, pe.exerciseId));
-    return { ...pe, exercise: ex ?? null };
-  }));
-  exerciseDetails.sort((a, b) => a.orderIndex - b.orderIndex);
-
-  return c.json({ plan: match, exercises: exerciseDetails });
+  return c.json({ plan: null, exercises: [] });
 });
 
 // POST /workouts/seed — upsert default plans + exercises (always idempotent, re-runnable)
