@@ -1,41 +1,58 @@
 import { useEffect, useRef, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
-import { colors, glass } from '@/constants/colors';
-import { Pill } from '@/components/ui/Pill';
+import { colors, glass, glassNeon } from '@/constants/colors';
 import { Btn } from '@/components/ui/Btn';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/useAuthStore';
 
-const TOTAL_REPS = 12;
-const DONE_REPS = 6;
-const FORM_ACCURACY = 85;
 const CALORIES_PER_MIN = 8;
-const CAMERA_HEIGHT = Math.round(Dimensions.get('window').height * 0.35);
+const REST_DURATION = 60;
+
+interface ExerciseItem {
+  id: string;
+  name: string;
+  sets: number;
+  reps: number;
+  muscleGroup?: string;
+  instructions?: string;
+}
+
+interface LoggedSet {
+  exerciseId: string;
+  reps: number;
+  setNum: number;
+}
 
 export default function WorkoutActiveScreen() {
   const token = useAuthStore((s) => s.token);
   const params = useLocalSearchParams<{
-    loadedHistory?: string;
-    loadedAgo?: string;
-    exerciseName?: string;
+    exercisesJson?: string;
     planId?: string;
     planName?: string;
-    exercisesDone?: string;
   }>();
 
-  const exerciseName = params.exerciseName ?? 'Flexiones Diamante';
-  const hasHistory = !!params.loadedHistory;
   const planId = params.planId;
   const planName = params.planName ?? 'Entrenamiento';
-  const exercisesDone = Number(params.exercisesDone ?? 6);
+  const exercises: ExerciseItem[] = (() => {
+    try { return JSON.parse(params.exercisesJson ?? '[]'); } catch { return []; }
+  })();
+
+  const [currentExIdx, setCurrentExIdx] = useState(0);
+  const [currentSet, setCurrentSet] = useState(1);
+  const [actualReps, setActualReps] = useState(exercises[0]?.reps ?? 10);
+  const [phase, setPhase] = useState<'exercise' | 'rest'>('exercise');
+  const [restSeconds, setRestSeconds] = useState(REST_DURATION);
+  const [elapsed, setElapsed] = useState(0);
+  const [loggedSets, setLoggedSets] = useState<LoggedSet[]>([]);
+  const [showInstructions, setShowInstructions] = useState(false);
 
   const sessionIdRef = useRef<string | null>(null);
   const finishedRef = useRef(false);
   const elapsedRef = useRef(0);
 
-  const [elapsed, setElapsed] = useState(0);
+  // Total workout timer
   useEffect(() => {
     const interval = setInterval(() => setElapsed((s) => {
       elapsedRef.current = s + 1;
@@ -43,8 +60,17 @@ export default function WorkoutActiveScreen() {
     }), 1000);
     return () => clearInterval(interval);
   }, []);
-  const mm = String(Math.floor(elapsed / 60)).padStart(2, '0');
-  const ss = String(elapsed % 60).padStart(2, '0');
+
+  // Rest countdown
+  useEffect(() => {
+    if (phase !== 'rest') return;
+    if (restSeconds <= 0) {
+      setPhase('exercise');
+      return;
+    }
+    const t = setTimeout(() => setRestSeconds((s) => s - 1), 1000);
+    return () => clearTimeout(t);
+  }, [phase, restSeconds]);
 
   // Start backend session on mount
   useEffect(() => {
@@ -54,12 +80,11 @@ export default function WorkoutActiveScreen() {
     }).catch((err) => console.warn('[active] startSession error:', err?.message));
 
     return () => {
-      // Finish session on unmount if not already finished (e.g. user presses back)
       if (sessionIdRef.current && !finishedRef.current && token) {
         finishedRef.current = true;
         api.finishSession(token, sessionIdRef.current, {
           caloriesBurned: Math.round((elapsedRef.current / 60) * CALORIES_PER_MIN),
-          formAccuracyPct: FORM_ACCURACY,
+          formAccuracyPct: 100,
           sets: [],
         }).catch(() => {});
       }
@@ -67,18 +92,22 @@ export default function WorkoutActiveScreen() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
-  async function handleFinishAndNavigate() {
-    const durationMin = Math.max(1, Math.round(elapsed / 60));
-    const caloriesBurned = Math.round(durationMin * CALORIES_PER_MIN);
-    let xpEarned = 100 + (FORM_ACCURACY >= 80 ? 30 : 0);
+  const currentEx = exercises[currentExIdx];
+  const mm = String(Math.floor(elapsed / 60)).padStart(2, '0');
+  const ss = String(elapsed % 60).padStart(2, '0');
 
-    if (sessionIdRef.current && token && !finishedRef.current) {
-      finishedRef.current = true;
+  async function finishWorkout(sets: LoggedSet[]) {
+    finishedRef.current = true;
+    const durationMin = Math.max(1, Math.round(elapsedRef.current / 60));
+    const caloriesBurned = Math.round(durationMin * CALORIES_PER_MIN);
+    let xpEarned = 100;
+
+    if (sessionIdRef.current && token) {
       try {
         const result = await api.finishSession(token, sessionIdRef.current, {
           caloriesBurned,
-          formAccuracyPct: FORM_ACCURACY,
-          sets: [],
+          formAccuracyPct: 100,
+          sets: sets.map((s) => ({ exerciseId: s.exerciseId, reps: s.reps, setNum: s.setNum })),
         });
         xpEarned = result.xpEarned;
       } catch (err) {
@@ -89,349 +118,414 @@ export default function WorkoutActiveScreen() {
     router.push({
       pathname: '/workout/summary',
       params: {
-        durationMin: String(durationMin),
-        caloriesBurned: String(caloriesBurned),
-        formAccuracyPct: String(FORM_ACCURACY),
-        exercisesDone: String(exercisesDone),
-        xpEarned: String(xpEarned),
+        durationMin:   String(durationMin),
+        exercisesDone: String(exercises.length),
+        xpEarned:      String(xpEarned),
         planName,
       },
     });
   }
 
+  function completeSerie() {
+    if (!currentEx) return;
+
+    const newSet: LoggedSet = { exerciseId: currentEx.id, reps: actualReps, setNum: currentSet };
+    const updatedSets = [...loggedSets, newSet];
+    setLoggedSets(updatedSets);
+
+    const isLastSetOfExercise = currentSet >= currentEx.sets;
+    const isLastExercise = currentExIdx >= exercises.length - 1;
+
+    if (!isLastSetOfExercise) {
+      // More sets for this exercise → rest then next set
+      setCurrentSet((s) => s + 1);
+      setRestSeconds(REST_DURATION);
+      setPhase('rest');
+    } else if (!isLastExercise) {
+      // Last set of exercise, more exercises → rest then next exercise
+      const nextExercise = exercises[currentExIdx + 1];
+      setCurrentExIdx((i) => i + 1);
+      setCurrentSet(1);
+      setActualReps(nextExercise?.reps ?? 10);
+      setRestSeconds(REST_DURATION);
+      setPhase('rest');
+    } else {
+      // All done
+      finishWorkout(updatedSets);
+    }
+  }
+
+  function skipRest() {
+    setRestSeconds(0);
+    setPhase('exercise');
+  }
+
+  if (!currentEx && phase === 'exercise') {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16, padding: 24 }}>
+          <Text style={{ color: colors.muted, fontSize: 15, fontFamily: 'SpaceGrotesk_400Regular', textAlign: 'center' }}>
+            No hay ejercicios en este plan.
+          </Text>
+          <Btn onPress={() => router.back()}>Volver</Btn>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // ── REST PHASE ──────────────────────────────────────────────────────────────
+  if (phase === 'rest') {
+    const restMm = String(Math.floor(restSeconds / 60)).padStart(2, '0');
+    const restSs = String(restSeconds % 60).padStart(2, '0');
+    return (
+      <SafeAreaView style={styles.safe}>
+        <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+          <View style={styles.header}>
+            <TouchableOpacity onPress={() => finishWorkout(loggedSets)}>
+              <Text style={styles.exitText}>✕ Salir</Text>
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>DESCANSO</Text>
+            <Text style={styles.timerSmall}>{mm}:{ss}</Text>
+          </View>
+
+          <View style={styles.restCounterWrap}>
+            <Text style={styles.restCounter}>{restMm}:{restSs}</Text>
+            <Text style={styles.restLabel}>Recuperate</Text>
+          </View>
+
+          {currentSet > 1 ? (
+            <View style={[glass, styles.nextExCard]}>
+              <Text style={styles.nextExLabel}>PRÓXIMA SERIE</Text>
+              <Text style={styles.nextExName}>{currentEx.name}</Text>
+              <Text style={styles.nextExSub}>
+                Serie {currentSet} de {currentEx.sets} · Objetivo: {currentEx.reps} reps
+              </Text>
+            </View>
+          ) : currentEx ? (
+            <View style={[glassNeon, styles.nextExCard]}>
+              <Text style={styles.nextExLabel}>SIGUIENTE EJERCICIO</Text>
+              <Text style={styles.nextExName}>{currentEx.name}</Text>
+              <Text style={styles.nextExSub}>{currentEx.sets} series × {currentEx.reps} reps</Text>
+            </View>
+          ) : null}
+
+          <View style={styles.progressInfo}>
+            <Text style={styles.progressText}>
+              Ejercicio {currentExIdx + 1} de {exercises.length} · Serie {currentSet - 1} completada
+            </Text>
+          </View>
+
+          <Btn variant="orange" onPress={skipRest}>Saltar descanso →</Btn>
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
+
+  // ── EXERCISE PHASE ──────────────────────────────────────────────────────────
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()}>
+          <TouchableOpacity onPress={() => finishWorkout(loggedSets)}>
             <Text style={styles.exitText}>✕ Salir</Text>
           </TouchableOpacity>
           <View style={styles.headerCenter}>
-            <Text style={styles.seriesText}>{exerciseName}</Text>
-            <Text style={styles.seriesSub}>Serie 2 / 3 · Ejercicio 3 de 6</Text>
-          </View>
-          <Text style={styles.pauseText}>⏸</Text>
-        </View>
-
-        {/* Loaded history banner */}
-        {hasHistory && (
-          <View style={styles.historyBanner}>
-            <Text style={styles.historyBannerArrow}>↑</Text>
-            <Text style={styles.historyBannerText}>
-              Cargado de última sesión:{' '}
-              <Text style={{ color: colors.neon, fontWeight: '700' }}>{params.loadedHistory}</Text>
+            <Text style={styles.headerTitle}>
+              Ejercicio {currentExIdx + 1} de {exercises.length}
             </Text>
-            <Pill color={colors.neon}>{params.loadedAgo}</Pill>
+            <Text style={styles.timerSmall}>{mm}:{ss}</Text>
           </View>
-        )}
-
-        {/* Timer */}
-        <View style={styles.timerWrap}>
-          <Text style={styles.timer}>{mm}:{ss}</Text>
+          <View style={{ width: 48 }} />
         </View>
 
-        {/* Camera placeholder */}
-        <View style={styles.camera}>
-          <View style={styles.cameraGradient} />
-          <Text style={styles.cameraPlaceholder}>[ cámara + overlay{'\n'}esqueleto IA ]</Text>
-
-          {/* Corner markers */}
-          <View style={[styles.corner, styles.cornerTL]} />
-          <View style={[styles.corner, styles.cornerTR]} />
-          <View style={[styles.corner, styles.cornerBL]} />
-          <View style={[styles.corner, styles.cornerBR]} />
-
-          {/* AI Badge */}
-          <View style={styles.aiBadge}>
-            <Pill color={colors.neon}>IA activa</Pill>
-          </View>
-
-          {/* Alert */}
-          <View style={styles.alert}>
-            <Text style={styles.alertText}>⚠ Codos demasiado abiertos → ciérralos</Text>
-          </View>
-        </View>
-
-        {/* Rep counter */}
-        <View style={[glass, styles.repCard]}>
-          <Text style={styles.repTitle}>Repeticiones detectadas</Text>
-          <View style={styles.repDots}>
-            {Array.from({ length: TOTAL_REPS }, (_, i) => (
-              <View
-                key={i}
-                style={[
-                  styles.repDot,
-                  i < DONE_REPS ? styles.repDotDone : styles.repDotPending,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.repDotText,
-                    i < DONE_REPS ? styles.repDotTextDone : styles.repDotTextPending,
-                  ]}
-                >
-                  {i + 1}
-                </Text>
-              </View>
-            ))}
-          </View>
-          <Text style={styles.repCount}>
-            {DONE_REPS} / {TOTAL_REPS} · Precisión:{' '}
-            <Text style={{ color: colors.neon }}>85%</Text>
+        {/* Exercise name */}
+        <View style={styles.exNameWrap}>
+          <Text style={styles.exName}>{currentEx.name}</Text>
+          {currentEx.muscleGroup && (
+            <Text style={styles.exMuscle}>{currentEx.muscleGroup}</Text>
+          )}
+          <Text style={styles.seriesSub}>
+            Serie {currentSet} de {currentEx.sets}
           </Text>
         </View>
 
-        {/* Series comparison */}
-        <View style={[glass, styles.seriesCompare]}>
-          {[
-            { label: 'Serie 1 hoy',    value: '12 reps', color: colors.teal,   sub: '✓' },
-            { label: 'Última sesión',  value: '10 reps', color: colors.muted,  sub: 'ref.' },
-            { label: 'Ahora',          value: '6 / 12',  color: colors.orange, sub: '▶' },
-          ].map((col, i) => (
-            <View key={i} style={[styles.seriesCol, i > 0 && styles.seriesColBorder]}>
-              <Text style={styles.seriesColLabel}>{col.label}</Text>
-              <Text style={[styles.seriesColValue, { color: col.color }]}>{col.value}</Text>
-              <Text style={[styles.seriesColSub, { color: col.color }]}>{col.sub}</Text>
+        {/* Target reps */}
+        <View style={[glass, styles.targetCard]}>
+          <Text style={styles.targetLabel}>OBJETIVO</Text>
+          <Text style={styles.targetValue}>{currentEx.reps} repeticiones</Text>
+        </View>
+
+        {/* Manual rep counter */}
+        <View style={[glassNeon, styles.repCounterCard]}>
+          <Text style={styles.repCounterLabel}>Repeticiones realizadas</Text>
+          <View style={styles.repCounterRow}>
+            <TouchableOpacity
+              style={styles.repBtn}
+              onPress={() => setActualReps((r) => Math.max(0, r - 1))}
+            >
+              <Text style={styles.repBtnText}>−</Text>
+            </TouchableOpacity>
+            <Text style={styles.repCounterValue}>{actualReps}</Text>
+            <TouchableOpacity
+              style={styles.repBtn}
+              onPress={() => setActualReps((r) => r + 1)}
+            >
+              <Text style={styles.repBtnText}>+</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Instructions (collapsible) */}
+        {currentEx.instructions && (
+          <TouchableOpacity
+            style={[glass, styles.instructionsCard]}
+            onPress={() => setShowInstructions((v) => !v)}
+            activeOpacity={0.8}
+          >
+            <View style={styles.instructionsHeader}>
+              <Text style={styles.instructionsTitle}>Instrucciones</Text>
+              <Text style={styles.instructionsArrow}>{showInstructions ? '▲' : '▼'}</Text>
             </View>
+            {showInstructions && (
+              <Text style={styles.instructionsText}>{currentEx.instructions}</Text>
+            )}
+          </TouchableOpacity>
+        )}
+
+        {/* Series progress dots */}
+        <View style={styles.seriesDotsWrap}>
+          {Array.from({ length: currentEx.sets }, (_, i) => (
+            <View
+              key={i}
+              style={[
+                styles.seriesDot,
+                i < currentSet - 1
+                  ? styles.seriesDotDone
+                  : i === currentSet - 1
+                  ? styles.seriesDotActive
+                  : styles.seriesDotPending,
+              ]}
+            />
           ))}
         </View>
 
-        <Btn variant="orange" onPress={handleFinishAndNavigate}>
-          DESCANSO →
-        </Btn>
+        <Btn onPress={completeSerie}>COMPLETAR SERIE</Btn>
+
+        <TouchableOpacity
+          style={styles.finishBtn}
+          onPress={() => finishWorkout(loggedSets)}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.finishBtnText}>Finalizar entreno</Text>
+        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: colors.bg,
-  },
-  container: {
-    padding: 20,
-    gap: 12,
-  },
+  safe: { flex: 1, backgroundColor: colors.bg },
+  container: { padding: 20, gap: 14 },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  headerCenter: { flex: 1, alignItems: 'center' },
+  headerTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.text,
+    fontFamily: 'SpaceGrotesk_700Bold',
+    textAlign: 'center',
+  },
   exitText: {
-    fontSize: 15,
+    fontSize: 14,
+    color: colors.muted,
+    fontFamily: 'SpaceGrotesk_400Regular',
+    width: 60,
+  },
+  timerSmall: {
+    fontSize: 12,
+    color: colors.muted,
+    fontFamily: 'SpaceGrotesk_400Regular',
+    textAlign: 'center',
+  },
+  exNameWrap: { alignItems: 'center', gap: 4 },
+  exName: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: colors.neon,
+    fontFamily: 'SpaceGrotesk_700Bold',
+    textAlign: 'center',
+  },
+  exMuscle: {
+    fontSize: 13,
     color: colors.muted,
     fontFamily: 'SpaceGrotesk_400Regular',
   },
-  headerCenter: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  seriesText: {
+  seriesSub: {
     fontSize: 14,
+    color: colors.text,
+    fontFamily: 'SpaceGrotesk_400Regular',
+    marginTop: 2,
+  },
+  targetCard: {
+    padding: 12,
+    alignItems: 'center',
+    gap: 2,
+  },
+  targetLabel: {
+    fontSize: 10,
+    color: colors.muted,
+    fontFamily: 'SpaceGrotesk_600SemiBold',
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+  },
+  targetValue: {
+    fontSize: 17,
     fontWeight: '700',
     color: colors.text,
     fontFamily: 'SpaceGrotesk_700Bold',
   },
-  seriesSub: {
+  repCounterCard: {
+    padding: 20,
+    alignItems: 'center',
+    gap: 12,
+  },
+  repCounterLabel: {
     fontSize: 11,
     color: colors.muted,
     fontFamily: 'SpaceGrotesk_400Regular',
-    marginTop: 1,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   },
-  pauseText: {
-    fontSize: 15,
-    color: colors.neon,
-  },
-  historyBanner: {
+  repCounterRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    backgroundColor: 'rgba(204,255,0,0.06)',
-    borderWidth: 1,
+    gap: 28,
+  },
+  repBtn: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: 'rgba(204,255,0,0.12)',
+    borderWidth: 1.5,
     borderColor: colors.borderAccent,
-    borderRadius: 10,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  historyBannerArrow: {
+  repBtnText: {
+    fontSize: 26,
     color: colors.neon,
-    fontSize: 14,
-  },
-  historyBannerText: {
-    flex: 1,
-    fontSize: 12,
-    color: colors.muted,
-    fontFamily: 'SpaceGrotesk_400Regular',
-  },
-  seriesCompare: {
-    flexDirection: 'row',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-  },
-  seriesCol: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 2,
-  },
-  seriesColBorder: {
-    borderLeftWidth: 1,
-    borderLeftColor: colors.border,
-  },
-  seriesColLabel: {
-    fontSize: 10,
-    color: colors.dim,
-    fontFamily: 'SpaceGrotesk_400Regular',
-    marginBottom: 2,
-  },
-  seriesColValue: {
-    fontSize: 14,
-    fontWeight: '700',
     fontFamily: 'SpaceGrotesk_700Bold',
+    lineHeight: 30,
   },
-  seriesColSub: {
-    fontSize: 10,
-    opacity: 0.7,
-    fontFamily: 'SpaceGrotesk_400Regular',
-  },
-  timerWrap: {
-    alignItems: 'center',
-  },
-  timer: {
+  repCounterValue: {
     fontSize: 64,
     fontWeight: '700',
     color: colors.neon,
+    fontFamily: 'SpaceGrotesk_700Bold',
     lineHeight: 68,
     letterSpacing: -2,
-    fontFamily: 'SpaceGrotesk_700Bold',
-  },
-  camera: {
-    backgroundColor: '#0d0d0d',
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 16,
-    height: CAMERA_HEIGHT,
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-    position: 'relative',
-  },
-  cameraGradient: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(204,255,0,0.02)',
-  },
-  cameraPlaceholder: {
-    color: '#333',
-    fontSize: 13,
+    minWidth: 80,
     textAlign: 'center',
-    fontFamily: 'SpaceGrotesk_400Regular',
   },
-  corner: {
-    position: 'absolute',
-    width: 16,
-    height: 16,
-    borderColor: colors.neon,
-    borderWidth: 2,
-  },
-  cornerTL: {
-    top: 10,
-    left: 10,
-    borderRightWidth: 0,
-    borderBottomWidth: 0,
-    borderTopLeftRadius: 3,
-  },
-  cornerTR: {
-    top: 10,
-    right: 10,
-    borderLeftWidth: 0,
-    borderBottomWidth: 0,
-    borderTopRightRadius: 3,
-  },
-  cornerBL: {
-    bottom: 10,
-    left: 10,
-    borderRightWidth: 0,
-    borderTopWidth: 0,
-    borderBottomLeftRadius: 3,
-  },
-  cornerBR: {
-    bottom: 10,
-    right: 10,
-    borderLeftWidth: 0,
-    borderTopWidth: 0,
-    borderBottomRightRadius: 3,
-  },
-  aiBadge: {
-    position: 'absolute',
-    top: 10,
-    left: 10,
-  },
-  alert: {
-    position: 'absolute',
-    bottom: 10,
-    left: 10,
-    right: 10,
-    backgroundColor: 'rgba(255,107,53,0.15)',
-    borderWidth: 1,
-    borderColor: `${colors.orange}66`,
-    borderRadius: 8,
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-  },
-  alertText: {
-    fontSize: 12,
-    color: colors.orange,
-    textAlign: 'center',
-    fontFamily: 'SpaceGrotesk_400Regular',
-  },
-  repCard: {
+  instructionsCard: {
     padding: 12,
     paddingHorizontal: 14,
-    alignItems: 'center',
     gap: 8,
   },
-  repTitle: {
-    fontSize: 12,
+  instructionsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  instructionsTitle: {
+    fontSize: 13,
+    color: colors.text,
+    fontFamily: 'SpaceGrotesk_600SemiBold',
+  },
+  instructionsArrow: {
+    fontSize: 11,
+    color: colors.muted,
+  },
+  instructionsText: {
+    fontSize: 13,
+    color: colors.muted,
+    fontFamily: 'SpaceGrotesk_400Regular',
+    lineHeight: 20,
+  },
+  seriesDotsWrap: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  seriesDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+  },
+  seriesDotDone: { backgroundColor: colors.neon },
+  seriesDotActive: { backgroundColor: colors.orange },
+  seriesDotPending: { backgroundColor: colors.dim },
+  finishBtn: {
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  finishBtnText: {
+    fontSize: 13,
     color: colors.muted,
     fontFamily: 'SpaceGrotesk_400Regular',
   },
-  repDots: {
-    flexDirection: 'row',
-    gap: 6,
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-  },
-  repDot: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    borderWidth: 1.5,
+  // Rest phase styles
+  restCounterWrap: {
     alignItems: 'center',
-    justifyContent: 'center',
+    gap: 4,
+    marginVertical: 20,
   },
-  repDotDone: {
-    backgroundColor: colors.neon,
-    borderColor: colors.neon,
-  },
-  repDotPending: {
-    backgroundColor: 'rgba(255,255,255,0.04)',
-    borderColor: 'rgba(255,255,255,0.1)',
-  },
-  repDotText: {
-    fontSize: 11,
+  restCounter: {
+    fontSize: 80,
     fontWeight: '700',
+    color: colors.neon,
+    fontFamily: 'SpaceGrotesk_700Bold',
+    lineHeight: 84,
+    letterSpacing: -3,
+  },
+  restLabel: {
+    fontSize: 14,
+    color: colors.muted,
+    fontFamily: 'SpaceGrotesk_400Regular',
+  },
+  nextExCard: {
+    padding: 16,
+    gap: 4,
+  },
+  nextExLabel: {
+    fontSize: 10,
+    color: colors.muted,
+    fontFamily: 'SpaceGrotesk_600SemiBold',
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+  },
+  nextExName: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.text,
     fontFamily: 'SpaceGrotesk_700Bold',
   },
-  repDotTextDone: {
-    color: '#111',
-  },
-  repDotTextPending: {
-    color: colors.dim,
-  },
-  repCount: {
-    fontSize: 12,
+  nextExSub: {
+    fontSize: 13,
     color: colors.muted,
+    fontFamily: 'SpaceGrotesk_400Regular',
+  },
+  progressInfo: {
+    alignItems: 'center',
+  },
+  progressText: {
+    fontSize: 12,
+    color: colors.dim,
     fontFamily: 'SpaceGrotesk_400Regular',
   },
 });
