@@ -1,225 +1,257 @@
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { useEffect, useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { colors, glass, glassNeon } from '@/constants/colors';
-import { Pill } from '@/components/ui/Pill';
-import { ProgressBar } from '@/components/ui/ProgressBar';
 import { Btn } from '@/components/ui/Btn';
-import { GlassCard } from '@/components/ui/GlassCard';
+import { ProgressBar } from '@/components/ui/ProgressBar';
 
-const STRETCHES = [
-  { name: 'Pecho en pared', muscle: 'Pectoral', done: true },
-  { name: 'Tríceps sobre cabeza', muscle: 'Tríceps', done: true },
-  { name: 'Hombro cruzado', muscle: 'Deltoides', active: true },
-  { name: 'Apertura torácica', muscle: 'Espalda' },
-  { name: 'Cuello lateral', muscle: 'Cuello' },
-];
+interface StretchItem {
+  name:        string;
+  muscle:      string;
+  seconds:     number;
+  instruction: string;
+}
+
+const STRETCHES: Record<string, StretchItem[]> = {
+  push: [
+    { name: 'Pecho en pared',       muscle: 'Pectoral',     seconds: 30, instruction: 'Apoya el brazo en el marco de la puerta y gira suavemente el cuerpo. Mantén 30 seg por cada lado.' },
+    { name: 'Tríceps sobre cabeza', muscle: 'Tríceps',      seconds: 30, instruction: 'Lleva el codo detrás de la cabeza y empuja suavemente con la otra mano. Ambos lados.' },
+    { name: 'Hombro cruzado',       muscle: 'Deltoides',    seconds: 30, instruction: 'Lleva el brazo al pecho y sostén con el otro brazo. Sentís el estiramiento en el hombro. Ambos lados.' },
+    { name: 'Apertura torácica',    muscle: 'Espalda alta', seconds: 30, instruction: 'Entrelaza los dedos al frente y empuja hacia adelante redondeando la espalda. Respirá profundo.' },
+  ],
+  pull: [
+    { name: 'Estiramiento de espalda', muscle: 'Dorsal',    seconds: 30, instruction: 'Agarra un poste o marco de puerta, incliná el cuerpo hacia atrás y estirá la espalda.' },
+    { name: 'Bíceps contra pared',     muscle: 'Bíceps',    seconds: 30, instruction: 'Apoya la palma en la pared con el pulgar abajo y girá el cuerpo levemente. Ambos lados.' },
+    { name: 'Hombro cruzado',          muscle: 'Deltoides', seconds: 30, instruction: 'Lleva el brazo al pecho y sostén con el otro brazo. Sentís el estiramiento en el hombro. Ambos lados.' },
+    { name: 'Cuello lateral',          muscle: 'Cuello',    seconds: 30, instruction: 'Inclina suavemente la cabeza hacia un hombro. No fuerces. Respirá lento. Ambos lados.' },
+  ],
+  legs: [
+    { name: 'Cuádriceps de pie',     muscle: 'Cuádriceps',    seconds: 40, instruction: 'Parate en un pie, lleváte el talón al glúteo con la mano. Mantén el equilibrio. Ambas piernas.' },
+    { name: 'Isquiosural en suelo',  muscle: 'Isquiosurales', seconds: 40, instruction: 'Sentado con piernas extendidas, inclinante hacia adelante alcanzando los pies. Respirá.' },
+    { name: 'Hip Flexor en rodilla', muscle: 'Cadera',        seconds: 40, instruction: 'Ponete con una rodilla en el suelo, pierna trasera extendida. Empujá la cadera hacia adelante.' },
+    { name: 'Glúteo figura 4',       muscle: 'Glúteos',       seconds: 40, instruction: 'Acostado, cruzá el tobillo sobre la rodilla contraria y acercá las piernas al pecho.' },
+    { name: 'Pantorrilla en pared',  muscle: 'Pantorrilla',   seconds: 30, instruction: 'Apoyá la punta del pie en la pared y empujá el talón hacia abajo suavemente. Ambas piernas.' },
+  ],
+  default: [
+    { name: 'Pecho en pared',          muscle: 'Pectoral',   seconds: 30, instruction: 'Apoya el brazo en el marco de la puerta y gira suavemente el cuerpo. Ambos lados.' },
+    { name: 'Hombro cruzado',          muscle: 'Deltoides',  seconds: 30, instruction: 'Lleva el brazo al pecho y sostén con el otro brazo. Ambos lados.' },
+    { name: 'Estiramiento de espalda', muscle: 'Dorsal',     seconds: 30, instruction: 'Agarra un poste, incliná el cuerpo hacia atrás y estirá la espalda.' },
+    { name: 'Cuádriceps de pie',       muscle: 'Cuádriceps', seconds: 30, instruction: 'Parate en un pie, lleváte el talón al glúteo. Ambas piernas.' },
+    { name: 'Cuello lateral',          muscle: 'Cuello',     seconds: 30, instruction: 'Inclina suavemente la cabeza hacia un hombro. Ambos lados.' },
+  ],
+};
+
+function pickStretches(planName: string): StretchItem[] {
+  const n = planName.toLowerCase();
+  if (n.includes('push')) return STRETCHES.push;
+  if (n.includes('pull')) return STRETCHES.pull;
+  if (n.includes('leg'))  return STRETCHES.legs;
+  return STRETCHES.default;
+}
 
 export default function StretchScreen() {
+  const { planName } = useLocalSearchParams<{ planName?: string }>();
+  const stretches = pickStretches(planName ?? '');
+
+  const [currentIdx, setCurrentIdx]     = useState(0);
+  const [timerSeconds, setTimerSeconds] = useState(stretches[0].seconds);
+  const [done, setDone]                 = useState(false);
+
+  const current   = stretches[currentIdx];
+  const timerDone = timerSeconds === 0;
+
+  useEffect(() => {
+    if (done || timerDone) return;
+    const t = setTimeout(() => setTimerSeconds((s) => s - 1), 1000);
+    return () => clearTimeout(t);
+  }, [timerSeconds, done, timerDone]);
+
+  function handleNext() {
+    if (currentIdx < stretches.length - 1) {
+      const next = stretches[currentIdx + 1];
+      setCurrentIdx((i) => i + 1);
+      setTimerSeconds(next.seconds);
+    } else {
+      setDone(true);
+    }
+  }
+
+  // ── DONE ────────────────────────────────────────────────────────────────────
+  if (done) {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <View style={styles.doneContainer}>
+          <Text style={styles.doneEmoji}>🧘</Text>
+          <Text style={styles.doneTitle}>¡Elongación completa!</Text>
+          <Text style={styles.doneSub}>{stretches.length} estiramientos realizados</Text>
+          <Btn onPress={() => router.replace('/(tabs)')}>Volver al inicio</Btn>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // ── STRETCH ──────────────────────────────────────────────────────────────────
+  const progressPct = Math.round(((current.seconds - timerSeconds) / current.seconds) * 100);
+  const mm = String(Math.floor(timerSeconds / 60)).padStart(2, '0');
+  const ss = String(timerSeconds % 60).padStart(2, '0');
+  const isLast = currentIdx === stretches.length - 1;
+
   return (
     <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+      <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
-          <View>
-            <Text style={styles.title}>Elongación</Text>
-            <Text style={styles.sub}>5 estiramientos · ~5 min</Text>
-          </View>
           <TouchableOpacity onPress={() => router.replace('/(tabs)')}>
-            <View style={[glass, styles.skipBtn]}>
-              <Text style={styles.skipText}>Saltar</Text>
-            </View>
+            <Text style={styles.skipText}>Saltar todo</Text>
           </TouchableOpacity>
+          <Text style={styles.headerTitle}>Elongación</Text>
+          <Text style={styles.progressBadge}>{currentIdx + 1} / {stretches.length}</Text>
         </View>
 
-        {/* Camera placeholder */}
-        <View style={styles.camera}>
-          <Text style={styles.cameraPlaceholder}>[ ilustración: hombro cruzado ]</Text>
-          <View style={styles.positionBadge}>
-            <Pill>3 de 5</Pill>
+        {/* Stretch card */}
+        <View style={[glassNeon, styles.stretchCard]}>
+          <View style={styles.musclePill}>
+            <Text style={styles.musclePillText}>{current.muscle.toUpperCase()}</Text>
           </View>
-          <View style={styles.timerBadge}>
-            <Text style={styles.timerText}>00:18</Text>
-          </View>
+          <Text style={styles.stretchName}>{current.name}</Text>
+          <Text style={styles.stretchInstruction}>{current.instruction}</Text>
         </View>
 
-        {/* Active stretch */}
-        <GlassCard variant="neon" style={styles.activeCard}>
-          <Pill color={colors.neon}>AHORA · DELTOIDES</Pill>
-          <Text style={styles.activeName}>Hombro cruzado</Text>
-          <Text style={styles.activeSub}>30 seg cada lado · Respira profundo</Text>
-          <ProgressBar pct={60} />
-        </GlassCard>
+        {/* Timer */}
+        <View style={[glass, styles.timerCard]}>
+          <Text style={[styles.timerValue, timerDone && styles.timerValueDone]}>
+            {timerDone ? '¡Listo!' : `${mm}:${ss}`}
+          </Text>
+          <ProgressBar pct={progressPct} h={6} />
+        </View>
 
         {/* Stretch list */}
-        {STRETCHES.map((s) => (
-          <View
-            key={s.name}
-            style={[
-              s.active ? glassNeon : glass,
-              styles.stretchItem,
-              s.done && styles.stretchDone,
-            ]}
-          >
-            <View style={[styles.stretchDot, {
-              backgroundColor: s.active ? `${colors.neon}22` : 'rgba(255,255,255,0.05)',
-              borderColor: s.active ? colors.neon : s.done ? colors.neon : colors.dim,
-            }]}>
-              <Text style={[styles.stretchDotIcon, {
-                color: s.done ? colors.neon : s.active ? colors.neon : colors.dim,
-              }]}>
-                {s.done ? '✓' : s.active ? '▶' : '○'}
-              </Text>
-            </View>
-            <View style={styles.stretchText}>
-              <Text style={[styles.stretchName, s.done && styles.stretchNameDone]}>
-                {s.name}
-              </Text>
-              <Text style={styles.stretchMuscle}>{s.muscle}</Text>
-            </View>
-          </View>
-        ))}
-
-        <View style={styles.btnWrap}>
-          <Btn onPress={() => router.push('/workout/recovery')}>Siguiente →</Btn>
+        <View style={styles.listWrap}>
+          {stretches.map((s, i) => {
+            const isDone   = i < currentIdx;
+            const isActive = i === currentIdx;
+            return (
+              <View key={i} style={styles.listItem}>
+                <Text style={[styles.listStatus, {
+                  color: isDone ? colors.neon : isActive ? colors.orange : colors.dim,
+                }]}>
+                  {isDone ? '✓' : isActive ? '▶' : '○'}
+                </Text>
+                <Text style={[styles.listName, {
+                  color: isDone ? colors.dim : isActive ? colors.text : colors.muted,
+                }]}>
+                  {s.name}
+                </Text>
+                <Text style={styles.listMuscle}>{s.muscle}</Text>
+              </View>
+            );
+          })}
         </View>
-      </ScrollView>
+
+        {/* CTA */}
+        <Btn onPress={handleNext} variant={timerDone ? undefined : 'ghost'}>
+          {isLast ? 'Finalizar' : 'Siguiente →'}
+        </Btn>
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: colors.bg,
-  },
-  container: {
-    padding: 20,
-    gap: 8,
-  },
+  safe:      { flex: 1, backgroundColor: colors.bg },
+  container: { flex: 1, padding: 20, gap: 12 },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 4,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: colors.text,
-    fontFamily: 'SpaceGrotesk_700Bold',
-  },
-  sub: {
-    fontSize: 13,
-    color: colors.muted,
-    fontFamily: 'SpaceGrotesk_400Regular',
-  },
-  skipBtn: {
-    paddingHorizontal: 12,
-    paddingVertical: 4,
+    justifyContent: 'space-between',
   },
   skipText: {
     fontSize: 13,
     color: colors.muted,
     fontFamily: 'SpaceGrotesk_400Regular',
+    width: 72,
   },
-  camera: {
-    backgroundColor: '#0d0d0d',
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 16,
-    height: 180,
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-    position: 'relative',
+  headerTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.text,
+    fontFamily: 'SpaceGrotesk_700Bold',
   },
-  cameraPlaceholder: {
-    color: '#333',
+  progressBadge: {
     fontSize: 13,
-    textAlign: 'center',
-    fontFamily: 'SpaceGrotesk_400Regular',
+    color: colors.neon,
+    fontFamily: 'SpaceGrotesk_700Bold',
+    textAlign: 'right',
+    width: 72,
   },
-  positionBadge: {
-    position: 'absolute',
-    top: 10,
-    left: 10,
-  },
-  timerBadge: {
-    position: 'absolute',
-    bottom: 10,
-    right: 10,
-    backgroundColor: `${colors.neon}22`,
-    borderWidth: 1,
-    borderColor: `${colors.neon}66`,
-    borderRadius: 8,
-    paddingHorizontal: 10,
+  stretchCard: { padding: 18, gap: 8 },
+  musclePill: {
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(204,255,0,0.12)',
+    borderRadius: 6,
+    paddingHorizontal: 8,
     paddingVertical: 3,
   },
-  timerText: {
+  musclePillText: {
+    fontSize: 10,
+    color: colors.neon,
+    fontFamily: 'SpaceGrotesk_600SemiBold',
+    letterSpacing: 1.2,
+  },
+  stretchName: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: colors.text,
+    fontFamily: 'SpaceGrotesk_700Bold',
+  },
+  stretchInstruction: {
     fontSize: 13,
+    color: colors.muted,
+    fontFamily: 'SpaceGrotesk_400Regular',
+    lineHeight: 20,
+  },
+  timerCard: {
+    padding: 14,
+    alignItems: 'center',
+    gap: 10,
+  },
+  timerValue: {
+    fontSize: 42,
     fontWeight: '700',
     color: colors.neon,
     fontFamily: 'SpaceGrotesk_700Bold',
+    lineHeight: 46,
+    letterSpacing: -1,
   },
-  activeCard: {
-    padding: 12,
-    paddingHorizontal: 14,
-    gap: 5,
-    marginBottom: 4,
-  },
-  activeName: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: colors.text,
-    fontFamily: 'SpaceGrotesk_700Bold',
-    marginTop: 5,
-  },
-  activeSub: {
-    fontSize: 13,
-    color: colors.muted,
-    marginBottom: 3,
-    fontFamily: 'SpaceGrotesk_400Regular',
-  },
-  stretchItem: {
+  timerValueDone: { color: colors.teal },
+  listWrap: { gap: 4, flex: 1 },
+  listItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    padding: 10,
-    paddingHorizontal: 14,
+    gap: 10,
+    paddingVertical: 3,
   },
-  stretchDone: {
-    opacity: 0.45,
-  },
-  stretchDot: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  stretchDotIcon: {
-    fontSize: 14,
-  },
-  stretchText: {
+  listStatus: { fontSize: 12, width: 16 },
+  listName: {
     flex: 1,
-  },
-  stretchName: {
-    fontSize: 14,
-    color: colors.text,
+    fontSize: 13,
     fontFamily: 'SpaceGrotesk_400Regular',
   },
-  stretchNameDone: {
-    textDecorationLine: 'line-through',
-    color: colors.muted,
-  },
-  stretchMuscle: {
+  listMuscle: {
     fontSize: 11,
     color: colors.dim,
     fontFamily: 'SpaceGrotesk_400Regular',
   },
-  btnWrap: {
-    marginTop: 4,
+  // Done screen
+  doneContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 32,
+    gap: 12,
   },
+  doneEmoji:  { fontSize: 56 },
+  doneTitle:  { fontSize: 24, fontWeight: '700', color: colors.neon, fontFamily: 'SpaceGrotesk_700Bold', textAlign: 'center' },
+  doneSub:    { fontSize: 14, color: colors.muted, fontFamily: 'SpaceGrotesk_400Regular', textAlign: 'center', marginBottom: 8 },
 });

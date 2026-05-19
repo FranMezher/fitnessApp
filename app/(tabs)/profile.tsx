@@ -17,10 +17,9 @@ const GOAL_LABELS: Record<string, string> = {
 };
 
 const MENU_ITEMS = [
-  { icon: '🥗', label: 'Mi plan nutricional', route: '/profile/nutrition-plan' },
-  { icon: '📊', label: 'Historial de entrenamientos', route: null },
-  { icon: '🏆', label: 'Logros y medallas', route: null },
-  { icon: '⚙️', label: 'Ajustes de cuenta', route: '/profile/settings' },
+  { icon: '🥗', label: 'Mi plan nutricional',        route: '/profile/nutrition-plan' },
+  { icon: '📊', label: 'Historial de entrenamientos', route: '/profile/workout-history' },
+  { icon: '⚙️', label: 'Ajustes de cuenta',           route: '/profile/settings' },
 ];
 
 export default function ProfileScreen() {
@@ -70,7 +69,7 @@ export default function ProfileScreen() {
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.title}>Mi perfil</Text>
-          <TouchableOpacity onPress={() => router.push('/profile/nutrition-plan' as never)}>
+          <TouchableOpacity onPress={() => router.push('/profile/settings' as never)}>
             <Text style={styles.editText}>Editar</Text>
           </TouchableOpacity>
         </View>

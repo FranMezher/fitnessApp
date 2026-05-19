@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/constants/colors';
 
@@ -8,19 +8,18 @@ type IoniconName = React.ComponentProps<typeof Ionicons>['name'];
 interface TabIconProps {
   name: IoniconName;
   nameActive: IoniconName;
-  label: string;
   focused: boolean;
 }
 
-function TabIcon({ name, nameActive, label, focused }: TabIconProps) {
+function TabIcon({ name, nameActive, focused }: TabIconProps) {
   return (
     <View style={styles.tabItem}>
+      {focused && <View style={styles.activeBar} />}
       <Ionicons
         name={focused ? nameActive : name}
         size={22}
         color={focused ? colors.neon : colors.dim}
       />
-      <Text style={[styles.tabLabel, focused && styles.tabLabelActive]}>{label}</Text>
     </View>
   );
 }
@@ -38,7 +37,7 @@ export default function TabsLayout() {
         name="index"
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabIcon name="home-outline" nameActive="home" label="Inicio" focused={focused} />
+            <TabIcon name="home-outline" nameActive="home" focused={focused} />
           ),
         }}
       />
@@ -46,7 +45,7 @@ export default function TabsLayout() {
         name="train"
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabIcon name="barbell-outline" nameActive="barbell" label="Entrena" focused={focused} />
+            <TabIcon name="barbell-outline" nameActive="barbell" focused={focused} />
           ),
         }}
       />
@@ -54,7 +53,7 @@ export default function TabsLayout() {
         name="nutrition"
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabIcon name="restaurant-outline" nameActive="restaurant" label="Nutrición" focused={focused} />
+            <TabIcon name="restaurant-outline" nameActive="restaurant" focused={focused} />
           ),
         }}
       />
@@ -62,7 +61,7 @@ export default function TabsLayout() {
         name="progress"
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabIcon name="podium-outline" nameActive="podium" label="Progreso" focused={focused} />
+            <TabIcon name="podium-outline" nameActive="podium" focused={focused} />
           ),
         }}
       />
@@ -70,7 +69,7 @@ export default function TabsLayout() {
         name="profile"
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabIcon name="person-outline" nameActive="person" label="Perfil" focused={focused} />
+            <TabIcon name="person-outline" nameActive="person" focused={focused} />
           ),
         }}
       />
@@ -83,22 +82,17 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(8,8,8,0.95)',
     borderTopColor: colors.border,
     borderTopWidth: 1,
-    height: 60,
+    height: 52,
     paddingBottom: 4,
   },
   tabItem: {
     alignItems: 'center',
-    gap: 2,
+    gap: 4,
   },
-  tabLabel: {
-    fontSize: 10,
-    color: colors.dim,
-    fontWeight: '400',
-    fontFamily: 'SpaceGrotesk_400Regular',
-  },
-  tabLabelActive: {
-    color: colors.neon,
-    fontWeight: '700',
-    fontFamily: 'SpaceGrotesk_700Bold',
+  activeBar: {
+    height: 3,
+    width: 20,
+    backgroundColor: colors.neon,
+    borderRadius: 2,
   },
 });

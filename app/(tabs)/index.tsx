@@ -18,7 +18,7 @@ const WATER_GOAL = 8;
 export default function DashboardScreen() {
   const { profile, fetchProfile } = useAuthStore();
   const { foodLog, waterByDate, fetchFoodLog, fetchWater } = useNutritionStore();
-  const { streak, myPlan, sessions, fetchStreak, fetchMyPlan, fetchSessions, ensureSeeded } = useWorkoutStore();
+  const { streak, myPlan, sessions, fetchStreak, fetchMyPlan, fetchSessions } = useWorkoutStore();
   const [dataError, setDataError] = useState<string | null>(null);
 
   const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
@@ -30,7 +30,7 @@ export default function DashboardScreen() {
     fetchWater(today).catch(() => {});
     fetchStreak().catch((err) => console.warn('[Dashboard] fetchStreak error:', err?.message));
     fetchSessions().catch(() => {});
-    ensureSeeded().then(() => fetchMyPlan()).catch(() => {});
+    fetchMyPlan().catch(() => {});
   }, [today]);
 
   const weekStart = useMemo(() => {

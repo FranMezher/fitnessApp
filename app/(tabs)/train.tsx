@@ -14,13 +14,12 @@ const DIFFICULTY_LABEL: Record<string, string> = {
 };
 
 export default function TrainScreen() {
-  const { plans, loading, fetchPlans, ensureSeeded } = useWorkoutStore();
+  const { plans, loading, fetchPlans } = useWorkoutStore();
   const [fetchError, setFetchError] = useState<string | null>(null);
 
   function load() {
     setFetchError(null);
-    ensureSeeded()
-      .then(() => fetchPlans())
+    fetchPlans()
       .catch((err) => setFetchError(err?.message ?? 'No se pudieron cargar los planes'));
   }
 

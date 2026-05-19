@@ -13,7 +13,6 @@ interface WorkoutState {
   fetchMyPlan: () => Promise<void>;
   fetchSessions: () => Promise<void>;
   fetchStreak: () => Promise<void>;
-  ensureSeeded: () => Promise<void>;
 }
 
 export const useWorkoutStore = create<WorkoutState>((set, get) => ({
@@ -57,10 +56,4 @@ export const useWorkoutStore = create<WorkoutState>((set, get) => ({
     set({ streak });
   },
 
-  ensureSeeded: async () => {
-    const token = useAuthStore.getState().token;
-    if (!token) return;
-    await api.seedWorkouts(token).catch(() => {});
-    if (!get().plans.length) await get().fetchPlans();
-  },
 }));

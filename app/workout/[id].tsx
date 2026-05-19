@@ -55,12 +55,20 @@ export default function WorkoutDetailScreen() {
   }
 
   function handleContinue() {
-    const activeEx = exercises[activeIdx];
+    const exForActive = exercises.map((ex) => ({
+      id: ex.id,
+      name: ex.exercise?.name ?? 'Ejercicio',
+      sets: ex.sets,
+      reps: ex.reps,
+      muscleGroup: ex.exercise?.muscleGroup,
+      instructions: ex.exercise?.instructions,
+    }));
     router.push({
       pathname: '/workout/active',
       params: {
-        exerciseName: activeEx?.exercise?.name ?? 'Ejercicio',
+        exercisesJson: JSON.stringify(exForActive),
         planId: id,
+        planName: plan?.name ?? 'Entrenamiento',
       },
     } as never);
   }

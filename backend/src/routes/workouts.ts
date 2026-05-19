@@ -40,13 +40,16 @@ workoutsRouter.get('/my-plan', async (c) => {
   return c.json({ plan: null, exercises: [] });
 });
 
-// POST /workouts/seed — upsert default plans + exercises (always idempotent, re-runnable)
+// POST /workouts/seed — wipe all plan data and re-seed from scratch (always safe to re-run)
 workoutsRouter.post('/seed', async (_c) => {
+  // Wipe all existing plan data before re-seeding to avoid stale rows
+  await db.delete(planExercises);
+  await db.delete(workoutPlans);
+
   const PLANS = [
-    { id: 'plan-fullbody',    name: 'Full Body · Fuerza',   daysPerWeek: 3, difficulty: 'beginner'     },
-    { id: 'plan-upperlower',  name: 'Upper / Lower',         daysPerWeek: 4, difficulty: 'intermediate' },
-    { id: 'plan-ppl',         name: 'Push · Pull · Legs',    daysPerWeek: 6, difficulty: 'advanced'     },
-    { id: 'plan-cbum',        name: 'CBum Classic',          daysPerWeek: 5, difficulty: 'advanced'     },
+    { id: 'plan-push', name: 'Push Day', daysPerWeek: 3, difficulty: 'intermediate' },
+    { id: 'plan-pull', name: 'Pull Day', daysPerWeek: 3, difficulty: 'intermediate' },
+    { id: 'plan-legs', name: 'Legs Day', daysPerWeek: 3, difficulty: 'intermediate' },
   ];
 
   const EXERCISES_DATA = [
@@ -71,40 +74,24 @@ workoutsRouter.post('/seed', async (_c) => {
   ];
 
   const PLAN_EXERCISES = [
-    // Full Body · Fuerza (beginner, 3x/sem) — compuestos básicos
-    { planId: 'plan-fullbody', exerciseId: 'ex-squat',    sets: 3, reps: 10, orderIndex: 1 },
-    { planId: 'plan-fullbody', exerciseId: 'ex-bench',    sets: 3, reps: 10, orderIndex: 2 },
-    { planId: 'plan-fullbody', exerciseId: 'ex-barrow',   sets: 3, reps: 10, orderIndex: 3 },
-    { planId: 'plan-fullbody', exerciseId: 'ex-ohpress',  sets: 3, reps: 10, orderIndex: 4 },
-    { planId: 'plan-fullbody', exerciseId: 'ex-deadlift', sets: 3, reps: 8,  orderIndex: 5 },
-    { planId: 'plan-fullbody', exerciseId: 'ex-plank',    sets: 3, reps: 45, orderIndex: 6 },
-    // Upper / Lower (intermediate, 4x/sem)
-    { planId: 'plan-upperlower', exerciseId: 'ex-bench',      sets: 4, reps: 8,  orderIndex: 1 },
-    { planId: 'plan-upperlower', exerciseId: 'ex-barrow',     sets: 4, reps: 8,  orderIndex: 2 },
-    { planId: 'plan-upperlower', exerciseId: 'ex-ohpress',    sets: 3, reps: 10, orderIndex: 3 },
-    { planId: 'plan-upperlower', exerciseId: 'ex-pulldown',   sets: 3, reps: 10, orderIndex: 4 },
-    { planId: 'plan-upperlower', exerciseId: 'ex-squat',      sets: 4, reps: 8,  orderIndex: 5 },
-    { planId: 'plan-upperlower', exerciseId: 'ex-deadlift',   sets: 3, reps: 6,  orderIndex: 6 },
-    { planId: 'plan-upperlower', exerciseId: 'ex-lunge',      sets: 3, reps: 12, orderIndex: 7 },
-    { planId: 'plan-upperlower', exerciseId: 'ex-hipthrust',  sets: 3, reps: 12, orderIndex: 8 },
-    // Push · Pull · Legs (advanced, 6x/sem)
-    { planId: 'plan-ppl', exerciseId: 'ex-bench',      sets: 4, reps: 8,  orderIndex: 1 },
-    { planId: 'plan-ppl', exerciseId: 'ex-incbench',   sets: 3, reps: 10, orderIndex: 2 },
-    { planId: 'plan-ppl', exerciseId: 'ex-ohpress',    sets: 3, reps: 10, orderIndex: 3 },
-    { planId: 'plan-ppl', exerciseId: 'ex-dips',       sets: 3, reps: 12, orderIndex: 4 },
-    { planId: 'plan-ppl', exerciseId: 'ex-pullup',     sets: 4, reps: 8,  orderIndex: 5 },
-    { planId: 'plan-ppl', exerciseId: 'ex-barrow',     sets: 4, reps: 8,  orderIndex: 6 },
-    { planId: 'plan-ppl', exerciseId: 'ex-pulldown',   sets: 3, reps: 10, orderIndex: 7 },
-    { planId: 'plan-ppl', exerciseId: 'ex-facepull',   sets: 3, reps: 15, orderIndex: 8 },
-    // CBum Classic (advanced, 5x/sem) — estilo Chris Bumstead
-    { planId: 'plan-cbum', exerciseId: 'ex-incbench',   sets: 4, reps: 8,  orderIndex: 1 },
-    { planId: 'plan-cbum', exerciseId: 'ex-bench',      sets: 4, reps: 8,  orderIndex: 2 },
-    { planId: 'plan-cbum', exerciseId: 'ex-pulldown',   sets: 4, reps: 10, orderIndex: 3 },
-    { planId: 'plan-cbum', exerciseId: 'ex-barrow',     sets: 4, reps: 8,  orderIndex: 4 },
-    { planId: 'plan-cbum', exerciseId: 'ex-squat',      sets: 4, reps: 10, orderIndex: 5 },
-    { planId: 'plan-cbum', exerciseId: 'ex-lunge',      sets: 4, reps: 12, orderIndex: 6 },
-    { planId: 'plan-cbum', exerciseId: 'ex-hammercurl', sets: 4, reps: 12, orderIndex: 7 },
-    { planId: 'plan-cbum', exerciseId: 'ex-facepull',   sets: 3, reps: 15, orderIndex: 8 },
+    // Push Day (3x/sem) — Pecho, Hombros, Tríceps
+    { planId: 'plan-push', exerciseId: 'ex-bench',      sets: 4, reps: 8,  orderIndex: 1 },
+    { planId: 'plan-push', exerciseId: 'ex-incbench',   sets: 3, reps: 10, orderIndex: 2 },
+    { planId: 'plan-push', exerciseId: 'ex-ohpress',    sets: 3, reps: 10, orderIndex: 3 },
+    { planId: 'plan-push', exerciseId: 'ex-dips',       sets: 3, reps: 12, orderIndex: 4 },
+    { planId: 'plan-push', exerciseId: 'ex-tricepext',  sets: 3, reps: 12, orderIndex: 5 },
+    // Pull Day (3x/sem) — Espalda, Bíceps
+    { planId: 'plan-pull', exerciseId: 'ex-pullup',     sets: 4, reps: 8,  orderIndex: 1 },
+    { planId: 'plan-pull', exerciseId: 'ex-barrow',     sets: 4, reps: 8,  orderIndex: 2 },
+    { planId: 'plan-pull', exerciseId: 'ex-pulldown',   sets: 3, reps: 10, orderIndex: 3 },
+    { planId: 'plan-pull', exerciseId: 'ex-curl',       sets: 3, reps: 12, orderIndex: 4 },
+    { planId: 'plan-pull', exerciseId: 'ex-facepull',   sets: 3, reps: 15, orderIndex: 5 },
+    // Legs Day (3x/sem) — Piernas, Glúteos, Core
+    { planId: 'plan-legs', exerciseId: 'ex-squat',      sets: 4, reps: 10, orderIndex: 1 },
+    { planId: 'plan-legs', exerciseId: 'ex-deadlift',   sets: 3, reps: 8,  orderIndex: 2 },
+    { planId: 'plan-legs', exerciseId: 'ex-lunge',      sets: 3, reps: 12, orderIndex: 3 },
+    { planId: 'plan-legs', exerciseId: 'ex-hipthrust',  sets: 3, reps: 12, orderIndex: 4 },
+    { planId: 'plan-legs', exerciseId: 'ex-plank',      sets: 3, reps: 45, orderIndex: 5 },
   ];
 
   for (const plan of PLANS) {
