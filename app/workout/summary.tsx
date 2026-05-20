@@ -1,4 +1,5 @@
-import { View, Text, ScrollView, StyleSheet, useMemo } from 'react-native';
+import { useMemo } from 'react';
+import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { colors, glass } from '@/constants/colors';
