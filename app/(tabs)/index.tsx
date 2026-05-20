@@ -3,7 +3,6 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { colors, glassOrange } from '@/constants/colors';
-import { Ring } from '@/components/ui/Ring';
 import { Pill } from '@/components/ui/Pill';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { Label } from '@/components/ui/Label';
@@ -106,7 +105,10 @@ export default function DashboardScreen() {
         <View style={styles.rings}>
           {rings.map((r) => (
             <GlassCard key={r.name} style={styles.ringCard}>
-              <Ring percentage={r.pct} size={64} color={r.color} value={r.pct} label={r.name} />
+              <View style={styles.ringContent}>
+                <Text style={[styles.ringValue, { color: r.color }]}>{r.label}</Text>
+                <Text style={styles.ringLabel}>{r.name}</Text>
+              </View>
             </GlassCard>
           ))}
         </View>
@@ -279,6 +281,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     alignItems: 'center',
     gap: 6,
+  },
+  ringContent: {
+    alignItems: 'center',
+    gap: 4,
+  },
+  ringValue: {
+    fontSize: 18,
+    fontWeight: '700',
+    fontFamily: 'SpaceGrotesk_700Bold',
+  },
+  ringLabel: {
+    fontSize: 10,
+    color: colors.muted,
+    fontFamily: 'SpaceGrotesk_400Regular',
   },
   ringName: {
     fontSize: 11,
