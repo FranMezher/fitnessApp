@@ -57,7 +57,7 @@ export default function WorkoutSummaryScreen() {
             <Text style={[styles.statVal, { color: colors.neon }]}>{durationMin}</Text>
             <Text style={styles.statLabel}>Minutos</Text>
           </GlassCard>
-          <GlassCard variant="default" style={[styles.statCard, { borderColor: colors.teal }]}>
+          <GlassCard variant="default" style={{ ...styles.statCard, borderColor: colors.teal }}>
             <Text style={[styles.statVal, { color: colors.teal }]}>{exercisesDone}</Text>
             <Text style={styles.statLabel}>Ejercicios</Text>
           </GlassCard>

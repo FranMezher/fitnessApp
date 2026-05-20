@@ -109,7 +109,15 @@ export default function WorkoutActiveScreen() {
         const result = await api.finishSession(token, sessionIdRef.current, {
           caloriesBurned,
           formAccuracyPct: 100,
-          sets: sets.map((s) => ({ exerciseId: s.exerciseId, reps: s.reps, setNum: s.setNum })),
+          sets: sets.map((s) => {
+            const ex = exercises.find((e) => e.id === s.exerciseId);
+            return {
+              exerciseId: s.exerciseId,
+              repsCompleted: s.reps,
+              repsTarget: ex?.reps ?? 10,
+              seriesNum: s.setNum,
+            };
+          }),
         });
         xpEarned = result.xpEarned;
       } catch (err) {
