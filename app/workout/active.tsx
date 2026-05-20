@@ -22,6 +22,7 @@ interface ExerciseItem {
 
 interface LoggedSet {
   exerciseId: string;
+  exerciseName: string;
   reps: number;
   setNum: number;
   weight?: number;
@@ -148,6 +149,7 @@ export default function WorkoutActiveScreen() {
 
     const newSet: LoggedSet = {
       exerciseId: currentEx.id,
+      exerciseName: currentEx.name,
       reps: actualReps,
       setNum: currentSet,
       weight: weight ?? undefined,

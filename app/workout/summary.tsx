@@ -7,6 +7,7 @@ import { Btn } from '@/components/ui/Btn';
 
 interface LoggedSet {
   exerciseId: string;
+  exerciseName: string;
   reps: number;
   setNum: number;
   weight?: number;
@@ -48,10 +49,10 @@ export default function WorkoutSummaryScreen() {
   const exerciseGroups = useMemo<ExerciseGroup[]>(() => {
     const groups = new Map<string, LoggedSet[]>();
     loggedSets.forEach((set) => {
-      if (!groups.has(set.exerciseId)) {
-        groups.set(set.exerciseId, []);
+      if (!groups.has(set.exerciseName)) {
+        groups.set(set.exerciseName, []);
       }
-      groups.get(set.exerciseId)!.push(set);
+      groups.get(set.exerciseName)!.push(set);
     });
     return Array.from(groups.entries()).map(([name, sets]) => ({
       name,
