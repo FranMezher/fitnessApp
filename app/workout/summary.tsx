@@ -1,15 +1,8 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, useMemo } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
-import { colors } from '@/constants/colors';
+import { colors, glass } from '@/constants/colors';
 import { Btn } from '@/components/ui/Btn';
-import { GlassCard } from '@/components/ui/GlassCard';
-
-interface PlanDetail {
-  name: string;
-  sets: number;
-  reps: number;
-}
 
 interface LoggedSet {
   exerciseId: string;
@@ -18,95 +11,106 @@ interface LoggedSet {
   weight?: number;
 }
 
+interface ExerciseGroup {
+  name: string;
+  sets: LoggedSet[];
+}
+
 export default function WorkoutSummaryScreen() {
   const params = useLocalSearchParams<{
-    durationMin?:      string;
-    exercisesDone?:    string;
-    xpEarned?:        string;
-    planName?:        string;
-    planDetailsJson?: string;
-    loggedSetsJson?:  string;
+    durationMin?:     string;
+    caloriesBurned?:  string;
+    xpEarned?:       string;
+    planName?:       string;
+    loggedSetsJson?: string;
   }>();
 
-  const durationMin   = Number(params.durationMin   ?? 0);
-  const exercisesDone = Number(params.exercisesDone ?? 0);
-  const xpEarned      = Number(params.xpEarned      ?? 100);
-  const planName      = params.planName ?? 'Entrenamiento';
+  const durationMin = Number(params.durationMin ?? 0);
+  const caloriesBurned = Number(params.caloriesBurned ?? durationMin * 6);
+  const xpEarned = Number(params.xpEarned ?? 100);
+  const planName = params.planName ?? 'Entrenamiento';
 
-  const planDetails: PlanDetail[] = (() => {
-    try { return JSON.parse(params.planDetailsJson ?? '[]'); } catch { return []; }
-  })();
-
-  const loggedSets: LoggedSet[] = (() => {
+  const loggedSets: LoggedSet[] = useMemo(() => {
     try { return JSON.parse(params.loggedSetsJson ?? '[]'); } catch { return []; }
-  })();
+  }, [params.loggedSetsJson]);
+
+  const totalSets = useMemo(() => {
+    const setKeys = new Set<string>();
+    loggedSets.forEach((set) => setKeys.add(`${set.exerciseId}-${set.setNum}`));
+    return setKeys.size;
+  }, [loggedSets]);
+
+  const totalReps = useMemo(() => {
+    return loggedSets.reduce((sum, set) => sum + set.reps, 0);
+  }, [loggedSets]);
+
+  const exerciseGroups = useMemo<ExerciseGroup[]>(() => {
+    const groups = new Map<string, LoggedSet[]>();
+    loggedSets.forEach((set) => {
+      if (!groups.has(set.exerciseId)) {
+        groups.set(set.exerciseId, []);
+      }
+      groups.get(set.exerciseId)!.push(set);
+    });
+    return Array.from(groups.entries()).map(([name, sets]) => ({
+      name,
+      sets: sets.sort((a, b) => a.setNum - b.setNum),
+    }));
+  }, [loggedSets]);
 
   return (
     <SafeAreaView style={styles.safe}>
-      <View style={styles.container}>
-        {/* Celebration */}
-        <View style={styles.celebrate}>
-          <Text style={styles.celebrateEmoji}>🎉</Text>
-          <Text style={styles.celebrateTitle}>¡Entreno completado!</Text>
-          <Text style={styles.celebrateSub}>{planName}</Text>
+      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+        {/* Header */}
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.headerLabel}>04 · Resumen sesión</Text>
+          </View>
+          <View style={styles.durationBadge}>
+            <Text style={styles.durationText}>{durationMin} min</Text>
+          </View>
         </View>
 
-        {/* Stats row - Two cards: Time (neon) and Exercises (teal) */}
+        {/* Stats row - 3 cards */}
         <View style={styles.statsRow}>
-          <GlassCard variant="neon" style={styles.statCard}>
-            <Text style={[styles.statVal, { color: colors.neon }]}>{durationMin}</Text>
-            <Text style={styles.statLabel}>Minutos</Text>
-          </GlassCard>
-          <View
-            style={[
-              styles.statCard,
-              {
-                backgroundColor: 'rgba(61,255,160,0.08)',
-                borderWidth: 1,
-                borderColor: 'rgba(61,255,160,0.3)',
-                borderRadius: 16,
-              },
-            ]}
-          >
-            <Text style={[styles.statVal, { color: colors.teal }]}>{exercisesDone}</Text>
-            <Text style={styles.statLabel}>Ejercicios</Text>
+          <View style={[glass, styles.statCard]}>
+            <Text style={[styles.statVal, { color: colors.neon }]}>{totalSets}</Text>
+            <Text style={styles.statLabel}>Series</Text>
+          </View>
+          <View style={[glass, styles.statCard]}>
+            <Text style={[styles.statVal, { color: colors.text }]}>{totalReps}</Text>
+            <Text style={styles.statLabel}>Reps</Text>
+          </View>
+          <View style={[glass, styles.statCard]}>
+            <Text style={[styles.statVal, { color: colors.teal }]}>{Math.round(caloriesBurned)}</Text>
+            <Text style={styles.statLabel}>Calorías</Text>
           </View>
         </View>
 
-        {/* Plan vs Realizado Comparison */}
-        {planDetails.length > 0 && (
-          <View style={styles.comparisonSection}>
-            <Text style={styles.comparisonTitle}>Plan vs Realizado</Text>
-            <View style={styles.comparisonList}>
-              {planDetails.map((plan, idx) => {
-                const exerciseLogs = loggedSets.filter((log) => log.exerciseId === plan.name);
-                const totalRepsLogged = exerciseLogs.reduce((sum, log) => sum + log.reps, 0);
-                const totalRepsPlan = plan.sets * plan.reps;
-
-                return (
-                  <View key={idx} style={styles.comparisonItem}>
-                    <View style={styles.comparisonExerciseName}>
-                      <Text style={styles.comparisonName}>{plan.name}</Text>
-                    </View>
-                    <View style={styles.comparisonValues}>
-                      <Text style={styles.comparisonLabel}>Propuesto</Text>
-                      <Text style={styles.comparisonValue}>{totalRepsPlan}</Text>
-                    </View>
-                    <View style={styles.comparisonValues}>
-                      <Text style={styles.comparisonLabel}>Realizado</Text>
-                      <Text style={[styles.comparisonValue, { color: totalRepsLogged >= totalRepsPlan ? colors.neon : colors.orange }]}>
-                        {totalRepsLogged}
-                      </Text>
-                    </View>
-                  </View>
-                );
-              })}
+        {/* Exercise sections */}
+        {exerciseGroups.map((group) => (
+          <View key={group.name} style={styles.exerciseSection}>
+            <View style={styles.exerciseHeader}>
+              <Text style={styles.exerciseName}>{group.name}</Text>
+              <View style={styles.pausedBadge}>
+                <Text style={styles.pausedLabel}>Paused</Text>
+              </View>
             </View>
-          </View>
-        )}
 
-        {/* XP earned - Prominent card with neon border */}
-        <View style={styles.xpCard}>
+            {group.sets.map((set) => (
+              <View key={`${group.name}-${set.setNum}`} style={[glass, styles.setRow]}>
+                <Text style={styles.setNum}>{set.setNum}</Text>
+                {set.weight !== undefined && set.weight !== null && (
+                  <Text style={styles.setWeight}>{set.weight} kg</Text>
+                )}
+                <Text style={styles.setReps}>{set.reps}</Text>
+              </View>
+            ))}
+          </View>
+        ))}
+
+        {/* XP card */}
+        <View style={[styles.xpCard, { marginVertical: 12 }]}>
           <Text style={styles.xpAmount}>+{xpEarned} XP</Text>
           <Text style={styles.xpLabel}>Por completar el entreno</Text>
         </View>
@@ -120,7 +124,7 @@ export default function WorkoutSummaryScreen() {
             Saltar por ahora
           </Btn>
         </View>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
