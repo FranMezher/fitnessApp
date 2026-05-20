@@ -13,6 +13,18 @@ const DIFFICULTY_LABEL: Record<string, string> = {
   advanced: 'Avanzado',
 };
 
+const PLAN_EMOJI: Record<string, string> = {
+  push: '💪',
+  pull: '🔙',
+  legs: '🦵',
+  fullbody: '⚡',
+  chest: '💪',
+  back: '🔙',
+  shoulders: '🏋️',
+  arms: '💪',
+  cardio: '🏃',
+};
+
 export default function TrainScreen() {
   const { plans, loading, fetchPlans } = useWorkoutStore();
   const [fetchError, setFetchError] = useState<string | null>(null);
@@ -33,27 +45,30 @@ export default function TrainScreen() {
 
         {loading && <ActivityIndicator color={colors.neon} style={{ marginTop: 20 }} />}
 
-        {!loading && plans.map((plan) => (
-          <TouchableOpacity
-            key={plan.id}
-            style={[glass, styles.card]}
-            activeOpacity={0.8}
-            onPress={() => router.push(`/workout/${plan.id}` as never)}
-          >
-            <View style={styles.cardContent}>
-              <Text style={styles.cardTitle}>{plan.name}</Text>
-              <Text style={styles.cardSub}>
-                {plan.exerciseCount ?? '—'} ejercicios · {plan.daysPerWeek}x semana
-              </Text>
-              <Pill color={colors.muted}>
-                {DIFFICULTY_LABEL[plan.difficulty] ?? plan.difficulty}
-              </Pill>
-            </View>
-            <View style={styles.playBtn}>
-              <Text style={styles.playIcon}>▶</Text>
-            </View>
-          </TouchableOpacity>
-        ))}
+        {!loading && plans.map((plan) => {
+          const emoji = PLAN_EMOJI[plan.name.toLowerCase()] ?? '⚡';
+          return (
+            <TouchableOpacity
+              key={plan.id}
+              style={[glass, styles.card]}
+              activeOpacity={0.8}
+              onPress={() => router.push(`/workout/${plan.id}` as never)}
+            >
+              <View style={styles.cardContent}>
+                <Text style={styles.cardTitle}>
+                  <Text style={styles.emoji}>{emoji} </Text>
+                  {plan.name}
+                </Text>
+                <Text style={styles.cardSub}>
+                  {plan.exerciseCount ?? '—'} ejercicios · {plan.daysPerWeek}x semana
+                </Text>
+                <Text style={styles.difficultyBadge}>
+                  {DIFFICULTY_LABEL[plan.difficulty] ?? plan.difficulty}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          );
+        })}
 
         {fetchError && (
           <View style={[glass, { padding: 20, alignItems: 'center', gap: 12 }]}>
@@ -87,50 +102,51 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   title: {
-    fontSize: 22,
+    fontSize: 32,
     fontWeight: '700',
-    color: colors.text,
+    color: colors.neon,
     fontFamily: 'SpaceGrotesk_700Bold',
+    marginBottom: 8,
   },
   sub: {
     fontSize: 14,
     color: colors.muted,
-    marginBottom: 4,
+    marginBottom: 20,
     fontFamily: 'SpaceGrotesk_400Regular',
   },
   card: {
-    padding: 14,
-    paddingHorizontal: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
+    padding: 20,
+    marginBottom: 8,
   },
   cardContent: {
-    flex: 1,
-    gap: 5,
+    gap: 10,
+  },
+  emoji: {
+    fontSize: 20,
   },
   cardTitle: {
-    fontSize: 17,
+    fontSize: 18,
     fontWeight: '700',
-    color: colors.text,
+    color: colors.neon,
     fontFamily: 'SpaceGrotesk_700Bold',
-    marginTop: 2,
   },
   cardSub: {
-    fontSize: 13,
+    fontSize: 12,
     color: colors.muted,
     fontFamily: 'SpaceGrotesk_400Regular',
   },
-  playBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(255,255,255,0.06)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  playIcon: {
-    fontSize: 18,
-    color: colors.muted,
+  difficultyBadge: {
+    fontSize: 10,
+    fontWeight: '600',
+    padding: 4,
+    paddingHorizontal: 10,
+    backgroundColor: 'rgba(204,255,0,0.15)',
+    color: colors.neon,
+    borderRadius: 6,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    fontFamily: 'SpaceGrotesk_600SemiBold',
+    alignSelf: 'flex-start',
+    marginTop: 4,
   },
 });

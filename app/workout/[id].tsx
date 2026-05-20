@@ -136,6 +136,7 @@ export default function WorkoutDetailScreen() {
               style={[
                 isActive ? glassNeon : glass,
                 styles.exerciseRow,
+                isActive && styles.exerciseRowActive,
                 isDone && { opacity: 0.65 },
               ]}
               activeOpacity={0.8}
@@ -165,7 +166,7 @@ export default function WorkoutDetailScreen() {
                   <View style={styles.exerciseNameRow}>
                     <Text style={[
                       styles.exerciseName,
-                      { color: isActive ? colors.neon : colors.text, fontWeight: isActive ? '700' : '500' },
+                      { color: isActive ? colors.neon : colors.text, fontWeight: isActive ? '700' : '600' },
                     ]}>
                       {ex.exercise?.name ?? `Ejercicio ${i + 1}`}
                     </Text>
@@ -204,27 +205,53 @@ export default function WorkoutDetailScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
-  container: { padding: 20, gap: 8 },
-  header: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 4 },
-  backText: { fontSize: 20, color: colors.muted, fontFamily: 'SpaceGrotesk_400Regular' },
+  container: { padding: 20, gap: 12 },
+  header: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8 },
+  backText: { fontSize: 22, color: colors.muted, fontFamily: 'SpaceGrotesk_400Regular' },
   headerCenter: { flex: 1 },
-  workoutTitle: { fontSize: 16, fontWeight: '700', color: colors.text, fontFamily: 'SpaceGrotesk_700Bold' },
-  workoutSub: { fontSize: 12, color: colors.muted, fontFamily: 'SpaceGrotesk_400Regular' },
+  workoutTitle: { fontSize: 28, fontWeight: '700', color: colors.text, fontFamily: 'SpaceGrotesk_700Bold' },
+  workoutSub: { fontSize: 13, color: colors.muted, fontFamily: 'SpaceGrotesk_400Regular', marginTop: 2 },
   headerRight: { alignItems: 'flex-end' },
   countText: { fontSize: 13, fontWeight: '700', color: colors.neon, fontFamily: 'SpaceGrotesk_700Bold' },
   countLabel: { fontSize: 11, color: colors.dim, fontFamily: 'SpaceGrotesk_400Regular' },
-  progressWrap: { marginBottom: 6 },
-  sectionLabel: { fontSize: 11, color: colors.muted, textTransform: 'uppercase', letterSpacing: 1.2, fontWeight: '600', fontFamily: 'SpaceGrotesk_600SemiBold', marginTop: 8, marginBottom: 2 },
-  exerciseRow: { padding: 10, paddingHorizontal: 12, borderRadius: 16 },
-  exerciseMain: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  statusIcon: { width: 30, height: 30, borderRadius: 9, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
-  statusIconText: { fontSize: 13 },
+  progressWrap: { marginBottom: 10 },
+  sectionLabel: {
+    fontSize: 11,
+    color: colors.muted,
+    textTransform: 'uppercase',
+    letterSpacing: 1.2,
+    fontWeight: '600',
+    fontFamily: 'SpaceGrotesk_600SemiBold',
+    marginTop: 4,
+    marginBottom: 10,
+  },
+  exerciseRow: {
+    padding: 14,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    marginBottom: 10,
+    borderWidth: 1,
+  },
+  exerciseRowActive: {
+    shadowColor: colors.neon,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  exerciseMain: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  statusIcon: { width: 32, height: 32, borderRadius: 10, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
+  statusIconText: { fontSize: 14, fontWeight: '600' },
   exerciseInfo: { flex: 1, minWidth: 0 },
-  exerciseNameRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  exerciseName: { fontSize: 14, fontFamily: 'SpaceGrotesk_400Regular' },
-  exerciseMeta: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 },
-  muscleName: { fontSize: 11, fontFamily: 'SpaceGrotesk_600SemiBold' },
+  exerciseNameRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  exerciseName: {
+    fontSize: 16,
+    fontFamily: 'SpaceGrotesk_600SemiBold',
+    fontWeight: '600',
+  },
+  exerciseMeta: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 },
+  muscleName: { fontSize: 11, fontFamily: 'SpaceGrotesk_600SemiBold', fontWeight: '600' },
   metaDot: { fontSize: 11, color: colors.dim },
-  setsText: { fontSize: 11, color: colors.muted, fontFamily: 'SpaceGrotesk_400Regular' },
-  ctaWrap: { marginTop: 8 },
+  setsText: { fontSize: 12, color: colors.muted, fontFamily: 'SpaceGrotesk_400Regular' },
+  ctaWrap: { marginTop: 12 },
 });

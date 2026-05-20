@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { colors, glass, glassNeon } from '@/constants/colors';
@@ -23,6 +23,7 @@ interface LoggedSet {
   exerciseId: string;
   reps: number;
   setNum: number;
+  weight?: number;
 }
 
 export default function WorkoutActiveScreen() {
@@ -42,6 +43,7 @@ export default function WorkoutActiveScreen() {
   const [currentExIdx, setCurrentExIdx] = useState(0);
   const [currentSet, setCurrentSet] = useState(1);
   const [actualReps, setActualReps] = useState(exercises[0]?.reps ?? 10);
+  const [weight, setWeight] = useState<number | null>(null);
   const [phase, setPhase] = useState<'exercise' | 'rest'>('exercise');
   const [restSeconds, setRestSeconds] = useState(REST_DURATION);
   const [elapsed, setElapsed] = useState(0);
@@ -122,6 +124,12 @@ export default function WorkoutActiveScreen() {
         exercisesDone: String(exercises.length),
         xpEarned:      String(xpEarned),
         planName,
+        planDetailsJson: JSON.stringify(exercises.map((ex) => ({
+          name: ex.name,
+          sets: ex.sets,
+          reps: ex.reps,
+        }))),
+        loggedSetsJson: JSON.stringify(sets),
       },
     });
   }
@@ -129,7 +137,12 @@ export default function WorkoutActiveScreen() {
   function completeSerie() {
     if (!currentEx) return;
 
-    const newSet: LoggedSet = { exerciseId: currentEx.id, reps: actualReps, setNum: currentSet };
+    const newSet: LoggedSet = {
+      exerciseId: currentEx.id,
+      reps: actualReps,
+      setNum: currentSet,
+      weight: weight ?? undefined,
+    };
     const updatedSets = [...loggedSets, newSet];
     setLoggedSets(updatedSets);
 
@@ -147,6 +160,7 @@ export default function WorkoutActiveScreen() {
       setCurrentExIdx((i) => i + 1);
       setCurrentSet(1);
       setActualReps(nextExercise?.reps ?? 10);
+      setWeight(null);
       setRestSeconds(REST_DURATION);
       setPhase('rest');
     } else {
@@ -257,23 +271,36 @@ export default function WorkoutActiveScreen() {
         </View>
 
         {/* Manual rep counter */}
-        <View style={[glassNeon, styles.repCounterCard]}>
+        <View style={styles.repCounterCard}>
           <Text style={styles.repCounterLabel}>Repeticiones realizadas</Text>
           <View style={styles.repCounterRow}>
             <TouchableOpacity
-              style={styles.repBtn}
+              style={styles.repBtnMinus}
               onPress={() => setActualReps((r) => Math.max(0, r - 1))}
             >
               <Text style={styles.repBtnText}>−</Text>
             </TouchableOpacity>
             <Text style={styles.repCounterValue}>{actualReps}</Text>
             <TouchableOpacity
-              style={styles.repBtn}
+              style={styles.repBtnPlus}
               onPress={() => setActualReps((r) => r + 1)}
             >
-              <Text style={styles.repBtnText}>+</Text>
+              <Text style={styles.repBtnPlusText}>+</Text>
             </TouchableOpacity>
           </View>
+        </View>
+
+        {/* Weight input */}
+        <View style={[glass, styles.weightCard]}>
+          <Text style={styles.weightLabel}>Peso cargado (kg)</Text>
+          <TextInput
+            style={styles.weightInput}
+            placeholder="0"
+            placeholderTextColor={colors.dim}
+            keyboardType="decimal-pad"
+            value={weight !== null ? String(weight) : ''}
+            onChangeText={(val) => setWeight(val === '' ? null : parseFloat(val) || null)}
+          />
         </View>
 
         {/* Instructions (collapsible) */}
@@ -390,9 +417,15 @@ const styles = StyleSheet.create({
     fontFamily: 'SpaceGrotesk_700Bold',
   },
   repCounterCard: {
-    padding: 20,
+    backgroundColor: 'rgba(204,255,0,0.12)',
+    borderWidth: 2,
+    borderColor: 'rgba(204,255,0,0.4)',
+    borderRadius: 20,
+    paddingVertical: 40,
+    paddingHorizontal: 20,
     alignItems: 'center',
-    gap: 12,
+    gap: 16,
+    marginVertical: 12,
   },
   repCounterLabel: {
     fontSize: 11,
@@ -404,32 +437,49 @@ const styles = StyleSheet.create({
   repCounterRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 28,
+    gap: 16,
+    justifyContent: 'center',
   },
-  repBtn: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: 'rgba(204,255,0,0.12)',
-    borderWidth: 1.5,
-    borderColor: colors.borderAccent,
+  repBtnMinus: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.09)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  repBtnPlus: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: colors.neon,
+    borderWidth: 1,
+    borderColor: colors.neon,
     alignItems: 'center',
     justifyContent: 'center',
   },
   repBtnText: {
-    fontSize: 26,
-    color: colors.neon,
+    fontSize: 28,
+    color: colors.text,
     fontFamily: 'SpaceGrotesk_700Bold',
-    lineHeight: 30,
+    lineHeight: 32,
+  },
+  repBtnPlusText: {
+    fontSize: 28,
+    color: colors.bg,
+    fontFamily: 'SpaceGrotesk_700Bold',
+    lineHeight: 32,
   },
   repCounterValue: {
-    fontSize: 64,
+    fontSize: 80,
     fontWeight: '700',
     color: colors.neon,
     fontFamily: 'SpaceGrotesk_700Bold',
-    lineHeight: 68,
+    lineHeight: 84,
     letterSpacing: -2,
-    minWidth: 80,
+    minWidth: 100,
     textAlign: 'center',
   },
   instructionsCard: {
@@ -456,6 +506,30 @@ const styles = StyleSheet.create({
     color: colors.muted,
     fontFamily: 'SpaceGrotesk_400Regular',
     lineHeight: 20,
+  },
+  weightCard: {
+    padding: 14,
+    gap: 8,
+  },
+  weightLabel: {
+    fontSize: 11,
+    color: colors.muted,
+    fontFamily: 'SpaceGrotesk_400Regular',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  weightInput: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.text,
+    fontFamily: 'SpaceGrotesk_600SemiBold',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 8,
+    textAlign: 'center',
   },
   seriesDotsWrap: {
     flexDirection: 'row',
