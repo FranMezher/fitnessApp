@@ -524,7 +524,7 @@ export default function NutritionScreen() {
             <ActivityIndicator color={colors.neon} style={{ flex: 1, paddingVertical: 16 }} />
           ) : (
             <>
-              <Ring pct={calPct} size={90} color={colors.neon} label={String(Math.max(0, goals.calories - totalCal))} sub="restantes" />
+              <Ring percentage={calPct} size={90} color={colors.neon} value={Math.max(0, goals.calories - totalCal)} label="Restantes" />
               <View style={styles.macrosWrap}>
                 {[
                   { name: 'Proteína', val: totalProt,  goal: goals.proteinG, color: colors.neon   },
@@ -556,7 +556,7 @@ export default function NutritionScreen() {
                 <Text style={styles.waterAmountGoal}> / 2000 ml</Text>
               </Text>
             </View>
-            <Ring pct={waterPct} size={56} color={colors.teal} label={`${waterPct}%`} sub="H₂O" />
+            <Ring percentage={waterPct} size={56} color={colors.teal} value={`${waterPct}%`} label="H₂O" />
           </View>
           <ProgressBar pct={waterPct} color={colors.teal} h={6} />
           <View style={styles.waterGlasses}>

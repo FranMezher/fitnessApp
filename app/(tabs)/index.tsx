@@ -106,8 +106,7 @@ export default function DashboardScreen() {
         <View style={styles.rings}>
           {rings.map((r) => (
             <GlassCard key={r.name} style={styles.ringCard}>
-              <Ring pct={r.pct} size={64} color={r.color} label={r.label} sub={r.sub} />
-              <Text style={styles.ringName}>{r.name}</Text>
+              <Ring percentage={r.pct} size={64} color={r.color} value={r.pct} label={r.name} />
             </GlassCard>
           ))}
         </View>
