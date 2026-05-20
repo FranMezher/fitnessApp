@@ -47,7 +47,7 @@ export default function RecoveryScreen() {
 
         {/* Recovery score */}
         <GlassCard style={styles.scoreCard}>
-          <Ring pct={74} size={80} color={colors.teal} label="74" sub="score" />
+          <Ring percentage={74} size={120} color={colors.teal} value={74} label="Score" />
           <View style={styles.scoreText}>
             <Text style={styles.scoreTitle}>Recuperación buena</Text>
             <Text style={styles.scoreSub}>Listo para entrenar en ~20h</Text>

@@ -137,7 +137,7 @@ export default function WorkoutDetailScreen() {
                 isActive ? glassNeon : glass,
                 styles.exerciseRow,
                 isActive && styles.exerciseRowActive,
-                isDone && { opacity: 0.65 },
+                isDone && styles.exerciseRowDone,
               ]}
               activeOpacity={0.8}
               onPress={() => {
@@ -238,6 +238,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 12,
     elevation: 8,
+  },
+  exerciseRowDone: {
+    opacity: 0.55,
   },
   exerciseMain: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   statusIcon: { width: 32, height: 32, borderRadius: 10, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },

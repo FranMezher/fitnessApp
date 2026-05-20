@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
-import { colors, glass, glassNeon } from '@/constants/colors';
+import { colors, glass, glassNeon, glowShadows } from '@/constants/colors';
 import { Btn } from '@/components/ui/Btn';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 
@@ -222,6 +222,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 14,
     marginVertical: 12,
+    ...glowShadows.teal,
   },
   timerValue: {
     fontSize: 48,

@@ -1,6 +1,6 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, ViewStyle } from 'react-native';
-import { colors } from '@/constants/colors';
+import { colors, glowShadows } from '@/constants/colors';
 
 interface BtnProps {
   children: React.ReactNode;
@@ -47,6 +47,7 @@ const styles = StyleSheet.create({
   },
   primary: {
     backgroundColor: colors.neon,
+    ...glowShadows.neon,
   },
   ghost: {
     backgroundColor: 'transparent',
@@ -55,6 +56,7 @@ const styles = StyleSheet.create({
   },
   orange: {
     backgroundColor: colors.orange,
+    ...glowShadows.orange,
   },
   text: {
     fontSize: 16,

@@ -1,71 +1,114 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import Svg, { Circle } from 'react-native-svg';
-import { colors } from '@/constants/colors';
+import { colors, glowShadows } from '@/constants/colors';
 
 interface RingProps {
-  pct?: number;
+  percentage: number;
   size?: number;
+  strokeWidth?: number;
   color?: string;
   label?: string;
-  sub?: string;
+  value?: string | number;
+  glow?: boolean;
 }
 
-export function Ring({ pct = 72, size = 80, color = colors.neon, label = '', sub = '' }: RingProps) {
-  const r = size / 2 - 7;
-  const circ = 2 * Math.PI * r;
-  const offset = circ * (1 - pct / 100);
+export function Ring({
+  percentage,
+  size = 180,
+  strokeWidth = 8,
+  color = colors.neon,
+  label,
+  value,
+  glow = true,
+}: RingProps) {
+  const innerSize = size - strokeWidth * 2;
+
+  const glowStyle =
+    color === colors.neon
+      ? glowShadows.neon
+      : color === colors.orange
+      ? glowShadows.orange
+      : color === colors.teal
+      ? glowShadows.teal
+      : {};
 
   return (
-    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
-      <Svg
-        width={size}
-        height={size}
-        style={StyleSheet.absoluteFillObject}
-        // rotate -90deg so arc starts at top
-        viewBox={`0 0 ${size} ${size}`}
+    <View style={[styles.container, { width: size, height: size }]}>
+      <View
+        style={[
+          styles.ringOuter,
+          {
+            width: size,
+            height: size,
+            borderWidth: strokeWidth,
+            borderColor: colors.border,
+            borderRadius: size / 2,
+          },
+          glow && glowStyle,
+        ]}
       >
-        <Circle
-          cx={size / 2}
-          cy={size / 2}
-          r={r}
-          fill="none"
-          stroke="rgba(255,255,255,0.06)"
-          strokeWidth={6}
-          rotation={-90}
-          origin={`${size / 2}, ${size / 2}`}
+        <View
+          style={[
+            styles.ringInner,
+            {
+              width: innerSize,
+              height: innerSize,
+              borderWidth: strokeWidth,
+              borderColor: color,
+              borderRadius: innerSize / 2,
+              opacity: percentage / 100,
+            },
+          ]}
         />
-        <Circle
-          cx={size / 2}
-          cy={size / 2}
-          r={r}
-          fill="none"
-          stroke={color}
-          strokeWidth={6}
-          strokeDasharray={`${circ}`}
-          strokeDashoffset={offset}
-          strokeLinecap="round"
-          rotation={-90}
-          origin={`${size / 2}, ${size / 2}`}
-        />
-      </Svg>
-      <View style={styles.inner}>
-        <Text style={[styles.label, { fontSize: size * 0.21, color }]}>{label}</Text>
-        <Text style={[styles.sub, { fontSize: size * 0.14 }]}>{sub}</Text>
+      </View>
+
+      <View style={styles.content}>
+        {value && (
+          <Text
+            style={[
+              styles.value,
+              { color },
+            ]}
+          >
+            {value}
+          </Text>
+        )}
+        {label && <Text style={styles.label}>{label}</Text>}
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  inner: {
+  container: {
     alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ringOuter: {
+    position: 'absolute',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'transparent',
+  },
+  ringInner: {
+    backgroundColor: 'transparent',
+  },
+  content: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1,
+  },
+  value: {
+    fontSize: 36,
+    fontWeight: '700',
+    fontFamily: 'SpaceGrotesk_700Bold',
   },
   label: {
-    fontWeight: '700',
-    lineHeight: 20,
-  },
-  sub: {
+    fontSize: 11,
     color: colors.muted,
+    fontFamily: 'SpaceGrotesk_400Regular',
+    marginTop: 4,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
   },
 });

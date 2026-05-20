@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { colors, glass, glassNeon } from '@/constants/colors';
 import { Btn } from '@/components/ui/Btn';
+import { RepBadges } from '@/components/ui/RepBadges';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/useAuthStore';
 
@@ -278,9 +279,10 @@ export default function WorkoutActiveScreen() {
           <Text style={styles.targetValue}>{currentEx.reps} repeticiones</Text>
         </View>
 
-        {/* Manual rep counter */}
+        {/* Manual rep counter with badges */}
         <View style={styles.repCounterCard}>
           <Text style={styles.repCounterLabel}>Repeticiones realizadas</Text>
+          <RepBadges completed={Math.min(actualReps, currentEx.reps)} total={currentEx.reps} />
           <View style={styles.repCounterRow}>
             <TouchableOpacity
               style={styles.repBtnMinus}
