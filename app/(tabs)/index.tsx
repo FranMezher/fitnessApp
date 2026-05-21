@@ -2,16 +2,15 @@ import { useEffect, useMemo, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { colors, glassOrange } from '@/constants/colors';
-import { Pill } from '@/components/ui/Pill';
-import { ProgressBar } from '@/components/ui/ProgressBar';
-import { Label } from '@/components/ui/Label';
-import { GlassCard } from '@/components/ui/GlassCard';
+import { colors, glass, glassNeon, glowShadows } from '@/constants/colors';
+import { text } from '@/constants/typography';
+import { spacing, radius } from '@/constants/spacing';
+import { RingChart } from '@/components/ui/RingChart';
+import { Btn } from '@/components/ui/Btn';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useNutritionStore } from '@/stores/useNutritionStore';
 import { useWorkoutStore } from '@/stores/useWorkoutStore';
 
-const WEEK_DAYS = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
 const WATER_GOAL = 8;
 
 export default function DashboardScreen() {
@@ -25,9 +24,9 @@ export default function DashboardScreen() {
   useEffect(() => {
     setDataError(null);
     fetchProfile().catch((err) => setDataError(err?.message ?? 'Error al cargar el perfil'));
-    fetchFoodLog(today).catch((err) => console.warn('[Dashboard] fetchFoodLog error:', err?.message));
+    fetchFoodLog(today).catch(() => {});
     fetchWater(today).catch(() => {});
-    fetchStreak().catch((err) => console.warn('[Dashboard] fetchStreak error:', err?.message));
+    fetchStreak().catch(() => {});
     fetchSessions().catch(() => {});
     fetchMyPlan().catch(() => {});
   }, [today]);
@@ -40,15 +39,8 @@ export default function DashboardScreen() {
   }, []);
 
   const waterGlasses = waterByDate[today] ?? 0;
-  const waterPct = Math.min(100, Math.round((waterGlasses / WATER_GOAL) * 100));
   const sessionsThisWeek = sessions.filter((s) => s.startedAt.slice(0, 10) >= weekStart).length;
-  const exercisePct = Math.min(100, Math.round((sessionsThisWeek / (myPlan?.daysPerWeek ?? 3)) * 100));
-
-  const rings = [
-    { pct: 0,          color: colors.neon,   label: '—%',              sub: 'mov', name: 'Movimiento' },
-    { pct: exercisePct, color: colors.orange, label: `${exercisePct}%`, sub: 'eje', name: 'Ejercicio'  },
-    { pct: waterPct,   color: colors.teal,   label: `${waterPct}%`,    sub: 'H₂O', name: 'Hidrat.'   },
-  ];
+  const goalDays = myPlan?.daysPerWeek ?? 3;
 
   const totalCal = foodLog.reduce((s, e) => s + e.calories, 0);
   const totalProt = foodLog.reduce((s, e) => s + e.proteinG, 0);
@@ -56,323 +48,324 @@ export default function DashboardScreen() {
   const totalFat = foodLog.reduce((s, e) => s + e.fatG, 0);
 
   const goalCal = profile?.targetCalories ?? 2000;
-  const calPct = Math.min(100, Math.round((totalCal / goalCal) * 100));
+  const calPct = Math.min(1, totalCal / goalCal);
+  const exPct = Math.min(1, sessionsThisWeek / goalDays);
+  const overallPct = Math.round(((calPct + exPct) / 2) * 100);
 
   const firstName = profile?.name?.split(' ')[0] ?? 'Colega';
-  const avatarLetter = firstName[0]?.toUpperCase() ?? 'F';
+
+  const dateLabel = useMemo(() => {
+    const d = new Date();
+    return d.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'short' }).toUpperCase();
+  }, []);
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView style={styles.safe} edges={['top']}>
+      {/* TopAppBar */}
+      <View style={styles.topBar}>
+        <Text style={styles.logo}>FITCORE</Text>
+        <TouchableOpacity onPress={() => router.push('/(tabs)/progress' as never)}>
+          <Text style={styles.bellIcon}>🔔</Text>
+        </TouchableOpacity>
+      </View>
+
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-        {/* Error banner */}
         {dataError && (
           <View style={styles.errorBanner}>
             <Text style={styles.errorBannerText}>⚠ {dataError}</Text>
           </View>
         )}
-        {/* Header */}
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.headerSub}>Buenos días,</Text>
-            <Text style={styles.headerName}>{firstName} 👋</Text>
+
+        {/* Greeting */}
+        <View style={styles.greetSection}>
+          <Text style={styles.dateLabel}>{dateLabel}</Text>
+          <Text style={styles.greetName}>Bienvenido, {firstName}</Text>
+        </View>
+
+        {/* Bento Grid — activity */}
+        <View style={styles.bento}>
+          {/* Progress card spans full width */}
+          <View style={[glass, styles.bentoBig]}>
+            <View style={styles.bentoBigLeft}>
+              <View style={styles.dotRow}>
+                <View style={styles.dot} />
+                <Text style={styles.bentoSubLabel}>PROGRESO DIARIO</Text>
+              </View>
+              <Text style={styles.bentoPct}>{overallPct}%</Text>
+              <Text style={styles.bentoDesc}>Objetivo de actividad</Text>
+            </View>
+            <RingChart
+              size={96}
+              rings={[
+                { radius: 38, strokeWidth: 8, progress: calPct, color: colors.neon },
+                { radius: 26, strokeWidth: 8, progress: exPct, color: colors.text },
+              ]}
+            />
           </View>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{avatarLetter}</Text>
+
+          <View style={styles.bentoSmallRow}>
+            {/* Calories burned */}
+            <View style={[glass, styles.bentoSmall]}>
+              <Text style={styles.bentoIcon}>🔥</Text>
+              <Text style={styles.bentoStatNum}>{totalCal.toLocaleString()}</Text>
+              <Text style={styles.bentoStatUnit}>KCAL</Text>
+            </View>
+
+            {/* Hydration */}
+            <View style={[glass, styles.bentoSmall]}>
+              <Text style={styles.bentoIcon}>💧</Text>
+              <Text style={styles.bentoStatNum}>{waterGlasses}</Text>
+              <Text style={styles.bentoStatUnit}>/ {WATER_GOAL} VASOS</Text>
+            </View>
           </View>
         </View>
 
-        {/* Streak — mark last N days backwards from today within the current week */}
-        <GlassCard style={styles.streakCard}>
-          <Text style={styles.streakTitle}>🔥 {streak?.currentStreak ?? 0} días de racha</Text>
-          <View style={styles.streakDays}>
-            {WEEK_DAYS.map((d, i) => {
-              const jsDay = new Date().getDay(); // 0=Sun,1=Mon...
-              const todayIdx = jsDay === 0 ? 6 : jsDay - 1; // Mon=0, Sun=6
-              const current = Math.min(streak?.currentStreak ?? 0, todayIdx + 1);
-              const done = i <= todayIdx && i > todayIdx - current;
-              return (
-                <View key={d} style={[styles.streakDay, done ? styles.streakDayDone : styles.streakDayPending]}>
-                  <Text style={[styles.streakDayText, done ? styles.streakDayTextDone : styles.streakDayTextPending]}>
-                    {done ? '✓' : d}
-                  </Text>
-                </View>
-              );
-            })}
-          </View>
-        </GlassCard>
-
-        {/* Activity rings */}
-        <View style={styles.rings}>
-          {rings.map((r) => (
-            <GlassCard key={r.name} style={styles.ringCard}>
-              <View style={styles.ringContent}>
-                <Text style={[styles.ringValue, { color: r.color }]}>{r.label}</Text>
-                <Text style={styles.ringLabel}>{r.name}</Text>
+        {/* Today's Focus */}
+        <View style={styles.focusSection}>
+          <Text style={styles.sectionTitle}>Entrenamiento de hoy</Text>
+          <View style={[glass, styles.focusCard]}>
+            <View style={styles.focusOverlay} />
+            <View style={styles.focusContent}>
+              <View style={[glassNeon, styles.focusBadge]}>
+                <Text style={styles.focusBadgeText}>
+                  {myPlan ? myPlan.difficulty?.toUpperCase() : 'TU PLAN'}
+                </Text>
               </View>
-            </GlassCard>
-          ))}
+              <Text style={styles.focusTitle}>{myPlan?.name ?? 'Tu entrenamiento'}</Text>
+              <View style={styles.focusStats}>
+                <Text style={styles.focusStat}>⏱ {myPlan?.daysPerWeek ?? '—'} días/sem</Text>
+                <Text style={styles.focusStat}>💪 {myPlan?.exerciseCount ?? '—'} ejercicios</Text>
+              </View>
+              <Btn
+                onPress={() => router.push(myPlan ? `/workout/${myPlan.id}` as never : '/workout/active')}
+                style={styles.focusBtn}
+              >
+                INICIAR AHORA
+              </Btn>
+            </View>
+          </View>
         </View>
 
-        {/* Macros */}
-        <GlassCard style={styles.macrosCard}>
-          <View style={styles.macrosHeader}>
-            <Label>Calorías de hoy</Label>
-            <Text style={styles.macrosKcal}>{totalCal.toLocaleString()} / {goalCal.toLocaleString()}</Text>
+        {/* Macros summary */}
+        <View style={styles.vitalsSection}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Macros de hoy</Text>
+            <TouchableOpacity onPress={() => router.push('/(tabs)/nutrition' as never)}>
+              <Text style={styles.seeAll}>Ver detalle</Text>
+            </TouchableOpacity>
           </View>
-          <ProgressBar pct={calPct} />
-          <View style={styles.macroItems}>
-            {[
-              { l: 'Proteína', v: `${Math.round(totalProt)}g`, c: colors.neon },
-              { l: 'Carbos',   v: `${Math.round(totalCarbs)}g`, c: colors.teal },
-              { l: 'Grasas',   v: `${Math.round(totalFat)}g`, c: colors.orange },
-            ].map((m) => (
-              <View key={m.l} style={styles.macroItem}>
-                <Text style={[styles.macroVal, { color: m.c }]}>{m.v}</Text>
-                <Text style={styles.macroLabel}>{m.l}</Text>
-              </View>
-            ))}
-          </View>
-        </GlassCard>
 
-        {/* Workout CTA */}
-        <TouchableOpacity
-          style={[glassOrange, styles.workoutCta]}
-          activeOpacity={0.8}
-          onPress={() => router.push(myPlan ? `/workout/${myPlan.id}` as never : '/workout/active')}
-        >
-          <View style={styles.workoutInfo}>
-            <Pill color={colors.orange}>HOY · ENTRENA</Pill>
-            <Text style={styles.workoutTitle}>{myPlan?.name ?? 'Tu entrenamiento'}</Text>
-            <Text style={styles.workoutSub}>
-              {myPlan ? `${myPlan.exerciseCount ?? '—'} ejercicios · ${myPlan.daysPerWeek}x semana` : 'Cargando plan...'}
-            </Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.vitalsScroll}>
+            {/* Calories card */}
+            <View style={[glass, styles.vitalCard]}>
+              <View style={styles.vitalHeader}>
+                <Text style={styles.vitalLabel}>CALORÍAS</Text>
+                <Text style={styles.vitalIcon}>🔥</Text>
+              </View>
+              <View style={styles.vitalNumRow}>
+                <Text style={styles.vitalNum}>{totalCal.toLocaleString()}</Text>
+                <Text style={styles.vitalUnit}>/ {goalCal.toLocaleString()}</Text>
+              </View>
+              <View style={styles.vitalBar}>
+                <View style={[styles.vitalBarFill, { width: `${Math.round(calPct * 100)}%`, backgroundColor: colors.neon }]} />
+              </View>
+            </View>
+
+            {/* Protein card */}
+            <View style={[glass, styles.vitalCard, { borderLeftWidth: 2, borderLeftColor: colors.teal }]}>
+              <View style={styles.vitalHeader}>
+                <Text style={styles.vitalLabel}>PROTEÍNA</Text>
+                <Text style={styles.vitalIcon}>💪</Text>
+              </View>
+              <View style={styles.vitalNumRow}>
+                <Text style={[styles.vitalNum, { color: colors.teal }]}>{Math.round(totalProt)}</Text>
+                <Text style={styles.vitalUnit}>g</Text>
+              </View>
+              <Text style={styles.vitalSub}>Meta: {profile?.targetProteinG ?? '—'}g</Text>
+            </View>
+
+            {/* Carbs card */}
+            <View style={[glass, styles.vitalCard, { borderLeftWidth: 2, borderLeftColor: colors.neon }]}>
+              <View style={styles.vitalHeader}>
+                <Text style={styles.vitalLabel}>CARBOS</Text>
+                <Text style={styles.vitalIcon}>🌾</Text>
+              </View>
+              <View style={styles.vitalNumRow}>
+                <Text style={[styles.vitalNum, { color: colors.neon }]}>{Math.round(totalCarbs)}</Text>
+                <Text style={styles.vitalUnit}>g</Text>
+              </View>
+              <Text style={styles.vitalSub}>Meta: {profile?.targetCarbsG ?? '—'}g</Text>
+            </View>
+
+            {/* Fat card */}
+            <View style={[glass, styles.vitalCard, { borderLeftWidth: 2, borderLeftColor: colors.orange }]}>
+              <View style={styles.vitalHeader}>
+                <Text style={styles.vitalLabel}>GRASAS</Text>
+                <Text style={styles.vitalIcon}>🥑</Text>
+              </View>
+              <View style={styles.vitalNumRow}>
+                <Text style={[styles.vitalNum, { color: colors.orange }]}>{Math.round(totalFat)}</Text>
+                <Text style={styles.vitalUnit}>g</Text>
+              </View>
+              <Text style={styles.vitalSub}>Meta: {profile?.targetFatG ?? '—'}g</Text>
+            </View>
+          </ScrollView>
+        </View>
+
+        {/* Streak row */}
+        <View style={[glass, styles.streakRow]}>
+          <Text style={styles.streakEmoji}>🔥</Text>
+          <View style={styles.streakInfo}>
+            <Text style={styles.streakNum}>{streak?.currentStreak ?? 0} días de racha</Text>
+            <Text style={styles.streakSub}>Mejor racha: {streak?.longestStreak ?? 0} días</Text>
           </View>
-          <View style={styles.playBtn}>
-            <Text style={styles.playIcon}>▶</Text>
+          <View style={[glassNeon, styles.streakBadge]}>
+            <Text style={styles.streakBadgeText}>ACTIVO</Text>
           </View>
-        </TouchableOpacity>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: colors.bg,
+  safe: { flex: 1, backgroundColor: colors.bg },
+
+  topBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: spacing.marginMobile,
+    height: 56,
+    backgroundColor: 'rgba(8,8,8,0.7)',
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
+  logo: {
+    ...text.heroMd,
+    fontSize: 22,
+    color: colors.neon,
+    letterSpacing: -0.5,
+  },
+  bellIcon: { fontSize: 20 },
+
   container: {
-    padding: 20,
-    gap: 12,
+    paddingHorizontal: spacing.marginMobile,
+    paddingBottom: spacing.xxl,
+    gap: spacing.lg,
+    paddingTop: spacing.lg,
   },
+
   errorBanner: {
     backgroundColor: 'rgba(255,107,53,0.12)',
     borderWidth: 1,
     borderColor: `${colors.orange}44`,
-    borderRadius: 10,
+    borderRadius: radius.md,
     paddingVertical: 8,
     paddingHorizontal: 12,
   },
-  errorBannerText: {
-    fontSize: 13,
-    color: colors.orange,
-    fontFamily: 'SpaceGrotesk_400Regular',
-  },
-  header: {
+  errorBannerText: { ...text.bodyMd, color: colors.orange },
+
+  greetSection: { gap: spacing.xs },
+  dateLabel: { ...text.labelSm, color: colors.muted },
+  greetName: { ...text.heroMd, color: colors.text },
+
+  // Bento
+  bento: { gap: spacing.md },
+  bentoBig: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 6,
+    padding: spacing.lg,
+    borderRadius: radius.lg,
   },
-  headerSub: {
-    fontSize: 13,
-    color: colors.muted,
-    fontFamily: 'SpaceGrotesk_400Regular',
-  },
-  headerName: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: colors.text,
-    fontFamily: 'SpaceGrotesk_700Bold',
-  },
-  avatarWrap: {
-    position: 'relative',
-  },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    borderWidth: 1,
-    borderColor: colors.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarText: {
-    fontSize: 18,
-    color: colors.text,
-    fontWeight: '700',
-  },
-  notifBadge: {
-    position: 'absolute',
-    top: -3,
-    right: -3,
-    backgroundColor: colors.orange,
-    borderRadius: 8,
-    width: 16,
-    height: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  notifText: {
-    fontSize: 9,
-    fontWeight: '700',
-    color: '#fff',
-  },
-  streakCard: {
-    padding: 12,
-    paddingHorizontal: 16,
-    alignItems: 'center',
-  },
-  streakTitle: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: colors.neon,
-    marginBottom: 8,
-    fontFamily: 'SpaceGrotesk_700Bold',
-  },
-  streakDays: {
-    flexDirection: 'row',
-    gap: 6,
-  },
-  streakDay: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1.5,
-  },
-  streakDayDone: {
-    backgroundColor: colors.neon,
-    borderColor: colors.neon,
-  },
-  streakDayPending: {
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    borderColor: 'rgba(255,255,255,0.1)',
-  },
-  streakDayText: {
-    fontSize: 11,
-    fontWeight: '700',
-  },
-  streakDayTextDone: {
-    color: '#111',
-  },
-  streakDayTextPending: {
-    color: colors.dim,
-  },
-  rings: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  ringCard: {
+  bentoBigLeft: { gap: spacing.xs, flex: 1 },
+  dotRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.neon },
+  bentoSubLabel: { ...text.labelSm, color: colors.muted },
+  bentoPct: { ...text.heroMd, color: colors.neon },
+  bentoDesc: { ...text.bodyMd, color: colors.muted },
+  bentoSmallRow: { flexDirection: 'row', gap: spacing.md, flex: 1 },
+  bentoSmall: {
     flex: 1,
-    padding: 12,
-    paddingHorizontal: 8,
-    alignItems: 'center',
-    gap: 6,
+    padding: spacing.md,
+    borderRadius: radius.lg,
+    gap: spacing.xs,
   },
-  ringContent: {
-    alignItems: 'center',
-    gap: 4,
+  bentoIcon: { fontSize: 20 },
+  bentoStatNum: { ...text.headlineLg, color: colors.text },
+  bentoStatUnit: { ...text.labelSm, color: colors.muted },
+
+  // Today's Focus
+  focusSection: { gap: spacing.sm },
+  sectionTitle: { ...text.headlineMd, color: colors.text },
+  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  seeAll: { ...text.labelSm, color: colors.neon },
+  focusCard: {
+    borderRadius: radius.lg,
+    overflow: 'hidden',
+    minHeight: 180,
   },
-  ringValue: {
-    fontSize: 18,
-    fontWeight: '700',
-    fontFamily: 'SpaceGrotesk_700Bold',
+  focusOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.5)',
   },
-  ringLabel: {
-    fontSize: 10,
-    color: colors.muted,
-    fontFamily: 'SpaceGrotesk_400Regular',
+  focusContent: {
+    padding: spacing.lg,
+    gap: spacing.md,
   },
-  ringName: {
-    fontSize: 11,
-    color: colors.muted,
-    fontFamily: 'SpaceGrotesk_400Regular',
+  focusBadge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: radius.full,
   },
-  macrosCard: {
-    padding: 12,
-    paddingHorizontal: 16,
+  focusBadgeText: { ...text.labelSm, color: colors.neon },
+  focusTitle: { ...text.headlineLg, color: colors.text },
+  focusStats: { flexDirection: 'row', gap: spacing.lg },
+  focusStat: { ...text.bodyMd, color: colors.muted },
+  focusBtn: { marginTop: spacing.xs },
+
+  // Vitals scroll
+  vitalsSection: { gap: spacing.sm },
+  vitalsScroll: { gap: spacing.md, paddingRight: spacing.marginMobile },
+  vitalCard: {
+    width: 180,
+    padding: spacing.md,
+    borderRadius: radius.lg,
+    gap: spacing.xs,
   },
-  macrosHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-    alignItems: 'center',
+  vitalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  vitalLabel: { ...text.labelSm, color: colors.muted },
+  vitalIcon: { fontSize: 16 },
+  vitalNumRow: { flexDirection: 'row', alignItems: 'baseline', gap: 4 },
+  vitalNum: { ...text.heroMd, fontSize: 26, color: colors.text },
+  vitalUnit: { ...text.bodyMd, color: colors.muted },
+  vitalBar: {
+    height: 3,
+    backgroundColor: colors.surfaceContainerHigh,
+    borderRadius: radius.full,
+    overflow: 'hidden',
   },
-  macrosKcal: {
-    fontSize: 13,
-    color: colors.neon,
-    fontWeight: '700',
-    fontFamily: 'SpaceGrotesk_700Bold',
-  },
-  macroItems: {
-    flexDirection: 'row',
-    gap: 6,
-    marginTop: 10,
-  },
-  macroItem: {
-    flex: 1,
-    backgroundColor: 'rgba(255,255,255,0.04)',
-    borderRadius: 10,
-    padding: 8,
-    paddingHorizontal: 4,
-    alignItems: 'center',
-  },
-  macroVal: {
-    fontSize: 16,
-    fontWeight: '700',
-    fontFamily: 'SpaceGrotesk_700Bold',
-  },
-  macroLabel: {
-    fontSize: 10,
-    color: colors.muted,
-    fontFamily: 'SpaceGrotesk_400Regular',
-  },
-  workoutCta: {
-    padding: 14,
-    paddingHorizontal: 16,
+  vitalBarFill: { height: '100%', borderRadius: radius.full },
+  vitalSub: { ...text.labelSm, color: colors.dim },
+
+  // Streak row
+  streakRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    padding: spacing.md,
+    borderRadius: radius.lg,
+    gap: spacing.md,
   },
-  workoutInfo: {
-    flex: 1,
-    gap: 5,
+  streakEmoji: { fontSize: 28 },
+  streakInfo: { flex: 1, gap: 2 },
+  streakNum: { ...text.headlineMd, color: colors.text },
+  streakSub: { ...text.bodyMd, color: colors.muted },
+  streakBadge: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: radius.full,
   },
-  workoutTitle: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: colors.text,
-    fontFamily: 'SpaceGrotesk_700Bold',
-    marginTop: 2,
-  },
-  workoutSub: {
-    fontSize: 13,
-    color: colors.muted,
-    fontFamily: 'SpaceGrotesk_400Regular',
-  },
-  playBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: colors.orange,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  playIcon: {
-    fontSize: 18,
-    color: '#fff',
-  },
+  streakBadgeText: { ...text.labelSm, color: colors.neon },
 });

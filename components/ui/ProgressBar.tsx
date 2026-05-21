@@ -8,7 +8,7 @@ interface ProgressBarProps {
   h?: number;
 }
 
-export function ProgressBar({ pct, color = colors.neon, h = 6 }: ProgressBarProps) {
+export function ProgressBar({ pct, color = colors.neon, h = 4 }: ProgressBarProps) {
   return (
     <View style={[styles.track, { height: h }]}>
       <View
@@ -27,11 +27,16 @@ export function ProgressBar({ pct, color = colors.neon, h = 6 }: ProgressBarProp
 
 const styles = StyleSheet.create({
   track: {
-    backgroundColor: 'rgba(255,255,255,0.06)',
-    borderRadius: 10,
+    backgroundColor: colors.surfaceContainerHigh,
+    borderRadius: 99,
     overflow: 'hidden',
   },
   fill: {
-    borderRadius: 10,
+    borderRadius: 99,
+    shadowColor: colors.neon,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 10,
+    elevation: 4,
   },
 });

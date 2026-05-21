@@ -1,14 +1,34 @@
-import { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
+import { useState, useEffect, useMemo } from 'react';
+import {
+  View, Text, ScrollView, TouchableOpacity, StyleSheet,
+  Alert, ActivityIndicator, TextInput, KeyboardAvoidingView, Platform,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { colors, glass, glassNeon } from '@/constants/colors';
-import { Pill } from '@/components/ui/Pill';
+import { text } from '@/constants/typography';
+import { spacing, radius } from '@/constants/spacing';
 import { Btn } from '@/components/ui/Btn';
-import { GlassCard } from '@/components/ui/GlassCard';
 import { api, Recipe } from '@/lib/api';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useNutritionStore } from '@/stores/useNutritionStore';
+
+const CATEGORIES = ['Todos', 'Proteínas', 'Verduras', 'Carbos', 'Lácteos'];
+
+const INGREDIENT_EMOJI: Record<string, string> = {
+  huevo: '🥚', pollo: '🍗', salmón: '🐟', atún: '🐟', carne: '🥩', cerdo: '🥩',
+  espinaca: '🥬', brócoli: '🥦', zanahoria: '🥕', tomate: '🍅', lechuga: '🥬',
+  arroz: '🍚', avena: '🌾', pasta: '🍝', pan: '🍞', quinoa: '🌾',
+  leche: '🥛', queso: '🧀', yogur: '🥛', aceite: '🫙',
+};
+
+function getEmoji(name: string): string {
+  const lower = name.toLowerCase();
+  for (const [key, emoji] of Object.entries(INGREDIENT_EMOJI)) {
+    if (lower.includes(key)) return emoji;
+  }
+  return '🥗';
+}
 
 export default function PantryScreen() {
   const token = useAuthStore((s) => s.token);
@@ -29,10 +49,11 @@ export default function PantryScreen() {
   const [addQty, setAddQty] = useState('');
   const [addUnit, setAddUnit] = useState('g');
   const [addLoading, setAddLoading] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [search, setSearch] = useState('');
+  const [activeFilter, setActiveFilter] = useState('Todos');
 
-  useEffect(() => {
-    fetchPantry();
-  }, []);
+  useEffect(() => { fetchPantry(); }, []);
 
   const today = new Date().toISOString().split('T')[0];
   const todayLog = foodLog.filter((e) => e.date === today);
@@ -44,24 +65,34 @@ export default function PantryScreen() {
   };
   const remainingMacros = {
     calories: Math.max(0, (profile?.targetCalories ?? 2000) - consumed.calories),
-    proteinG: Math.max(0, (profile?.targetProteinG ?? 150)  - consumed.proteinG),
-    carbsG:   Math.max(0, (profile?.targetCarbsG  ?? 200)   - consumed.carbsG),
-    fatG:     Math.max(0, (profile?.targetFatG    ?? 65)    - consumed.fatG),
+    proteinG: Math.max(0, (profile?.targetProteinG ?? 150) - consumed.proteinG),
+    carbsG:   Math.max(0, (profile?.targetCarbsG  ?? 200) - consumed.carbsG),
+    fatG:     Math.max(0, (profile?.targetFatG    ?? 65)  - consumed.fatG),
   };
+
+  const filteredItems = useMemo(() => {
+    let items = pantryItems;
+    if (search.trim()) {
+      const q = search.trim().toLowerCase();
+      items = items.filter((i) => i.foodName.toLowerCase().includes(q));
+    }
+    return items;
+  }, [pantryItems, search]);
+
+  const activeItems = selectedIds.length > 0
+    ? pantryItems.filter((i) => selectedIds.includes(i.id))
+    : pantryItems;
+
+  function toggleSelect(id: string) {
+    setSelectedIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
+  }
 
   async function handleAddItem() {
     if (!addName.trim() || !addQty.trim()) return;
     setAddLoading(true);
     try {
-      await addPantryItem({
-        foodName: addName.trim(),
-        quantity: parseFloat(addQty) || 1,
-        unit: addUnit.trim() || 'g',
-      });
-      setAddName('');
-      setAddQty('');
-      setAddUnit('g');
-      setShowAdd(false);
+      await addPantryItem({ foodName: addName.trim(), quantity: parseFloat(addQty) || 1, unit: addUnit.trim() || 'g' });
+      setAddName(''); setAddQty(''); setAddUnit('g'); setShowAdd(false);
     } catch {
       Alert.alert('Error', 'No se pudo agregar el ingrediente');
     } finally {
@@ -70,27 +101,12 @@ export default function PantryScreen() {
   }
 
   async function handleGenerate() {
-    if (!token) {
-      Alert.alert('Sesión expirada', 'Iniciá sesión nuevamente');
-      router.replace('/(auth)/login');
-      return;
-    }
-    if (pantryItems.length === 0) {
-      Alert.alert('Despensa vacía', 'Añadí ingredientes primero');
-      return;
-    }
-    setLoading(true);
-    setRecipes([]);
-    setGenerateError(null);
+    if (!token) { Alert.alert('Sesión expirada', 'Iniciá sesión nuevamente'); router.replace('/(auth)/login'); return; }
+    if (activeItems.length === 0) { Alert.alert('Despensa vacía', 'Añadí ingredientes primero'); return; }
+    setLoading(true); setRecipes([]); setGenerateError(null);
     try {
       const { recipes: generated } = await api.generateRecipes(token, {
-        ingredients: pantryItems.map((i) => ({
-          name: i.foodName,
-          quantity: `${i.quantity} ${i.unit}`,
-          proteinG: i.proteinG,
-          carbsG: i.carbsG,
-          fatG: i.fatG,
-        })),
+        ingredients: activeItems.map((i) => ({ name: i.foodName, quantity: `${i.quantity} ${i.unit}`, proteinG: i.proteinG, carbsG: i.carbsG, fatG: i.fatG })),
         remainingMacros,
       });
       setRecipes(generated);
@@ -102,227 +118,409 @@ export default function PantryScreen() {
   }
 
   async function handleRegister(recipe: Recipe) {
-    if (!token) {
-      Alert.alert('Sesión expirada', 'Iniciá sesión nuevamente');
-      router.replace('/(auth)/login');
-      return;
-    }
+    if (!token) { Alert.alert('Sesión expirada', 'Iniciá sesión nuevamente'); router.replace('/(auth)/login'); return; }
     try {
-      await addFood({
-        foodName: recipe.name,
-        calories: recipe.calories,
-        proteinG: recipe.proteinG,
-        carbsG:   recipe.carbsG,
-        fatG:     recipe.fatG,
-        mealType: 'snack',
-        date:     today,
-      });
+      await addFood({ foodName: recipe.name, calories: recipe.calories, proteinG: recipe.proteinG, carbsG: recipe.carbsG, fatG: recipe.fatG, mealType: 'snack', date: today });
       Alert.alert('Registrado', `${recipe.name} añadido al log de hoy`);
     } catch {
       Alert.alert('Error', 'No se pudo registrar la receta');
     }
   }
 
+  const canGenerate = pantryItems.length > 0 && !loading;
+
   return (
-    <SafeAreaView style={styles.safe}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={{ flex: 1 }}
-      >
-      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <Text style={styles.backText}>←</Text>
-          </TouchableOpacity>
-          <View>
-            <Text style={styles.title}>Modo Despensa</Text>
-            <Text style={styles.sub}>¿Qué tienes en casa?</Text>
-          </View>
-        </View>
-
-        {/* Remaining macros */}
-        <View style={[glass, styles.macroSummary]}>
-          <Text style={styles.macroSummaryTitle}>Macros restantes hoy</Text>
-          <View style={styles.macroRow}>
-            <Text style={[styles.macroChip, { color: colors.orange }]}>{remainingMacros.calories} kcal</Text>
-            <Text style={[styles.macroChip, { color: colors.neon }]}>{remainingMacros.proteinG}g P</Text>
-            <Text style={[styles.macroChip, { color: colors.teal }]}>{remainingMacros.carbsG}g C</Text>
-            <Text style={[styles.macroChip, { color: colors.muted }]}>{remainingMacros.fatG}g G</Text>
-          </View>
-        </View>
-
-        {/* Ingredient list */}
-        {pantryItems.length === 0 && !showAdd && (
-          <View style={[glass, styles.emptyPantry]}>
-            <Text style={styles.emptyText}>Tu despensa está vacía. Añadí ingredientes para generar recetas.</Text>
-          </View>
-        )}
-        {pantryItems.map((item) => (
-          <View key={item.id} style={[glass, styles.ingredientRow]}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.ingredientName}>{item.foodName}</Text>
-              <Text style={styles.ingredientQty}>{item.quantity} {item.unit}</Text>
-            </View>
-            <View style={styles.macros}>
-              {item.proteinG != null && <Text style={[styles.macroText, { color: colors.neon }]}>{item.proteinG}g P </Text>}
-              {item.carbsG != null && <Text style={[styles.macroText, { color: colors.teal }]}>{item.carbsG}g C </Text>}
-              {item.fatG != null && <Text style={[styles.macroText, { color: colors.orange }]}>{item.fatG}g G </Text>}
-              <TouchableOpacity onPress={() => deletePantryItem(item.id)} hitSlop={8}>
-                <Text style={styles.deleteBtn}>✕</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        ))}
-
-        {showAdd && (
-          <View style={[glass, styles.addForm]}>
-            <TextInput
-              style={styles.addInput}
-              placeholder="Nombre (ej: Pollo)"
-              placeholderTextColor={colors.dim}
-              value={addName}
-              onChangeText={setAddName}
-            />
-            <View style={styles.addRow2}>
-              <TextInput
-                style={[styles.addInput, { flex: 1 }]}
-                placeholder="Cantidad"
-                placeholderTextColor={colors.dim}
-                value={addQty}
-                onChangeText={setAddQty}
-                keyboardType="numeric"
-              />
-              <TextInput
-                style={[styles.addInput, { width: 60 }]}
-                placeholder="Und"
-                placeholderTextColor={colors.dim}
-                value={addUnit}
-                onChangeText={setAddUnit}
-              />
-            </View>
-            <View style={styles.addFormBtns}>
-              <TouchableOpacity style={styles.cancelBtn} onPress={() => { setShowAdd(false); setAddName(''); setAddQty(''); setAddUnit('g'); }}>
-                <Text style={styles.cancelText}>Cancelar</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.confirmBtn, (!addName.trim() || !addQty.trim()) && { opacity: 0.5 }]}
-                onPress={handleAddItem}
-                disabled={addLoading || !addName.trim() || !addQty.trim()}
-              >
-                <Text style={styles.confirmText}>{addLoading ? '...' : 'Añadir'}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
-
-        <TouchableOpacity style={styles.addRow} onPress={() => setShowAdd(true)}>
-          <Text style={styles.addText}>+ Añadir ingrediente</Text>
+    <SafeAreaView style={styles.safe} edges={['top']}>
+      {/* TopAppBar */}
+      <View style={styles.topBar}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+          <Text style={styles.backBtnText}>←</Text>
         </TouchableOpacity>
+        <Text style={styles.logo}>MODO DESPENSA</Text>
+        <View style={{ width: 40 }} />
+      </View>
 
-        <Btn onPress={handleGenerate} disabled={loading}>
-          {loading ? '⏳ Generando...' : '✦ Generar recetas con IA'}
-        </Btn>
-
-        {loading && <ActivityIndicator color={colors.neon} style={{ marginTop: 8 }} />}
-
-        {generateError && (
-          <View style={styles.errorBanner}>
-            <Text style={styles.errorText}>⚠ {generateError}</Text>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+        <ScrollView
+          contentContainerStyle={styles.container}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Search */}
+          <View style={styles.searchWrap}>
+            <Text style={styles.searchIcon}>🔍</Text>
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Buscar ingredientes..."
+              placeholderTextColor={colors.dim}
+              value={search}
+              onChangeText={setSearch}
+            />
           </View>
-        )}
 
-        {/* Recipe cards */}
-        {recipes.map((recipe, idx) => (
-          <GlassCard key={idx} variant="neon" style={styles.recipeCard}>
-            <Pill color={colors.neon}>RECETA · {recipe.calories} KCAL</Pill>
-            <Text style={styles.recipeTitle}>{recipe.name}</Text>
-            <Text style={styles.recipeMacros}>
-              {recipe.proteinG}g P · {recipe.carbsG}g C · {recipe.fatG}g G · ~{recipe.prepMinutes} min
-            </Text>
-
-            {expandedIdx === idx && (
-              <Text style={styles.recipeInstructions}>{recipe.instructions}</Text>
-            )}
-
-            <View style={styles.recipeActions}>
+          {/* Category chips */}
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsRow}>
+            {CATEGORIES.map((cat) => (
               <TouchableOpacity
-                style={styles.recipeSecondaryBtn}
-                onPress={() => setExpandedIdx(expandedIdx === idx ? null : idx)}
+                key={cat}
+                style={[styles.chip, activeFilter === cat && styles.chipActive]}
+                onPress={() => setActiveFilter(cat)}
+                activeOpacity={0.7}
               >
-                <Text style={styles.recipeSecondaryText}>
-                  {expandedIdx === idx ? 'Ocultar' : 'Ver receta'}
-                </Text>
+                <Text style={[styles.chipText, activeFilter === cat && styles.chipTextActive]}>{cat}</Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.recipePrimaryBtn}
-                onPress={() => handleRegister(recipe)}
-              >
-                <Text style={styles.recipePrimaryText}>Registrar</Text>
-              </TouchableOpacity>
+            ))}
+          </ScrollView>
+
+          {/* Macros restantes */}
+          <View style={[glass, styles.macroCard]}>
+            <Text style={styles.macroCardTitle}>MACROS RESTANTES HOY</Text>
+            <View style={styles.macroCardRow}>
+              <View style={styles.macroStat}>
+                <Text style={[styles.macroStatVal, { color: colors.orange }]}>{remainingMacros.calories}</Text>
+                <Text style={styles.macroStatLabel}>KCAL</Text>
+              </View>
+              <View style={styles.macroStatDivider} />
+              <View style={styles.macroStat}>
+                <Text style={[styles.macroStatVal, { color: colors.neon }]}>{remainingMacros.proteinG}g</Text>
+                <Text style={styles.macroStatLabel}>PROT</Text>
+              </View>
+              <View style={styles.macroStatDivider} />
+              <View style={styles.macroStat}>
+                <Text style={[styles.macroStatVal, { color: colors.teal }]}>{remainingMacros.carbsG}g</Text>
+                <Text style={styles.macroStatLabel}>CARB</Text>
+              </View>
+              <View style={styles.macroStatDivider} />
+              <View style={styles.macroStat}>
+                <Text style={[styles.macroStatVal, { color: colors.muted }]}>{remainingMacros.fatG}g</Text>
+                <Text style={styles.macroStatLabel}>GRAS</Text>
+              </View>
             </View>
-          </GlassCard>
-        ))}
-      </ScrollView>
+          </View>
+
+          {/* Grid header */}
+          <View style={styles.gridHeader}>
+            <Text style={styles.gridTitle}>Tu Despensa</Text>
+            <Text style={styles.selectedCount}>
+              {selectedIds.length > 0 ? `${selectedIds.length} seleccionados` : `${pantryItems.length} ingredientes`}
+            </Text>
+          </View>
+
+          {/* Ingredient grid */}
+          <View style={styles.grid}>
+            {filteredItems.map((item) => {
+              const isSelected = selectedIds.includes(item.id);
+              return (
+                <TouchableOpacity
+                  key={item.id}
+                  style={[styles.gridCell, isSelected ? styles.gridCellSelected : glass]}
+                  onPress={() => toggleSelect(item.id)}
+                  onLongPress={() => Alert.alert('Eliminar', `¿Eliminar ${item.foodName}?`, [
+                    { text: 'Cancelar', style: 'cancel' },
+                    { text: 'Eliminar', style: 'destructive', onPress: () => deletePantryItem(item.id) },
+                  ])}
+                  activeOpacity={0.75}
+                >
+                  <Text style={styles.gridEmoji}>{getEmoji(item.foodName)}</Text>
+                  <Text style={[styles.gridName, isSelected && styles.gridNameSelected]} numberOfLines={1}>
+                    {item.foodName.toUpperCase()}
+                  </Text>
+                  <Text style={styles.gridQty}>{item.quantity}{item.unit}</Text>
+                </TouchableOpacity>
+              );
+            })}
+
+            {/* Add card */}
+            <TouchableOpacity
+              style={[styles.gridCell, styles.gridCellAdd]}
+              onPress={() => setShowAdd(true)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.addPlusIcon}>＋</Text>
+              <Text style={styles.addPlusLabel}>AÑADIR</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Add form */}
+          {showAdd && (
+            <View style={[glass, styles.addForm]}>
+              <Text style={styles.addFormTitle}>Nuevo ingrediente</Text>
+              <TextInput
+                style={styles.addInput}
+                placeholder="Nombre (ej: Pollo)"
+                placeholderTextColor={colors.dim}
+                value={addName}
+                onChangeText={setAddName}
+                autoFocus
+              />
+              <View style={styles.addRow2}>
+                <TextInput
+                  style={[styles.addInput, { flex: 1 }]}
+                  placeholder="Cantidad"
+                  placeholderTextColor={colors.dim}
+                  value={addQty}
+                  onChangeText={setAddQty}
+                  keyboardType="numeric"
+                />
+                <TextInput
+                  style={[styles.addInput, { width: 64 }]}
+                  placeholder="Und"
+                  placeholderTextColor={colors.dim}
+                  value={addUnit}
+                  onChangeText={setAddUnit}
+                />
+              </View>
+              <View style={styles.addFormBtns}>
+                <TouchableOpacity
+                  style={styles.cancelBtn}
+                  onPress={() => { setShowAdd(false); setAddName(''); setAddQty(''); setAddUnit('g'); }}
+                >
+                  <Text style={styles.cancelText}>Cancelar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.confirmBtn, (!addName.trim() || !addQty.trim()) && { opacity: 0.4 }]}
+                  onPress={handleAddItem}
+                  disabled={addLoading || !addName.trim() || !addQty.trim()}
+                >
+                  <Text style={styles.confirmText}>{addLoading ? '...' : 'Añadir'}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+
+          {/* AI banner */}
+          <View style={[glass, styles.aiBanner]}>
+            <View style={styles.aiBannerOverlay} />
+            <View style={styles.aiBannerContent}>
+              <Text style={styles.aiBannerTag}>POTENCIADO POR FITCORE AI</Text>
+              <Text style={styles.aiBannerTitle}>¿Sin ideas para hoy?</Text>
+            </View>
+          </View>
+
+          {loading && <ActivityIndicator color={colors.neon} style={{ marginTop: spacing.sm }} />}
+
+          {generateError && (
+            <View style={styles.errorBanner}>
+              <Text style={styles.errorText}>⚠ {generateError}</Text>
+            </View>
+          )}
+
+          {/* Recipe cards */}
+          {recipes.map((recipe, idx) => (
+            <View key={idx} style={[glassNeon, styles.recipeCard]}>
+              <View style={styles.recipeHeader}>
+                <Text style={styles.recipeKcalBadge}>{recipe.calories} KCAL</Text>
+                <Text style={styles.recipePrepTime}>~{recipe.prepMinutes} min</Text>
+              </View>
+              <Text style={styles.recipeTitle}>{recipe.name}</Text>
+              <Text style={styles.recipeMacros}>
+                {recipe.proteinG}g P · {recipe.carbsG}g C · {recipe.fatG}g G
+              </Text>
+              {expandedIdx === idx && (
+                <Text style={styles.recipeInstructions}>{recipe.instructions}</Text>
+              )}
+              <View style={styles.recipeActions}>
+                <TouchableOpacity
+                  style={styles.recipeSecondaryBtn}
+                  onPress={() => setExpandedIdx(expandedIdx === idx ? null : idx)}
+                >
+                  <Text style={styles.recipeSecondaryText}>
+                    {expandedIdx === idx ? 'Ocultar' : 'Ver receta'}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.recipePrimaryBtn} onPress={() => handleRegister(recipe)}>
+                  <Text style={styles.recipePrimaryText}>Registrar</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ))}
+
+          {/* Bottom spacer for fixed button */}
+          <View style={{ height: 80 }} />
+        </ScrollView>
       </KeyboardAvoidingView>
+
+      {/* Fixed generate button */}
+      <View style={styles.fixedBottom}>
+        <TouchableOpacity
+          style={[styles.generateBtn, !canGenerate && styles.generateBtnDisabled]}
+          onPress={handleGenerate}
+          disabled={!canGenerate}
+          activeOpacity={0.85}
+        >
+          {loading ? (
+            <ActivityIndicator color="#111" size="small" />
+          ) : (
+            <Text style={styles.generateBtnText}>⚡ Generar Sugerencias con IA</Text>
+          )}
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
-  container: { padding: 20, gap: 8 },
-  header: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 6 },
-  backText: { fontSize: 20, color: colors.muted, fontFamily: 'SpaceGrotesk_400Regular' },
-  title: { fontSize: 18, fontWeight: '700', color: colors.neon, fontFamily: 'SpaceGrotesk_700Bold' },
-  sub: { fontSize: 13, color: colors.muted, fontFamily: 'SpaceGrotesk_400Regular' },
-  macroSummary: { padding: 12, paddingHorizontal: 14, gap: 6 },
-  macroSummaryTitle: { fontSize: 12, color: colors.muted, fontFamily: 'SpaceGrotesk_600SemiBold', letterSpacing: 1, textTransform: 'uppercase' },
-  macroRow: { flexDirection: 'row', gap: 12 },
-  macroChip: { fontSize: 13, fontFamily: 'SpaceGrotesk_600SemiBold' },
-  ingredientRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 10, paddingHorizontal: 14 },
-  ingredientName: { fontSize: 15, color: colors.text, fontFamily: 'SpaceGrotesk_400Regular' },
-  ingredientQty: { fontSize: 12, color: colors.muted, fontFamily: 'SpaceGrotesk_400Regular' },
-  macros: { flexDirection: 'row', alignItems: 'center' },
-  macroText: { fontSize: 12, fontFamily: 'SpaceGrotesk_600SemiBold', lineHeight: 18 },
-  emptyPantry: { padding: 16, alignItems: 'center' },
-  emptyText: { fontSize: 13, color: colors.muted, fontFamily: 'SpaceGrotesk_400Regular', textAlign: 'center' },
-  deleteBtn: { fontSize: 12, color: colors.dim, paddingHorizontal: 4 },
-  addForm: { padding: 12, gap: 8 },
+
+  topBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: spacing.marginMobile,
+    height: 56,
+    backgroundColor: 'rgba(8,8,8,0.7)',
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+  backBtnText: { fontSize: 22, color: colors.muted },
+  logo: { ...text.headlineMd, color: colors.neon, fontSize: 14, letterSpacing: 2 },
+
+  container: { paddingHorizontal: spacing.marginMobile, paddingTop: spacing.md, gap: spacing.md },
+
+  searchWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.lg,
+    paddingHorizontal: spacing.md,
+    height: 48,
+    gap: spacing.sm,
+  },
+  searchIcon: { fontSize: 16 },
+  searchInput: { flex: 1, ...text.bodyMd, color: colors.text },
+
+  chipsRow: { gap: spacing.xs, paddingBottom: 2 },
+  chip: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: radius.full,
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  chipActive: { backgroundColor: 'rgba(204,255,0,0.08)', borderColor: 'rgba(204,255,0,0.35)' },
+  chipText: { ...text.labelSm, color: colors.muted },
+  chipTextActive: { color: colors.neon },
+
+  macroCard: { padding: spacing.md, borderRadius: radius.lg },
+  macroCardTitle: { ...text.labelSm, color: colors.muted, marginBottom: spacing.sm },
+  macroCardRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  macroStat: { flex: 1, alignItems: 'center', gap: 2 },
+  macroStatVal: { ...text.headlineMd, fontSize: 17 },
+  macroStatLabel: { ...text.labelSm, color: colors.dim },
+  macroStatDivider: { width: 1, height: 28, backgroundColor: colors.border },
+
+  gridHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  gridTitle: { ...text.headlineMd, color: colors.text },
+  selectedCount: { ...text.dataMono, color: colors.neon, fontSize: 12 },
+
+  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  gridCell: {
+    width: '47%',
+    padding: spacing.md,
+    borderRadius: radius.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+    minHeight: 96,
+  },
+  gridCellSelected: {
+    backgroundColor: 'rgba(204,255,0,0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(204,255,0,0.35)',
+  },
+  gridCellAdd: {
+    backgroundColor: 'rgba(255,255,255,0.02)',
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderStyle: 'dashed',
+  },
+  gridEmoji: { fontSize: 28 },
+  gridName: { ...text.labelSm, color: colors.muted, textAlign: 'center' },
+  gridNameSelected: { color: colors.neon },
+  gridQty: { ...text.labelSm, color: colors.dim, fontSize: 9 },
+  addPlusIcon: { fontSize: 24, color: colors.dim },
+  addPlusLabel: { ...text.labelSm, color: colors.dim },
+
+  addForm: { padding: spacing.md, borderRadius: radius.lg, gap: spacing.sm },
+  addFormTitle: { ...text.headlineMd, color: colors.text },
   addInput: {
     backgroundColor: 'rgba(255,255,255,0.05)',
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    fontSize: 14,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 10,
+    ...text.bodyMd,
     color: colors.text,
-    fontFamily: 'SpaceGrotesk_400Regular',
   },
-  addRow2: { flexDirection: 'row', gap: 8 },
-  addFormBtns: { flexDirection: 'row', gap: 8, marginTop: 4 },
-  cancelBtn: { flex: 1, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 10, padding: 8, alignItems: 'center' },
-  cancelText: { fontSize: 13, color: colors.muted, fontFamily: 'SpaceGrotesk_400Regular' },
-  confirmBtn: { flex: 1, backgroundColor: colors.neon, borderRadius: 10, padding: 8, alignItems: 'center' },
-  confirmText: { fontSize: 13, fontWeight: '700', color: '#111', fontFamily: 'SpaceGrotesk_700Bold' },
-  addRow: { borderWidth: 1, borderStyle: 'dashed', borderColor: colors.dim, borderRadius: 16, padding: 10, alignItems: 'center', marginVertical: 4 },
-  addText: { fontSize: 13, color: colors.dim, fontFamily: 'SpaceGrotesk_400Regular' },
+  addRow2: { flexDirection: 'row', gap: spacing.sm },
+  addFormBtns: { flexDirection: 'row', gap: spacing.sm, marginTop: 4 },
+  cancelBtn: { flex: 1, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: radius.md, padding: 10, alignItems: 'center' },
+  cancelText: { ...text.bodyMd, color: colors.muted },
+  confirmBtn: { flex: 1, backgroundColor: colors.neon, borderRadius: radius.md, padding: 10, alignItems: 'center' },
+  confirmText: { ...text.headlineMd, color: '#111', fontSize: 14 },
+
+  aiBanner: {
+    borderRadius: radius.lg,
+    overflow: 'hidden',
+    height: 100,
+    justifyContent: 'flex-end',
+  },
+  aiBannerOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(204,255,0,0.05)',
+  },
+  aiBannerContent: { padding: spacing.md, gap: 2 },
+  aiBannerTag: { ...text.labelSm, color: colors.neon },
+  aiBannerTitle: { ...text.headlineMd, color: colors.text },
+
   errorBanner: {
     backgroundColor: 'rgba(255,107,53,0.12)',
     borderWidth: 1,
     borderColor: 'rgba(255,107,53,0.3)',
-    borderRadius: 10,
-    padding: 12,
+    borderRadius: radius.md,
+    padding: spacing.md,
   },
-  errorText: { fontSize: 13, color: colors.orange, fontFamily: 'SpaceGrotesk_400Regular' },
-  recipeCard: { padding: 14, gap: 4, marginTop: 2 },
-  recipeTitle: { fontSize: 17, fontWeight: '700', color: colors.text, fontFamily: 'SpaceGrotesk_700Bold', marginTop: 5 },
-  recipeMacros: { fontSize: 13, color: colors.muted, fontFamily: 'SpaceGrotesk_400Regular', marginBottom: 6 },
-  recipeInstructions: { fontSize: 13, color: colors.text, fontFamily: 'SpaceGrotesk_400Regular', lineHeight: 20, marginBottom: 6 },
-  recipeActions: { flexDirection: 'row', gap: 8 },
-  recipeSecondaryBtn: { flex: 1, backgroundColor: 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: colors.border, borderRadius: 10, padding: 8, alignItems: 'center' },
-  recipeSecondaryText: { fontSize: 13, color: colors.muted, fontFamily: 'SpaceGrotesk_400Regular' },
-  recipePrimaryBtn: { flex: 1, backgroundColor: colors.neon, borderRadius: 10, padding: 8, alignItems: 'center' },
-  recipePrimaryText: { fontSize: 13, fontWeight: '700', color: '#111', fontFamily: 'SpaceGrotesk_700Bold' },
+  errorText: { ...text.bodyMd, color: colors.orange },
+
+  recipeCard: { padding: spacing.md, borderRadius: radius.lg, gap: spacing.xs },
+  recipeHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  recipeKcalBadge: { ...text.labelSm, color: colors.neon },
+  recipePrepTime: { ...text.dataMono, color: colors.muted, fontSize: 12 },
+  recipeTitle: { ...text.headlineMd, color: colors.text },
+  recipeMacros: { ...text.bodyMd, color: colors.muted },
+  recipeInstructions: { ...text.bodyMd, color: colors.text, lineHeight: 22, marginTop: spacing.xs },
+  recipeActions: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.xs },
+  recipeSecondaryBtn: { flex: 1, backgroundColor: 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, padding: 10, alignItems: 'center' },
+  recipeSecondaryText: { ...text.bodyMd, color: colors.muted },
+  recipePrimaryBtn: { flex: 1, backgroundColor: colors.neon, borderRadius: radius.md, padding: 10, alignItems: 'center' },
+  recipePrimaryText: { ...text.headlineMd, color: '#111', fontSize: 14 },
+
+  fixedBottom: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: spacing.marginMobile,
+    paddingBottom: spacing.xl,
+    paddingTop: spacing.md,
+    backgroundColor: colors.bg,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  generateBtn: {
+    backgroundColor: colors.neon,
+    borderRadius: radius.lg,
+    height: 52,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  generateBtnDisabled: { opacity: 0.4 },
+  generateBtnText: { ...text.headlineMd, color: '#111' },
 });

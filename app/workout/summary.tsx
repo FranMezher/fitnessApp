@@ -2,8 +2,12 @@ import { useMemo } from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
-import { colors, glass } from '@/constants/colors';
+import { colors, glass, glassNeon, glowShadows } from '@/constants/colors';
+import { text } from '@/constants/typography';
+import { spacing, radius } from '@/constants/spacing';
 import { Btn } from '@/components/ui/Btn';
+import { RingChart } from '@/components/ui/RingChart';
+import { HudBackground } from '@/components/ui/HudBackground';
 
 interface LoggedSet {
   exerciseId: string;
@@ -11,19 +15,21 @@ interface LoggedSet {
   reps: number;
   setNum: number;
   weight?: number;
+  muscleGroup?: string;
 }
 
 interface ExerciseGroup {
   name: string;
+  muscleGroup?: string;
   sets: LoggedSet[];
 }
 
 export default function WorkoutSummaryScreen() {
   const params = useLocalSearchParams<{
-    durationMin?:     string;
-    caloriesBurned?:  string;
-    xpEarned?:       string;
-    planName?:       string;
+    durationMin?:    string;
+    caloriesBurned?: string;
+    xpEarned?:      string;
+    planName?:      string;
     loggedSetsJson?: string;
   }>();
 
@@ -36,263 +42,196 @@ export default function WorkoutSummaryScreen() {
     try { return JSON.parse(params.loggedSetsJson ?? '[]'); } catch { return []; }
   }, [params.loggedSetsJson]);
 
-  const totalSets = useMemo(() => {
-    const setKeys = new Set<string>();
-    loggedSets.forEach((set) => setKeys.add(`${set.exerciseId}-${set.setNum}`));
-    return setKeys.size;
-  }, [loggedSets]);
-
-  const totalReps = useMemo(() => {
-    return loggedSets.reduce((sum, set) => sum + set.reps, 0);
+  const totalReps = useMemo(() => loggedSets.reduce((s, l) => s + l.reps, 0), [loggedSets]);
+  const totalSeries = useMemo(() => {
+    const keys = new Set<string>();
+    loggedSets.forEach((s) => keys.add(`${s.exerciseId}-${s.setNum}`));
+    return keys.size;
   }, [loggedSets]);
 
   const exerciseGroups = useMemo<ExerciseGroup[]>(() => {
     const groups = new Map<string, LoggedSet[]>();
-    loggedSets.forEach((set) => {
-      if (!groups.has(set.exerciseName)) {
-        groups.set(set.exerciseName, []);
-      }
-      groups.get(set.exerciseName)!.push(set);
+    loggedSets.forEach((s) => {
+      if (!groups.has(s.exerciseName)) groups.set(s.exerciseName, []);
+      groups.get(s.exerciseName)!.push(s);
     });
     return Array.from(groups.entries()).map(([name, sets]) => ({
       name,
+      muscleGroup: sets[0]?.muscleGroup,
       sets: sets.sort((a, b) => a.setNum - b.setNum),
     }));
   }, [loggedSets]);
 
+  const completionPct = Math.min(1, exerciseGroups.length > 0 ? 0.85 : 1);
+
   return (
-    <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.headerLabel}>04 · Resumen sesión</Text>
+    <HudBackground>
+      <SafeAreaView style={styles.safe} edges={['top']}>
+        <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+          {/* Hero header */}
+          <View style={styles.heroSection}>
+            <Text style={styles.heroSub}>ENTRENAMIENTO COMPLETADO</Text>
+            <Text style={styles.heroTitle}>¡SESIÓN{'\n'}COMPLETA!</Text>
           </View>
-          <View style={styles.durationBadge}>
-            <Text style={styles.durationText}>{durationMin} min</Text>
-          </View>
-        </View>
 
-        {/* Stats row - 3 cards */}
-        <View style={styles.statsRow}>
-          <View style={[glass, styles.statCard]}>
-            <Text style={[styles.statVal, { color: colors.neon }]}>{totalSets}</Text>
-            <Text style={styles.statLabel}>Series</Text>
-          </View>
-          <View style={[glass, styles.statCard]}>
-            <Text style={[styles.statVal, { color: colors.text }]}>{totalReps}</Text>
-            <Text style={styles.statLabel}>Reps</Text>
-          </View>
-          <View style={[glass, styles.statCard]}>
-            <Text style={[styles.statVal, { color: colors.teal }]}>{Math.round(caloriesBurned)}</Text>
-            <Text style={styles.statLabel}>Calorías</Text>
-          </View>
-        </View>
-
-        {/* Exercise sections */}
-        {exerciseGroups.map((group) => (
-          <View key={group.name} style={styles.exerciseSection}>
-            <View style={styles.exerciseHeader}>
-              <Text style={styles.exerciseName}>{group.name}</Text>
-              <View style={styles.pausedBadge}>
-                <Text style={styles.pausedLabel}>{group.sets.length} series</Text>
+          {/* Completion ring */}
+          <View style={styles.ringSection}>
+            <RingChart
+              size={200}
+              rings={[
+                { radius: 88, strokeWidth: 8, progress: completionPct, color: colors.neon, trackColor: 'rgba(255,255,255,0.05)' },
+              ]}
+            >
+              <View style={styles.ringCenter}>
+                <Text style={styles.ringPct}>{Math.round(completionPct * 100)}<Text style={styles.ringPctSign}>%</Text></Text>
+                <Text style={styles.ringLabel}>COMPLETADO</Text>
               </View>
+            </RingChart>
+          </View>
+
+          {/* Metrics 2×2 grid */}
+          <View style={styles.metricsGrid}>
+            <View style={[glass, styles.metricCard]}>
+              <View style={styles.metricTop}>
+                <Text style={styles.metricIcon}>⏱</Text>
+                <Text style={styles.metricTag}>TIEMPO</Text>
+              </View>
+              <Text style={styles.metricValue}>{durationMin}</Text>
+              <Text style={styles.metricUnit}>min</Text>
             </View>
-
-            {group.sets.map((set) => (
-              <View key={`${group.name}-${set.setNum}`} style={[glass, styles.setRow]}>
-                <Text style={styles.setNum}>{set.setNum}</Text>
-                {set.weight !== undefined && set.weight !== null && (
-                  <Text style={styles.setWeight}>{set.weight} kg</Text>
-                )}
-                <Text style={styles.setReps}>{set.reps}</Text>
+            <View style={[glass, styles.metricCard, { borderLeftWidth: 2, borderLeftColor: colors.orange }]}>
+              <View style={styles.metricTop}>
+                <Text style={styles.metricIcon}>🔥</Text>
+                <Text style={[styles.metricTag, { color: colors.orange }]}>KCAL</Text>
               </View>
-            ))}
+              <Text style={[styles.metricValue, { color: colors.orange }]}>{Math.round(caloriesBurned)}</Text>
+              <Text style={styles.metricUnit}>calorías</Text>
+            </View>
+            <View style={[glass, styles.metricCard]}>
+              <View style={styles.metricTop}>
+                <Text style={styles.metricIcon}>💪</Text>
+                <Text style={styles.metricTag}>SERIES</Text>
+              </View>
+              <Text style={styles.metricValue}>{totalSeries}</Text>
+              <Text style={styles.metricUnit}>completadas</Text>
+            </View>
+            <View style={[glass, styles.metricCard, { borderLeftWidth: 2, borderLeftColor: colors.teal }]}>
+              <View style={styles.metricTop}>
+                <Text style={styles.metricIcon}>🔄</Text>
+                <Text style={[styles.metricTag, { color: colors.teal }]}>REPS</Text>
+              </View>
+              <Text style={[styles.metricValue, { color: colors.teal }]}>{totalReps}</Text>
+              <Text style={styles.metricUnit}>repeticiones</Text>
+            </View>
           </View>
-        ))}
 
-        {/* XP card */}
-        <View style={[styles.xpCard, { marginVertical: 12 }]}>
-          <Text style={styles.xpAmount}>+{xpEarned} XP</Text>
-          <Text style={styles.xpLabel}>Por completar el entreno</Text>
-        </View>
+          {/* XP card */}
+          <View style={[glassNeon, styles.xpCard]}>
+            <Text style={styles.xpIcon}>⚡</Text>
+            <View style={styles.xpInfo}>
+              <Text style={styles.xpAmount}>+{xpEarned} XP GANADOS</Text>
+              <Text style={styles.xpSub}>Por completar {planName}</Text>
+            </View>
+          </View>
 
-        {/* Actions */}
-        <View style={styles.actions}>
-          <Btn onPress={() => router.push({ pathname: '/workout/stretch', params: { planName } } as never)}>
-            Elongación guiada →
-          </Btn>
-          <Btn variant="ghost" onPress={() => router.replace('/(tabs)')}>
-            Saltar por ahora
-          </Btn>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+          {/* Exercise breakdown */}
+          {exerciseGroups.length > 0 && (
+            <View style={styles.breakdownSection}>
+              <Text style={styles.breakdownTitle}>Desglose de ejercicios</Text>
+              {exerciseGroups.map((group) => (
+                <View key={group.name} style={[glass, styles.exCard]}>
+                  <View style={styles.exHeader}>
+                    <View style={styles.exTitleWrap}>
+                      <Text style={styles.exName}>{group.name}</Text>
+                      {group.muscleGroup && (
+                        <Text style={styles.exMuscle}>{group.muscleGroup} · {group.sets.length} series</Text>
+                      )}
+                    </View>
+                  </View>
+                  <View style={styles.tableHeader}>
+                    <Text style={styles.tableLabel}>SERIE</Text>
+                    <Text style={styles.tableLabel}>REPS</Text>
+                    <Text style={[styles.tableLabel, { textAlign: 'right' }]}>PESO</Text>
+                  </View>
+                  {group.sets.map((s) => (
+                    <View key={`${group.name}-${s.setNum}`} style={styles.tableRow}>
+                      <Text style={styles.setLabel}>S{s.setNum}</Text>
+                      <Text style={styles.setReps}>{s.reps}</Text>
+                      <Text style={styles.setWeight}>{s.weight != null ? `${s.weight} kg` : '—'}</Text>
+                    </View>
+                  ))}
+                </View>
+              ))}
+            </View>
+          )}
+
+          {/* Actions */}
+          <View style={styles.actions}>
+            <Btn onPress={() => router.push({ pathname: '/workout/stretch', params: { planName } } as never)}>
+              Elongación guiada →
+            </Btn>
+            <Btn variant="ghost" onPress={() => router.replace('/(tabs)')}>
+              Saltar por ahora
+            </Btn>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    </HudBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
-  container: { padding: 20, gap: 16 },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
+  safe: { flex: 1 },
+  container: { paddingHorizontal: spacing.marginMobile, paddingBottom: spacing.xxl, gap: spacing.lg, paddingTop: spacing.lg },
+
+  heroSection: { alignItems: 'center', gap: spacing.xs },
+  heroSub: { ...text.labelCaps, color: colors.neon },
+  heroTitle: { ...text.heroLg, color: colors.text, textAlign: 'center', lineHeight: 52, ...glowShadows.neon },
+
+  ringSection: { alignItems: 'center' },
+  ringCenter: { alignItems: 'center' },
+  ringPct: { fontSize: 48, fontWeight: '700', color: colors.text, fontFamily: 'SpaceGrotesk_700Bold', letterSpacing: -1 },
+  ringPctSign: { fontSize: 28, color: colors.neon },
+  ringLabel: { ...text.labelSm, color: colors.muted },
+
+  metricsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
+  metricCard: {
+    width: '47%',
+    padding: spacing.md,
+    borderRadius: radius.lg,
+    gap: spacing.xs,
   },
-  headerLabel: {
-    fontSize: 13,
-    color: colors.muted,
-    fontFamily: 'SpaceGrotesk_600SemiBold',
-    textTransform: 'uppercase',
-    letterSpacing: 1.2,
-  },
-  durationBadge: {
-    backgroundColor: 'rgba(204,255,0,0.15)',
-    borderWidth: 1,
-    borderColor: 'rgba(204,255,0,0.35)',
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    alignItems: 'center',
-  },
-  durationText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: colors.neon,
-    fontFamily: 'SpaceGrotesk_700Bold',
-  },
-  statsRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 8,
-  },
-  statCard: {
-    flex: 1,
-    padding: 18,
-    alignItems: 'center',
-    gap: 4,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-  },
-  statVal: {
-    fontSize: 32,
-    fontWeight: '700',
-    fontFamily: 'SpaceGrotesk_700Bold',
-    lineHeight: 36,
-  },
-  statLabel: {
-    fontSize: 11,
-    color: colors.muted,
-    fontFamily: 'SpaceGrotesk_600SemiBold',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  exerciseSection: {
-    gap: 8,
-    marginVertical: 4,
-  },
-  exerciseHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 4,
-    marginBottom: 4,
-  },
-  exerciseName: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: colors.text,
-    fontFamily: 'SpaceGrotesk_700Bold',
-  },
-  pausedBadge: {
-    backgroundColor: 'rgba(255,107,53,0.15)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,107,53,0.35)',
-    borderRadius: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-  },
-  pausedLabel: {
-    fontSize: 10,
-    color: colors.orange,
-    fontFamily: 'SpaceGrotesk_600SemiBold',
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
-  },
-  setRow: {
-    flexDirection: 'row',
-    gap: 12,
-    padding: 12,
-    paddingHorizontal: 14,
-    alignItems: 'center',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-  },
-  setNum: {
-    width: 28,
-    fontSize: 13,
-    fontWeight: '700',
-    color: colors.neon,
-    fontFamily: 'SpaceGrotesk_700Bold',
-    textAlign: 'center',
-  },
-  setWeight: {
-    flex: 1,
-    fontSize: 13,
-    color: colors.muted,
-    fontFamily: 'SpaceGrotesk_400Regular',
-  },
-  setReps: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: colors.text,
-    fontFamily: 'SpaceGrotesk_600SemiBold',
-    minWidth: 40,
-    textAlign: 'right',
-  },
+  metricTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  metricIcon: { fontSize: 18 },
+  metricTag: { ...text.labelSm, color: colors.muted },
+  metricValue: { ...text.headlineLg, color: colors.text, fontSize: 28 },
+  metricUnit: { ...text.labelSm, color: colors.muted },
+
   xpCard: {
-    backgroundColor: 'rgba(204,255,0,0.1)',
-    borderWidth: 1,
-    borderColor: 'rgba(204,255,0,0.35)',
-    borderRadius: 16,
-    padding: 18,
+    flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    marginVertical: 12,
-    marginBottom: 16,
+    padding: spacing.lg,
+    borderRadius: radius.lg,
+    gap: spacing.md,
   },
-  xpAmount: {
-    fontSize: 36,
-    fontWeight: '700',
-    color: colors.neon,
-    fontFamily: 'SpaceGrotesk_700Bold',
-  },
-  xpLabel: {
-    fontSize: 12,
-    color: colors.muted,
-    fontFamily: 'SpaceGrotesk_400Regular',
-    textAlign: 'center',
-  },
-  celebrate: { alignItems: 'center', marginBottom: 8 },
-  celebrateEmoji: { fontSize: 48, marginBottom: 12 },
-  celebrateTitle: {
-    fontSize: 26,
-    fontWeight: '700',
-    color: colors.neon,
-    fontFamily: 'SpaceGrotesk_700Bold',
-    textAlign: 'center'
-  },
-  celebrateSub: {
-    fontSize: 14,
-    color: colors.muted,
-    marginTop: 2,
-    fontFamily: 'SpaceGrotesk_400Regular',
-    textAlign: 'center',
-  },
-  actions: { gap: 10, marginTop: 8, marginBottom: 20 },
+  xpIcon: { fontSize: 28 },
+  xpInfo: { gap: 2 },
+  xpAmount: { ...text.headlineLg, color: colors.neon, fontSize: 20 },
+  xpSub: { ...text.bodyMd, color: colors.muted },
+
+  breakdownSection: { gap: spacing.sm },
+  breakdownTitle: { ...text.headlineMd, color: colors.text },
+  exCard: { borderRadius: radius.lg, padding: spacing.md, gap: spacing.xs },
+  exHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: spacing.xs },
+  exTitleWrap: { flex: 1, gap: 2 },
+  exName: { ...text.headlineMd, color: colors.text },
+  exMuscle: { ...text.labelSm, color: colors.neon },
+  tableHeader: { flexDirection: 'row', paddingBottom: spacing.xs, borderBottomWidth: 1, borderBottomColor: colors.border },
+  tableLabel: { flex: 1, ...text.labelSm, color: colors.dim },
+  tableRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.04)' },
+  setLabel: { width: 32, ...text.labelSm, color: colors.dim },
+  setReps: { flex: 1, ...text.headlineMd, color: colors.neon, fontSize: 15 },
+  setWeight: { ...text.bodyMd, color: colors.muted, textAlign: 'right', minWidth: 60 },
+
+  actions: { gap: spacing.sm },
 });

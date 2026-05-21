@@ -10,25 +10,19 @@ import { useOnboardingStore } from '@/stores/useOnboardingStore';
 import type { Profile } from '@/lib/api';
 
 const GOAL_LABELS: Record<string, string> = {
-  fat_loss: '🔥 Perder grasa', muscle: '💪 Ganar músculo',
-  maintain: '❤️ Mantener peso', wellness: '🧘 Bienestar',
+  fat_loss: '⚖ Perder grasa', muscle: '💪 Ganar músculo', maintain: '🔄 Mantenimiento',
 };
 const ACTIVITY_LABELS: Record<string, string> = {
-  none: 'Sin ejercicio', '1-2': '1–2 días/sem', '3-4': '3–4 días/sem',
-  '5-6': '5–6 días/sem', daily: 'Diario',
+  sedentary: 'Sedentario', lightly_active: 'Lig. activo', active: 'Activo', very_active: 'Muy activo',
 };
-const LIFESTYLE_LABELS: Record<string, string> = {
-  seated: 'Mayormente sentado', sometimes_standing: 'A veces de pie',
-  mostly_standing: 'Mayormente de pie', moving: 'En movimiento', intense: 'Trabajo intenso',
+const STRENGTH_LABELS: Record<string, string> = {
+  beginner: 'Principiante', intermediate: 'Intermedio', advanced: 'Avanzado', pro_athlete: 'Atleta Pro',
 };
 const SPEED_LABELS: Record<string, string> = {
-  slow: 'Lento', recommended: 'Recomendado', fast: 'Rápido',
+  sostenible: 'Sostenible', moderado: 'Moderado', agresivo: 'Agresivo',
 };
-const VARIETY_LABELS: Record<string, string> = {
-  high: 'Mucha variedad', moderate: 'Moderada', low: 'Poca variedad',
-};
-const PLANNING_LABELS: Record<string, string> = {
-  self: 'Elijo yo', app: 'La app elige',
+const COOKING_LABELS: Record<string, string> = {
+  quick: 'Rápido', home_cook: 'Cocinero casero', chef: 'Chef',
 };
 
 export default function NutritionPlanScreen() {
@@ -44,23 +38,27 @@ export default function NutritionPlanScreen() {
   function goEdit(route: string) {
     if (profile) {
       setStore({
-        goal: profile.goal as any,
-        sex: profile.sex as any,
-        age: profile.age,
-        heightCm: profile.heightCm,
-        weightKg: profile.weightKg,
+        goal:           profile.goal as any,
+        sex:            profile.sex as any,
+        age:            profile.age,
+        heightCm:       profile.heightCm,
+        weightKg:       profile.weightKg,
         targetWeightKg: profile.targetWeightKg,
-        strengthTraining: profile.strengthTraining,
-        activityLevel: profile.activityLevel as any,
-        lifestyle: profile.activityLifestyle as any,
-        weightLossSpeed: profile.weightLossSpeed as any,
-        foodVariety: profile.foodVariety as any,
+        strengthLevel:  profile.strengthLevel as any,
+        activityLevel:  profile.activityLevel as any,
+        sleepHours:     profile.sleepHours,
+        stressLevel:    profile.stressLevel,
+        smokingHabit:   profile.smokingHabit,
+        alcoholHabit:   profile.alcoholHabit,
+        weightLossSpeed:profile.weightLossSpeed as any,
+        dietType:       profile.dietType,
         availableFoods: profile.availableFoods,
-        mealPlanning: profile.mealPlanning as any,
+        mealFrequency:  profile.mealFrequency as any,
+        cookingTime:    profile.cookingTime as any,
         targetCalories: profile.targetCalories,
         targetProteinG: profile.targetProteinG,
-        targetCarbsG: profile.targetCarbsG,
-        targetFatG: profile.targetFatG,
+        targetCarbsG:   profile.targetCarbsG,
+        targetFatG:     profile.targetFatG,
       });
     }
     router.push(route as never);
@@ -81,8 +79,8 @@ export default function NutritionPlanScreen() {
     },
     {
       icon: '💪',
-      label: 'Entrenamiento de fuerza',
-      value: profile?.strengthTraining === true ? 'Sí' : profile?.strengthTraining === false ? 'No' : '—',
+      label: 'Nivel de fuerza',
+      value: STRENGTH_LABELS[profile?.strengthLevel ?? ''] ?? '—',
       route: '/(onboarding)/strength?edit=1',
     },
     {
@@ -92,21 +90,23 @@ export default function NutritionPlanScreen() {
       route: '/(onboarding)/activity?edit=1',
     },
     {
-      icon: '🏢',
+      icon: '🌙',
       label: 'Estilo de vida',
-      value: LIFESTYLE_LABELS[profile?.activityLifestyle ?? ''] ?? '—',
+      value: profile?.sleepHours ? `${profile.sleepHours}h sueño · Estrés ${profile.stressLevel ?? '—'}/5` : '—',
       route: '/(onboarding)/lifestyle?edit=1',
     },
-    ...(profile?.goal === 'fat_loss' ? [{
-      icon: '📉',
-      label: 'Velocidad de pérdida',
-      value: SPEED_LABELS[profile?.weightLossSpeed ?? ''] ?? '—',
-      route: '/(onboarding)/weight-speed?edit=1',
-    }] : []),
     {
-      icon: '🌈',
-      label: 'Variedad de comidas',
-      value: VARIETY_LABELS[profile?.foodVariety ?? ''] ?? '—',
+      icon: '📉',
+      label: 'Meta y velocidad',
+      value: profile?.targetWeightKg
+        ? `${profile.targetWeightKg} kg · ${SPEED_LABELS[profile?.weightLossSpeed ?? ''] ?? '—'}`
+        : '—',
+      route: '/(onboarding)/weight-speed?edit=1',
+    },
+    {
+      icon: '🥗',
+      label: 'Dieta',
+      value: profile?.dietType?.length ? profile.dietType.join(', ') : '—',
       route: '/(onboarding)/food-variety?edit=1',
     },
     {
@@ -118,7 +118,9 @@ export default function NutritionPlanScreen() {
     {
       icon: '📋',
       label: 'Planificación',
-      value: PLANNING_LABELS[profile?.mealPlanning ?? ''] ?? '—',
+      value: profile?.mealFrequency
+        ? `${profile.mealFrequency} comidas · ${COOKING_LABELS[profile?.cookingTime ?? ''] ?? '—'}`
+        : '—',
       route: '/(onboarding)/meal-planning?edit=1',
     },
   ];

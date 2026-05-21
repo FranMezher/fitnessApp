@@ -1,9 +1,11 @@
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { colors, glass, glassNeon } from '@/constants/colors';
+import { colors, glass, glassNeon, glowShadows } from '@/constants/colors';
+import { text } from '@/constants/typography';
+import { spacing, radius } from '@/constants/spacing';
 import { Btn } from '@/components/ui/Btn';
+import { OnboardingShell } from '@/components/ui/OnboardingShell';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useOnboardingStore } from '@/stores/useOnboardingStore';
@@ -13,10 +15,9 @@ const TOTAL_STEPS = 10;
 const STEP = 1;
 
 const GOALS: { id: OnboardingData['goal']; icon: string; title: string; sub: string }[] = [
-  { id: 'fat_loss',  icon: '🔥', title: 'Perder grasa',   sub: 'Déficit calórico inteligente' },
-  { id: 'muscle',    icon: '💪', title: 'Ganar músculo',  sub: 'Superávit + proteína alta' },
-  { id: 'maintain',  icon: '❤️', title: 'Mantener peso',  sub: 'Equilibrio calórico' },
-  { id: 'wellness',  icon: '🧘', title: 'Bienestar',      sub: 'Salud y equilibrio general' },
+  { id: 'fat_loss', icon: '⚖', title: 'Perder Grasa',    sub: 'Déficit calórico enfocado en definición.' },
+  { id: 'muscle',   icon: '💪', title: 'Ganar Músculo',   sub: 'Hipertrofia y superávit controlado.' },
+  { id: 'maintain', icon: '🔄', title: 'Mantenimiento',   sub: 'Equilibrio calórico y salud sostenida.' },
 ];
 
 export default function OnboardGoalScreen() {
@@ -26,163 +27,111 @@ export default function OnboardGoalScreen() {
   const stored = useOnboardingStore((s) => s.data.goal);
   const setStore = useOnboardingStore((s) => s.set);
   const [selected, setSelected] = useState<OnboardingData['goal']>(stored ?? 'fat_loss');
-
-  const { token, email, setIsNewUser } = useAuthStore();
+  const { token } = useAuthStore();
 
   async function handleContinue() {
     setStore({ goal: selected });
-
     if (isEdit) {
-      if (token) {
-        await api.upsertProfile(token, { goal: selected }).catch(() => {});
-      }
+      if (token) await api.upsertProfile(token, { goal: selected }).catch(() => {});
       router.back();
       return;
     }
-
     router.push('/(onboarding)/biometrics' as never);
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
-      {/* Progress bar */}
-      <View style={styles.progressTrack}>
-        <View style={[styles.progressFill, { width: `${(STEP / TOTAL_STEPS) * 100}%` }]} />
-      </View>
-
-      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-        <Text style={styles.step}>Paso {STEP} de {TOTAL_STEPS}</Text>
-        <Text style={styles.title}>
-          ¿Cuál es tu{' '}
-          <Text style={styles.titleAccent}>objetivo</Text>?
-        </Text>
-        <Text style={styles.subtitle}>Tu plan se adapta automáticamente</Text>
-
+    <OnboardingShell
+      step={STEP}
+      totalSteps={TOTAL_STEPS}
+      title="¿Cuál es tu misión?"
+      subtitle="Personalizaremos tu plan de entrenamiento y nutrición basado en tu objetivo principal."
+      footer={<Btn onPress={handleContinue}>{isEdit ? 'GUARDAR' : 'CONTINUAR'}</Btn>}
+    >
+      <View style={styles.list}>
         {GOALS.map((g) => {
           const active = selected === g.id;
           return (
             <TouchableOpacity
               key={g.id}
-              style={[
-                active ? glassNeon : glass,
-                styles.goalCard,
-                active && styles.goalCardActive,
-              ]}
+              style={[styles.card, active ? glassNeon : glass, active && styles.cardActive]}
               onPress={() => setSelected(g.id)}
               activeOpacity={0.8}
             >
-              <Text style={styles.goalIcon}>{g.icon}</Text>
-              <View style={styles.goalText}>
-                <Text style={[styles.goalTitle, active && styles.goalTitleActive]}>{g.title}</Text>
-                <Text style={styles.goalSub}>{g.sub}</Text>
+              <View style={styles.iconBox}>
+                <Text style={styles.iconText}>{g.icon}</Text>
+              </View>
+              <View style={styles.cardBody}>
+                <Text style={[styles.cardTitle, active && styles.cardTitleActive]}>{g.title}</Text>
+                <Text style={styles.cardSub}>{g.sub}</Text>
               </View>
               {active && (
-                <View style={styles.checkBadge}>
+                <View style={styles.checkCircle}>
                   <Text style={styles.checkText}>✓</Text>
                 </View>
               )}
             </TouchableOpacity>
           );
         })}
-
-        <View style={styles.btnWrap}>
-          <Btn onPress={handleContinue}>{isEdit ? 'Guardar' : 'Continuar'}</Btn>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+      </View>
+    </OnboardingShell>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: colors.bg,
+  list: {
+    gap: spacing.md,
   },
-  progressTrack: {
-    height: 3,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-  },
-  progressFill: {
-    height: 3,
-    backgroundColor: colors.neon,
-    borderRadius: 2,
-  },
-  container: {
-    padding: 24,
-    paddingTop: 16,
-  },
-  step: {
-    fontSize: 12,
-    color: colors.muted,
-    fontFamily: 'SpaceGrotesk_400Regular',
-    marginBottom: 8,
-  },
-  title: {
-    fontSize: 26,
-    fontWeight: '700',
-    color: colors.text,
-    marginBottom: 4,
-    fontFamily: 'SpaceGrotesk_700Bold',
-  },
-  titleAccent: {
-    color: colors.neon,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: colors.muted,
-    marginBottom: 20,
-    fontFamily: 'SpaceGrotesk_400Regular',
-  },
-  goalCard: {
+  card: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 14,
-    padding: 14,
-    paddingHorizontal: 16,
-    marginBottom: 10,
+    gap: spacing.lg,
+    padding: spacing.lg,
+    borderRadius: radius.lg,
   },
-  goalIcon: {
-    fontSize: 26,
+  cardActive: {
+    ...glowShadows.neon,
+    shadowOpacity: 0.2,
   },
-  goalText: {
+  iconBox: {
+    width: 52,
+    height: 52,
+    borderRadius: radius.md,
+    backgroundColor: colors.surfaceContainerHighest,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  iconText: {
+    fontSize: 24,
+  },
+  cardBody: {
     flex: 1,
   },
-  goalTitle: {
-    fontSize: 16,
-    fontWeight: '700',
+  cardTitle: {
+    ...text.headlineMd,
     color: colors.text,
-    fontFamily: 'SpaceGrotesk_700Bold',
+    marginBottom: 2,
   },
-  goalTitleActive: {
+  cardTitleActive: {
     color: colors.neon,
   },
-  goalSub: {
-    fontSize: 13,
+  cardSub: {
+    ...text.bodyMd,
     color: colors.muted,
-    fontFamily: 'SpaceGrotesk_400Regular',
   },
-  goalCardActive: {
-    shadowColor: colors.neon,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.35,
-    shadowRadius: 12,
-    elevation: 6,
-  },
-  checkBadge: {
+  checkCircle: {
     width: 24,
     height: 24,
-    borderRadius: 12,
+    borderRadius: radius.full,
     backgroundColor: colors.neon,
     alignItems: 'center',
     justifyContent: 'center',
   },
   checkText: {
     color: '#111',
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '700',
     fontFamily: 'SpaceGrotesk_700Bold',
-  },
-  btnWrap: {
-    marginTop: 8,
   },
 });

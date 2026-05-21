@@ -2,33 +2,27 @@ import { useEffect, useMemo, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { colors, glass, glassOrange } from '@/constants/colors';
-import { useWorkoutStore } from '@/stores/useWorkoutStore';
-import { useAuthStore } from '@/stores/useAuthStore';
+import { colors, glass, glassNeon, glowShadows } from '@/constants/colors';
+import { text } from '@/constants/typography';
+import { spacing, radius } from '@/constants/spacing';
 import { Btn } from '@/components/ui/Btn';
+import { useWorkoutStore } from '@/stores/useWorkoutStore';
 
-const PLAN_ICONS: Record<string, string> = {
-  push: '💪',
-  pull: '🔙',
-  legs: '🦵',
-  fullbody: '⚡',
+const DIFFICULTY_COLORS: Record<string, string> = {
+  beginner: colors.teal,
+  intermediate: colors.neon,
+  advanced: colors.orange,
 };
 
-const PLAN_ICON_COLORS: Record<string, string> = {
-  push: colors.neon,
-  pull: colors.teal,
-  legs: colors.purple,
-  fullbody: colors.orange,
+const DIFFICULTY_LABELS: Record<string, string> = {
+  beginner: 'Principiante',
+  intermediate: 'Intermedio',
+  advanced: 'Avanzado',
 };
-
-const WEEK_DAYS = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
 
 export default function TrainScreen() {
-  const { plans, loading, fetchPlans, myPlan, streak, sessions, fetchMyPlan, fetchStreak, fetchSessions } = useWorkoutStore();
-  const { profile } = useAuthStore();
+  const { plans, loading, fetchPlans, myPlan, streak, fetchMyPlan, fetchStreak, fetchSessions } = useWorkoutStore();
   const [fetchError, setFetchError] = useState<string | null>(null);
-
-  const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
 
   useEffect(() => {
     setFetchError(null);
@@ -38,342 +32,215 @@ export default function TrainScreen() {
     fetchSessions().catch(() => {});
   }, []);
 
-  const formattedDate = useMemo(() => {
-    const date = new Date();
-    const dayNames = ['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB'];
-    const monthNames = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
-    const dayName = dayNames[date.getDay()];
-    const monthName = monthNames[date.getMonth()];
-    return `${dayName} - ${date.getDate()} ${monthName}`;
-  }, []);
-
-  const sessionsByDate = useMemo(() => {
-    const map = new Map<string, boolean>();
-    sessions?.forEach((s) => {
-      const date = s.startedAt.slice(0, 10);
-      map.set(date, true);
-    });
-    return map;
-  }, [sessions]);
-
-  const weekStart = useMemo(() => {
-    const d = new Date();
-    const day = d.getDay();
-    d.setDate(d.getDate() - (day === 0 ? 6 : day - 1));
-    return d;
-  }, []);
-
-  const weekDays = useMemo(() => {
-    return WEEK_DAYS.map((label, i) => {
-      const d = new Date(weekStart);
-      d.setDate(d.getDate() + i);
-      const dateStr = d.toISOString().slice(0, 10);
-      const isToday = dateStr === today;
-      const isDone = sessionsByDate.has(dateStr) && !isToday;
-      return { label, dateStr, isToday, isDone };
-    });
-  }, [weekStart, sessionsByDate, today]);
-
-  const todaysPlan = myPlan;
-
   return (
-    <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-        {/* Header with date + XP badge */}
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.dateLabel}>{formattedDate}</Text>
-          </View>
-          <View style={styles.xpBadge}>
-            <Text style={styles.xpBadgeText}>🎖 {streak?.currentStreak ?? 0}</Text>
-          </View>
+    <SafeAreaView style={styles.safe} edges={['top']}>
+      {/* TopAppBar */}
+      <View style={styles.topBar}>
+        <Text style={styles.logo}>FITCORE</Text>
+        <View style={styles.streakBadge}>
+          <Text style={styles.streakBadgeText}>🔥 {streak?.currentStreak ?? 0}</Text>
         </View>
+      </View>
 
-        {/* Title */}
-        <Text style={styles.title}>Entrena</Text>
+      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+        {/* Hero — Next Session */}
+        <View style={styles.heroSection}>
+          <View style={styles.heroHeader}>
+            <Text style={styles.sectionTitle}>Próxima sesión</Text>
+            <Text style={styles.todayLabel}>HOY</Text>
+          </View>
 
-        {/* Streak section */}
-        <View style={[glass, styles.streakCard]}>
-          <Text style={styles.streakLabel}>ESTA SEMANA</Text>
-          <View style={styles.weekDays}>
-            {weekDays.map((day) => (
-              <View
-                key={day.label}
-                style={[
-                  styles.dayCircle,
-                  day.isDone
-                    ? styles.dayDone
-                    : day.isToday
-                    ? styles.dayToday
-                    : styles.dayEmpty,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.dayText,
-                    day.isDone || day.isToday ? styles.dayTextDark : styles.dayTextLight,
-                  ]}
-                >
-                  {day.isDone ? '✓' : day.label}
+          <TouchableOpacity
+            style={[glass, styles.heroCard]}
+            activeOpacity={0.85}
+            onPress={() => router.push(myPlan ? `/workout/${myPlan.id}` as never : '/workout/active')}
+          >
+            <View style={styles.heroOverlay} />
+            <View style={styles.heroContent}>
+              <View style={[glassNeon, styles.heroBadge]}>
+                <Text style={styles.heroBadgeText}>
+                  ⚡ {myPlan?.difficulty ? DIFFICULTY_LABELS[myPlan.difficulty] ?? myPlan.difficulty.toUpperCase() : 'TU PLAN'}
                 </Text>
               </View>
-            ))}
-          </View>
-        </View>
-
-        {/* HOY section */}
-        {todaysPlan && (
-          <TouchableOpacity
-            style={[glassOrange, styles.hoyCard]}
-            activeOpacity={0.8}
-            onPress={() => router.push(`/workout/${todaysPlan.id}` as never)}
-          >
-            <View style={styles.hoyContent}>
-              <Text style={styles.hoyLabel}>HOY · {todaysPlan.name.toUpperCase()}</Text>
-              <Text style={styles.hoyTitle}>{todaysPlan.name}</Text>
-              <Text style={styles.hoySub}>{todaysPlan.exerciseCount ?? '—'} ejercicios · {todaysPlan.daysPerWeek}x semana</Text>
-            </View>
-            <View style={styles.playButton}>
-              <Text style={styles.playIcon}>▶</Text>
+              <Text style={styles.heroTitle}>{myPlan?.name ?? 'Tu entrenamiento'}</Text>
+              <View style={styles.heroStats}>
+                <Text style={styles.heroStat}>⏱ {myPlan?.daysPerWeek ?? '—'} días/sem</Text>
+                <Text style={styles.heroStat}>💪 {myPlan?.exerciseCount ?? '—'} ejercicios</Text>
+              </View>
+              <View style={styles.heroBtn}>
+                <Text style={styles.heroBtnText}>INICIAR SESIÓN</Text>
+                <Text style={styles.heroBtnArrow}>▶</Text>
+              </View>
             </View>
           </TouchableOpacity>
-        )}
+        </View>
 
-        {/* Program list */}
-        {!loading && (
-          <View>
-            <Text style={styles.programLabel}>TU PROGRAMA</Text>
-            {plans.map((plan) => {
-              const icon = PLAN_ICONS[plan.name.toLowerCase()] ?? '⚡';
-              const iconColor = PLAN_ICON_COLORS[plan.name.toLowerCase()] ?? colors.orange;
-              return (
-                <TouchableOpacity
-                  key={plan.id}
-                  style={[glass, styles.programCard]}
-                  activeOpacity={0.8}
-                  onPress={() => router.push(`/workout/${plan.id}` as never)}
-                >
-                  <View style={[styles.programIcon, { backgroundColor: iconColor + '20', borderColor: iconColor }]}>
-                    <Text style={styles.programIconText}>{icon}</Text>
+        {/* Programs list */}
+        <View style={styles.programsSection}>
+          <View style={styles.programsHeader}>
+            <Text style={styles.sectionTitle}>Programas</Text>
+            <TouchableOpacity>
+              <Text style={styles.seeAll}>Ver todos</Text>
+            </TouchableOpacity>
+          </View>
+
+          {loading && <ActivityIndicator color={colors.neon} style={{ marginTop: 20 }} />}
+
+          {fetchError && (
+            <View style={[glass, styles.errorCard]}>
+              <Text style={styles.errorText}>{fetchError}</Text>
+              <Btn onPress={() => fetchPlans().catch((e) => setFetchError(e?.message ?? 'Error'))}>
+                Reintentar
+              </Btn>
+            </View>
+          )}
+
+          {!loading && !fetchError && plans.length === 0 && (
+            <View style={[glass, styles.errorCard]}>
+              <Text style={styles.errorText}>No hay planes disponibles</Text>
+              <Btn onPress={() => fetchPlans().catch((e) => setFetchError(e?.message ?? 'Error'))}>
+                Recargar planes
+              </Btn>
+            </View>
+          )}
+
+          {plans.map((plan) => {
+            const diffColor = DIFFICULTY_COLORS[plan.difficulty] ?? colors.neon;
+            const isMyPlan = plan.id === myPlan?.id;
+            return (
+              <TouchableOpacity
+                key={plan.id}
+                style={[glass, styles.planCard, isMyPlan && { borderColor: colors.neon + '50' }]}
+                activeOpacity={0.8}
+                onPress={() => router.push(`/workout/${plan.id}` as never)}
+              >
+                <View style={[styles.planAccent, { backgroundColor: diffColor }]} />
+                <View style={styles.planInfo}>
+                  {isMyPlan && (
+                    <Text style={styles.myPlanTag}>MI PLAN</Text>
+                  )}
+                  <Text style={styles.planName}>{plan.name}</Text>
+                  <View style={styles.planChips}>
+                    <View style={styles.planChip}>
+                      <Text style={styles.planChipText}>
+                        {plan.daysPerWeek}x SEMANA
+                      </Text>
+                    </View>
+                    <View style={[styles.planChip, { borderColor: diffColor + '50' }]}>
+                      <Text style={[styles.planChipText, { color: diffColor }]}>
+                        {DIFFICULTY_LABELS[plan.difficulty] ?? plan.difficulty.toUpperCase()}
+                      </Text>
+                    </View>
                   </View>
-                  <View style={styles.programInfo}>
-                    <Text style={styles.programTitle}>{plan.name}</Text>
-                    <Text style={styles.programSub}>{plan.difficulty}</Text>
-                  </View>
-                  <Text style={styles.programExerciseCount}>{plan.exerciseCount ?? '—'} ejerc.</Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        )}
-
-        {loading && <ActivityIndicator color={colors.neon} style={{ marginTop: 20 }} />}
-
-        {fetchError && (
-          <View style={[glass, { padding: 20, alignItems: 'center', gap: 12, marginTop: 12 }]}>
-            <Text style={{ color: colors.orange, fontFamily: 'SpaceGrotesk_400Regular', textAlign: 'center' }}>
-              {fetchError}
-            </Text>
-            <Btn onPress={() => fetchPlans().catch((e) => setFetchError(e?.message ?? 'Error'))}>Reintentar</Btn>
-          </View>
-        )}
-
-        {!loading && !fetchError && plans.length === 0 && (
-          <View style={[glass, { padding: 20, alignItems: 'center', gap: 12, marginTop: 12 }]}>
-            <Text style={{ color: colors.muted, fontFamily: 'SpaceGrotesk_400Regular' }}>
-              No hay planes disponibles
-            </Text>
-            <Btn onPress={() => fetchPlans().catch((e) => setFetchError(e?.message ?? 'Error'))}>Recargar planes</Btn>
-          </View>
-        )}
+                </View>
+                <Text style={styles.planArrow}>›</Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: colors.bg,
-  },
-  container: {
-    padding: 20,
-    gap: 12,
-  },
-  header: {
+  safe: { flex: 1, backgroundColor: colors.bg },
+
+  topBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    paddingHorizontal: spacing.marginMobile,
+    height: 56,
+    backgroundColor: 'rgba(8,8,8,0.7)',
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
-  dateLabel: {
-    fontSize: 13,
-    color: colors.muted,
-    fontFamily: 'SpaceGrotesk_400Regular',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  xpBadge: {
-    backgroundColor: 'rgba(255,107,53,0.15)',
-    borderColor: 'rgba(255,107,53,0.35)',
+  logo: { ...text.heroMd, fontSize: 22, color: colors.neon, letterSpacing: -0.5 },
+  streakBadge: {
+    backgroundColor: 'rgba(204,255,0,0.08)',
     borderWidth: 1,
-    borderRadius: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    borderColor: 'rgba(204,255,0,0.3)',
+    borderRadius: radius.full,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
   },
-  xpBadgeText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: colors.orange,
-    fontFamily: 'SpaceGrotesk_700Bold',
+  streakBadgeText: { ...text.labelSm, color: colors.neon },
+
+  container: {
+    paddingHorizontal: spacing.marginMobile,
+    paddingBottom: spacing.xxl,
+    gap: spacing.xl,
+    paddingTop: spacing.lg,
   },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: colors.text,
-    fontFamily: 'SpaceGrotesk_700Bold',
-    marginBottom: 12,
+
+  heroSection: { gap: spacing.md },
+  heroHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  sectionTitle: { ...text.headlineLg, color: colors.text },
+  todayLabel: { ...text.labelSm, color: colors.neon },
+
+  heroCard: {
+    borderRadius: radius.lg,
+    overflow: 'hidden',
+    minHeight: 220,
   },
-  streakCard: {
-    padding: 14,
-    marginBottom: 4,
+  heroOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.55)',
   },
-  streakLabel: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: colors.muted,
-    fontFamily: 'SpaceGrotesk_600SemiBold',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    marginBottom: 12,
+  heroContent: { padding: spacing.lg, gap: spacing.md },
+  heroBadge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: radius.full,
   },
-  weekDays: {
+  heroBadgeText: { ...text.labelSm, color: colors.neon },
+  heroTitle: { ...text.heroMd, color: colors.text },
+  heroStats: { flexDirection: 'row', gap: spacing.lg },
+  heroStat: { ...text.bodyMd, color: colors.muted },
+  heroBtn: {
     flexDirection: 'row',
-    gap: 8,
-    justifyContent: 'center',
-  },
-  dayCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1.5,
-  },
-  dayDone: {
     backgroundColor: colors.neon,
-    borderColor: colors.neon,
+    borderRadius: radius.md,
+    paddingVertical: spacing.md,
+    gap: spacing.sm,
+    ...glowShadows.neon,
   },
-  dayToday: {
-    backgroundColor: colors.purple,
-    borderColor: colors.purple,
-  },
-  dayEmpty: {
-    backgroundColor: 'rgba(255,255,255,0.04)',
-    borderColor: 'rgba(255,255,255,0.1)',
-  },
-  dayText: {
-    fontSize: 12,
-    fontWeight: '700',
-    fontFamily: 'SpaceGrotesk_700Bold',
-  },
-  dayTextDark: {
-    color: '#111',
-  },
-  dayTextLight: {
-    color: colors.dim,
-  },
-  hoyCard: {
-    padding: 16,
+  heroBtnText: { ...text.headlineMd, color: '#111' },
+  heroBtnArrow: { fontSize: 18, color: '#111', fontWeight: '700' },
+
+  programsSection: { gap: spacing.md },
+  programsHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  seeAll: { ...text.labelSm, color: colors.neon },
+
+  errorCard: { padding: spacing.lg, alignItems: 'center', gap: spacing.md, borderRadius: radius.lg },
+  errorText: { ...text.bodyMd, color: colors.muted, textAlign: 'center' },
+
+  planCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    marginVertical: 8,
+    borderRadius: radius.lg,
+    overflow: 'hidden',
+    paddingVertical: spacing.md,
+    paddingRight: spacing.md,
+    gap: spacing.md,
   },
-  hoyContent: {
-    flex: 1,
-    gap: 4,
+  planAccent: { width: 3, alignSelf: 'stretch' },
+  planInfo: { flex: 1, gap: spacing.xs, paddingLeft: spacing.sm },
+  myPlanTag: { ...text.labelSm, color: colors.neon },
+  planName: { ...text.headlineMd, color: colors.text },
+  planChips: { flexDirection: 'row', gap: spacing.xs },
+  planChip: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 3,
+    borderRadius: radius.xs,
+    backgroundColor: colors.surfaceContainerHigh,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
-  hoyLabel: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: colors.orange,
-    fontFamily: 'SpaceGrotesk_600SemiBold',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-  },
-  hoyTitle: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: colors.text,
-    fontFamily: 'SpaceGrotesk_700Bold',
-  },
-  hoySub: {
-    fontSize: 13,
-    color: colors.muted,
-    fontFamily: 'SpaceGrotesk_400Regular',
-  },
-  playButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: colors.orange,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  playIcon: {
-    fontSize: 16,
-    color: '#fff',
-    fontWeight: '700',
-  },
-  programLabel: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: colors.muted,
-    fontFamily: 'SpaceGrotesk_600SemiBold',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    marginBottom: 10,
-    marginTop: 8,
-  },
-  programCard: {
-    padding: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginBottom: 8,
-  },
-  programIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1.5,
-  },
-  programIconText: {
-    fontSize: 18,
-  },
-  programInfo: {
-    flex: 1,
-    gap: 2,
-  },
-  programTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: colors.text,
-    fontFamily: 'SpaceGrotesk_700Bold',
-  },
-  programSub: {
-    fontSize: 12,
-    color: colors.muted,
-    fontFamily: 'SpaceGrotesk_400Regular',
-    textTransform: 'capitalize',
-  },
-  programExerciseCount: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: colors.neon,
-    fontFamily: 'SpaceGrotesk_700Bold',
-  },
+  planChipText: { ...text.labelSm, color: colors.muted },
+  planArrow: { color: colors.dim, fontSize: 20 },
 });

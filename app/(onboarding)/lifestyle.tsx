@@ -1,106 +1,203 @@
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, Text, TouchableOpacity, Switch, StyleSheet } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { colors, glass, glassNeon } from '@/constants/colors';
+import { colors, glass } from '@/constants/colors';
+import { text } from '@/constants/typography';
+import { spacing, radius } from '@/constants/spacing';
 import { Btn } from '@/components/ui/Btn';
+import { OnboardingShell } from '@/components/ui/OnboardingShell';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useOnboardingStore } from '@/stores/useOnboardingStore';
-import type { OnboardingData } from '@/stores/useOnboardingStore';
 
 const TOTAL_STEPS = 10;
 const STEP = 5;
 
-const OPTIONS: { id: OnboardingData['lifestyle']; icon: string; label: string; sub: string }[] = [
-  { id: 'seated',             icon: '🪑', label: 'Mayormente sentado',       sub: 'Oficina, estudio o trabajo desde casa' },
-  { id: 'sometimes_standing', icon: '🚶', label: 'A veces de pie',           sub: 'Mezcla de estar sentado y moverse' },
-  { id: 'mostly_standing',    icon: '🧍', label: 'Mayormente de pie',        sub: 'De pie o caminando con regularidad' },
-  { id: 'moving',             icon: '🏃', label: 'En movimiento todo el día', sub: 'Trabajo físico o caminatas frecuentes' },
-  { id: 'intense',            icon: '⛏️', label: 'Trabajo físico intenso',   sub: 'Labor pesada o muy exigente' },
-];
+const SLEEP_OPTIONS = [6, 7, 8, 9, 10];
+const STRESS_LABELS = ['', 'Bajo', 'Leve', 'Moderado', 'Alto', 'Extremo'];
 
 export default function LifestyleScreen() {
   const { edit } = useLocalSearchParams<{ edit?: string }>();
   const isEdit = edit === '1';
 
-  const stored = useOnboardingStore((s) => s.data.lifestyle);
+  const stored = useOnboardingStore((s) => s.data);
   const setStore = useOnboardingStore((s) => s.set);
   const { token } = useAuthStore();
 
-  const [selected, setSelected] = useState<OnboardingData['lifestyle']>(stored ?? 'seated');
+  const [sleepHours, setSleepHours] = useState<number>(stored.sleepHours ?? 8);
+  const [stressLevel, setStressLevel] = useState<number>(stored.stressLevel ?? 2);
+  const [smoking, setSmoking] = useState<boolean>(stored.smokingHabit ?? false);
+  const [alcohol, setAlcohol] = useState<boolean>(stored.alcoholHabit ?? false);
 
   async function handleContinue() {
-    setStore({ lifestyle: selected });
-
+    setStore({ sleepHours, stressLevel, smokingHabit: smoking, alcoholHabit: alcohol });
     if (isEdit) {
       if (token) {
-        await api.upsertProfile(token, { activityLifestyle: selected }).catch(() => {});
+        await api.upsertProfile(token, {
+          sleepHours, stressLevel, smokingHabit: smoking, alcoholHabit: alcohol,
+        }).catch(() => {});
       }
       router.back();
       return;
     }
-
-    const goal = useOnboardingStore.getState().data.goal;
-    if (goal === 'fat_loss') {
-      router.push('/(onboarding)/weight-speed' as never);
-    } else {
-      router.push('/(onboarding)/food-variety' as never);
-    }
+    router.push('/(onboarding)/weight-speed' as never);
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <View style={styles.progressTrack}>
-        <View style={[styles.progressFill, { width: `${(STEP / TOTAL_STEPS) * 100}%` }]} />
-      </View>
-
-      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-        <Text style={styles.step}>Paso {STEP} de {TOTAL_STEPS}</Text>
-        <Text style={styles.title}>¿Cuál es tu estilo de vida?</Text>
-        <Text style={styles.subtitle}>Solo considerá tu movimiento diario, no tus entrenamientos</Text>
-
-        {OPTIONS.map((o) => {
-          const active = selected === o.id;
-          return (
+    <OnboardingShell
+      step={STEP}
+      totalSteps={TOTAL_STEPS}
+      title="Tu estilo de vida"
+      subtitle="Estos factores afectan tu metabolismo y recuperación muscular."
+      footer={<Btn onPress={handleContinue}>{isEdit ? 'GUARDAR' : 'CONTINUAR'}</Btn>}
+    >
+      {/* Sueño */}
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>HORAS DE SUEÑO</Text>
+        <Text style={styles.cardSub}>Promedio por noche</Text>
+        <View style={styles.sleepRow}>
+          {SLEEP_OPTIONS.map((h) => (
             <TouchableOpacity
-              key={o.id}
-              style={[active ? glassNeon : glass, styles.card]}
-              onPress={() => setSelected(o.id)}
+              key={h}
+              style={[styles.sleepChip, h === sleepHours && styles.sleepChipActive]}
+              onPress={() => setSleepHours(h)}
               activeOpacity={0.8}
             >
-              <Text style={styles.icon}>{o.icon}</Text>
-              <View style={styles.cardText}>
-                <Text style={[styles.cardLabel, active && styles.cardLabelActive]}>{o.label}</Text>
-                <Text style={styles.cardSub}>{o.sub}</Text>
-              </View>
-              {active && <Text style={styles.check}>✓</Text>}
+              <Text style={[styles.sleepChipText, h === sleepHours && styles.sleepChipTextActive]}>
+                {h}h
+              </Text>
             </TouchableOpacity>
-          );
-        })}
-
-        <View style={styles.btnWrap}>
-          <Btn onPress={handleContinue}>{isEdit ? 'Guardar' : 'Continuar'}</Btn>
+          ))}
         </View>
-      </ScrollView>
-    </SafeAreaView>
+      </View>
+
+      {/* Estrés */}
+      <View style={styles.card}>
+        <View style={styles.cardHeader}>
+          <Text style={styles.cardTitle}>NIVEL DE ESTRÉS</Text>
+          <Text style={styles.stressValue}>{STRESS_LABELS[stressLevel]}</Text>
+        </View>
+        <Text style={styles.cardSub}>Nivel general en tu vida cotidiana</Text>
+        <View style={styles.stressRow}>
+          {[1, 2, 3, 4, 5].map((n) => (
+            <TouchableOpacity
+              key={n}
+              style={[styles.stressDot, n <= stressLevel && styles.stressDotActive]}
+              onPress={() => setStressLevel(n)}
+              activeOpacity={0.8}
+            />
+          ))}
+        </View>
+        <View style={styles.stressLabels}>
+          <Text style={styles.stressLabelText}>Bajo</Text>
+          <Text style={styles.stressLabelText}>Extremo</Text>
+        </View>
+      </View>
+
+      {/* Hábitos */}
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>HÁBITOS</Text>
+        <Text style={styles.cardSub}>Ayuda a ajustar mejor tu plan de recuperación</Text>
+        <View style={styles.toggleRow}>
+          <View style={styles.toggleItem}>
+            <View style={styles.toggleLabel}>
+              <Text style={styles.toggleIcon}>🚬</Text>
+              <Text style={styles.toggleText}>Fumar</Text>
+            </View>
+            <Switch
+              value={smoking}
+              onValueChange={setSmoking}
+              trackColor={{ false: colors.surfaceContainerHigh, true: `${colors.neon}55` }}
+              thumbColor={smoking ? colors.neon : colors.muted}
+            />
+          </View>
+          <View style={styles.divider} />
+          <View style={styles.toggleItem}>
+            <View style={styles.toggleLabel}>
+              <Text style={styles.toggleIcon}>🍺</Text>
+              <Text style={styles.toggleText}>Alcohol frecuente</Text>
+            </View>
+            <Switch
+              value={alcohol}
+              onValueChange={setAlcohol}
+              trackColor={{ false: colors.surfaceContainerHigh, true: `${colors.neon}55` }}
+              thumbColor={alcohol ? colors.neon : colors.muted}
+            />
+          </View>
+        </View>
+      </View>
+    </OnboardingShell>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
-  progressTrack: { height: 3, backgroundColor: 'rgba(255,255,255,0.08)' },
-  progressFill: { height: 3, backgroundColor: colors.neon, borderRadius: 2 },
-  container: { padding: 24, paddingTop: 16 },
-  step: { fontSize: 12, color: colors.muted, fontFamily: 'SpaceGrotesk_400Regular', marginBottom: 8 },
-  title: { fontSize: 26, fontWeight: '700', color: colors.text, marginBottom: 4, fontFamily: 'SpaceGrotesk_700Bold' },
-  subtitle: { fontSize: 14, color: colors.muted, marginBottom: 20, fontFamily: 'SpaceGrotesk_400Regular' },
-  card: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 14, paddingHorizontal: 16, marginBottom: 10 },
-  icon: { fontSize: 24, width: 40, textAlign: 'center' },
-  cardText: { flex: 1 },
-  cardLabel: { fontSize: 15, fontWeight: '700', color: colors.text, fontFamily: 'SpaceGrotesk_700Bold' },
-  cardLabelActive: { color: colors.neon },
-  cardSub: { fontSize: 12, color: colors.muted, fontFamily: 'SpaceGrotesk_400Regular', marginTop: 2 },
-  check: { color: colors.neon, fontSize: 16 },
-  btnWrap: { marginTop: 8 },
+  card: {
+    ...glass,
+    padding: spacing.lg,
+    gap: spacing.md,
+    borderRadius: radius.lg,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  cardTitle: { ...text.labelCaps, color: colors.neon },
+  cardSub: { ...text.bodyMd, color: colors.muted, marginTop: -spacing.sm },
+  sleepRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    flexWrap: 'wrap',
+  },
+  sleepChip: {
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.full,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: 'rgba(255,255,255,0.04)',
+  },
+  sleepChipActive: {
+    backgroundColor: 'rgba(204,255,0,0.08)',
+    borderColor: colors.borderAccent,
+  },
+  sleepChipText: { ...text.headlineMd, color: colors.muted },
+  sleepChipTextActive: { color: colors.neon },
+  stressValue: { ...text.headlineMd, color: colors.neon },
+  stressRow: {
+    flexDirection: 'row',
+    gap: spacing.md,
+    alignItems: 'center',
+    paddingVertical: spacing.xs,
+  },
+  stressDot: {
+    flex: 1,
+    height: 8,
+    borderRadius: radius.full,
+    backgroundColor: colors.surfaceContainerHigh,
+  },
+  stressDotActive: {
+    backgroundColor: colors.neon,
+    shadowColor: colors.neon,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.4,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  stressLabels: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: -spacing.xs,
+  },
+  stressLabelText: { ...text.labelSm, color: colors.muted },
+  toggleRow: { gap: spacing.sm },
+  toggleItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  toggleLabel: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  toggleIcon: { fontSize: 18 },
+  toggleText: { ...text.bodyLg, color: colors.text },
+  divider: { height: 1, backgroundColor: colors.border },
 });

@@ -1,10 +1,14 @@
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert } from 'react-native';
+import {
+  View, Text, TextInput, TouchableOpacity,
+  ScrollView, StyleSheet, Alert, Image,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { colors, glass } from '@/constants/colors';
-import { Btn } from '@/components/ui/Btn';
-import { Label } from '@/components/ui/Label';
+import { colors, glass, glowShadows } from '@/constants/colors';
+import { text } from '@/constants/typography';
+import { spacing, radius } from '@/constants/spacing';
+import { HudBackground } from '@/components/ui/HudBackground';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { api } from '@/lib/api';
@@ -12,6 +16,7 @@ import { api } from '@/lib/api';
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const setSession = useAuthStore((s) => s.setSession);
 
@@ -54,182 +59,239 @@ export default function LoginScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-        {/* Logo */}
-        <View style={styles.logoWrap}>
-          <Text style={styles.logoText}>FITCORE</Text>
-          <Text style={styles.logoSub}>Tu cuerpo. Tu ritmo. Tu meta.</Text>
-        </View>
-
-        {/* Social login */}
-        <TouchableOpacity style={styles.socialBtn} activeOpacity={0.7} onPress={handleGoogleLogin}>
-          <View style={styles.socialIcon}>
-            <Text style={styles.socialIconText}>G</Text>
+    <HudBackground>
+      <SafeAreaView style={styles.safe}>
+        <ScrollView
+          contentContainerStyle={styles.container}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Hero */}
+          <View style={styles.heroWrap}>
+            <Text style={styles.heroText}>
+              FIT<Text style={styles.heroAccent}>CORE</Text>
+            </Text>
+            <Text style={styles.heroSub}>UNLOCK ELITE PERFORMANCE</Text>
           </View>
-          <Text style={styles.socialLabel}>Continuar con Google</Text>
-        </TouchableOpacity>
 
-        <TouchableOpacity style={styles.socialBtn} activeOpacity={0.7} onPress={handleAppleLogin}>
-          <View style={styles.socialIcon}>
-            <Text style={styles.socialIconText}>🍎</Text>
+          {/* Form card */}
+          <View style={styles.formCard}>
+            {/* Email */}
+            <View style={styles.fieldWrap}>
+              <Text style={styles.fieldLabel}>E-MAIL</Text>
+              <View style={styles.inputRow}>
+                <Text style={styles.inputIcon}>✉</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="nombre@performance.com"
+                  placeholderTextColor={colors.muted}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  selectionColor={colors.neon}
+                  value={email}
+                  onChangeText={setEmail}
+                />
+              </View>
+            </View>
+
+            {/* Password */}
+            <View style={styles.fieldWrap}>
+              <Text style={styles.fieldLabel}>CONTRASEÑA</Text>
+              <View style={styles.inputRow}>
+                <Text style={styles.inputIcon}>🔒</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="••••••••"
+                  placeholderTextColor={colors.muted}
+                  secureTextEntry={!showPass}
+                  selectionColor={colors.neon}
+                  value={password}
+                  onChangeText={setPassword}
+                />
+                <TouchableOpacity onPress={() => setShowPass(!showPass)}>
+                  <Text style={styles.inputIcon}>{showPass ? '🙈' : '👁'}</Text>
+                </TouchableOpacity>
+              </View>
+              <TouchableOpacity style={styles.forgotWrap}>
+                <Text style={styles.forgotText}>¿OLVIDASTE TU CONTRASEÑA?</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* CTA */}
+            <TouchableOpacity
+              style={[styles.ctaBtn, loading && { opacity: 0.6 }]}
+              onPress={handleEmailLogin}
+              activeOpacity={0.85}
+              disabled={loading}
+            >
+              <Text style={styles.ctaText}>{loading ? 'INICIANDO...' : 'ENTRAR'}</Text>
+            </TouchableOpacity>
+
+            {/* Divider */}
+            <View style={styles.divider}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerLabel}>OU ACESSE COM</Text>
+              <View style={styles.dividerLine} />
+            </View>
+
+            {/* Social */}
+            <View style={styles.socialRow}>
+              <TouchableOpacity style={styles.socialBtn} onPress={handleGoogleLogin} activeOpacity={0.75}>
+                <Text style={styles.socialBtnText}>G  GOOGLE</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.socialBtn} onPress={handleAppleLogin} activeOpacity={0.75}>
+                <Text style={styles.socialBtnText}>  APPLE</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-          <Text style={styles.socialLabel}>Continuar con Apple</Text>
-        </TouchableOpacity>
 
-        {/* Divider */}
-        <View style={styles.divider}>
-          <View style={styles.dividerLine} />
-          <Text style={styles.dividerText}>o con email</Text>
-          <View style={styles.dividerLine} />
-        </View>
-
-        {/* Email / Password */}
-        <Label>Email</Label>
-        <TextInput
-          style={styles.input}
-          placeholder="tu@email.com"
-          placeholderTextColor={colors.dim}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          selectionColor={colors.neon}
-          value={email}
-          onChangeText={setEmail}
-        />
-
-        <Label>Contraseña</Label>
-        <TextInput
-          style={styles.input}
-          placeholder="••••••••"
-          placeholderTextColor={colors.dim}
-          secureTextEntry
-          selectionColor={colors.neon}
-          value={password}
-          onChangeText={setPassword}
-        />
-
-        <TouchableOpacity style={styles.forgotWrap}>
-          <Text style={styles.forgotText}>¿Olvidaste tu contraseña?</Text>
-        </TouchableOpacity>
-
-        <Btn onPress={handleEmailLogin}>
-          {loading ? 'Iniciando...' : 'Iniciar sesión'}
-        </Btn>
-
-        <View style={styles.registerWrap}>
-          <Text style={styles.registerText}>¿Sin cuenta? </Text>
-          <TouchableOpacity onPress={() => router.push('/(auth)/register')}>
-            <Text style={styles.registerLink}>Regístrate gratis</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+          {/* Footer */}
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>
+              ¿Sin cuenta?{' '}
+              <Text style={styles.footerLink} onPress={() => router.push('/(auth)/register')}>
+                Regístrate
+              </Text>
+            </Text>
+            <View style={styles.footerLinks}>
+              <Text style={styles.footerMuted}>TÉRMINOS</Text>
+              <Text style={styles.footerMuted}>PRIVACIDAD</Text>
+            </View>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    </HudBackground>
   );
 }
 
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: colors.bg,
   },
   container: {
-    padding: 24,
-    paddingTop: 8,
+    padding: spacing.marginMobile,
+    paddingTop: spacing.lg,
+    gap: spacing.xl,
   },
-  logoWrap: {
+  heroWrap: {
     alignItems: 'center',
-    paddingVertical: 28,
+    paddingVertical: spacing.xl,
   },
-  logoText: {
-    fontSize: 13,
-    letterSpacing: 6,
+  heroText: {
+    ...text.heroLg,
+    fontSize: 36,
+    color: colors.text,
+    fontStyle: 'italic',
+  },
+  heroAccent: {
     color: colors.neon,
-    fontWeight: '700',
-    marginBottom: 4,
-    fontFamily: 'SpaceGrotesk_700Bold',
   },
-  logoSub: {
-    fontSize: 11,
+  heroSub: {
+    ...text.labelCaps,
     color: colors.muted,
-    fontFamily: 'SpaceGrotesk_400Regular',
+    marginTop: spacing.xs,
   },
-  socialBtn: {
+  formCard: {
+    ...glass,
+    padding: spacing.lg,
+    gap: spacing.md,
+    borderRadius: radius.lg,
+  },
+  fieldWrap: {
+    gap: spacing.xs,
+  },
+  fieldLabel: {
+    ...text.labelSm,
+    color: colors.muted,
+  },
+  inputRow: {
     ...glass,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    padding: 12,
-    paddingHorizontal: 16,
-    marginBottom: 8,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    gap: spacing.sm,
+    borderRadius: radius.md,
   },
-  socialIcon: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
-    backgroundColor: 'rgba(255,255,255,0.08)',
+  inputIcon: {
+    fontSize: 16,
+    color: colors.muted,
+  },
+  input: {
+    flex: 1,
+    color: colors.text,
+    fontSize: 14,
+    fontFamily: 'SpaceGrotesk_400Regular',
+  },
+  forgotWrap: {
+    alignSelf: 'flex-end',
+    marginTop: spacing.base,
+  },
+  forgotText: {
+    ...text.labelSm,
+    color: colors.neon,
+  },
+  ctaBtn: {
+    backgroundColor: colors.neon,
+    height: 56,
+    borderRadius: radius.md,
     alignItems: 'center',
     justifyContent: 'center',
+    marginTop: spacing.xs,
+    ...glowShadows.neon,
   },
-  socialIconText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: colors.text,
-  },
-  socialLabel: {
-    fontSize: 15,
-    color: colors.text,
-    fontFamily: 'SpaceGrotesk_400Regular',
+  ctaText: {
+    ...text.headlineMd,
+    color: '#111',
   },
   divider: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginVertical: 14,
+    gap: spacing.md,
   },
   dividerLine: {
     flex: 1,
     height: 1,
     backgroundColor: colors.border,
   },
-  dividerText: {
-    fontSize: 12,
-    color: colors.dim,
-    fontFamily: 'SpaceGrotesk_400Regular',
-  },
-  input: {
-    backgroundColor: 'rgba(255,255,255,0.04)',
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 11,
-    color: colors.text,
-    fontSize: 15,
-    fontFamily: 'SpaceGrotesk_400Regular',
-    marginBottom: 10,
-  },
-  forgotWrap: {
-    alignItems: 'flex-end',
-    marginBottom: 18,
-  },
-  forgotText: {
-    fontSize: 13,
-    color: colors.neon,
-    fontFamily: 'SpaceGrotesk_400Regular',
-  },
-  registerWrap: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: 16,
-  },
-  registerText: {
-    fontSize: 14,
+  dividerLabel: {
+    ...text.labelSm,
     color: colors.muted,
-    fontFamily: 'SpaceGrotesk_400Regular',
   },
-  registerLink: {
-    fontSize: 14,
+  socialRow: {
+    flexDirection: 'row',
+    gap: spacing.md,
+  },
+  socialBtn: {
+    flex: 1,
+    ...glass,
+    paddingVertical: spacing.sm,
+    alignItems: 'center',
+    borderRadius: radius.md,
+  },
+  socialBtnText: {
+    ...text.labelCaps,
+    color: colors.text,
+  },
+  footer: {
+    alignItems: 'center',
+    gap: spacing.md,
+    paddingBottom: spacing.xl,
+  },
+  footerText: {
+    ...text.bodyMd,
+    color: colors.muted,
+  },
+  footerLink: {
     color: colors.neon,
-    fontFamily: 'SpaceGrotesk_600SemiBold',
+    fontFamily: 'SpaceGrotesk_700Bold',
+  },
+  footerLinks: {
+    flexDirection: 'row',
+    gap: spacing.lg,
+  },
+  footerMuted: {
+    ...text.labelSm,
+    color: colors.dim,
   },
 });

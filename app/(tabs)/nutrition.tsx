@@ -6,10 +6,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { colors, glass, glassNeon } from '@/constants/colors';
-import { Ring } from '@/components/ui/Ring';
-import { ProgressBar } from '@/components/ui/ProgressBar';
-import { GlassCard } from '@/components/ui/GlassCard';
-import { Label } from '@/components/ui/Label';
+import { text } from '@/constants/typography';
+import { spacing, radius } from '@/constants/spacing';
+import { RingChart } from '@/components/ui/RingChart';
 import { useNutritionStore } from '@/stores/useNutritionStore';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { FoodLogEntry } from '@/lib/api';
@@ -39,7 +38,6 @@ const MONTH_SHORT = [
 
 const DAY_CELL_W = 52;
 const SCREEN_W = Dimensions.get('window').width;
-// Number of past days to show in the strip (60 days back)
 const STRIP_DAYS = 60;
 
 // ─── Date helpers ─────────────────────────────────────────────────────────────
@@ -72,32 +70,25 @@ function formatShort(dateStr: string): string {
   return `${d}/${m}`;
 }
 
-// Build list of dates for the strip (from STRIP_DAYS ago to today)
 function buildStripDates(): string[] {
   const today = todayStr();
   return Array.from({ length: STRIP_DAYS + 1 }, (_, i) => addDays(today, i - STRIP_DAYS));
 }
 
-// Build a 6×7 grid for the calendar month view
 function buildCalendarGrid(year: number, month: number): (string | null)[][] {
-  const firstWeekday = new Date(year, month, 1).getDay(); // 0=Sun
-  // Shift to Mon-first: 0=Mon … 6=Sun
+  const firstWeekday = new Date(year, month, 1).getDay();
   const startOffset = (firstWeekday + 6) % 7;
   const daysInMonth = new Date(year, month + 1, 0).getDate();
-
   const cells: (string | null)[] = [];
   for (let i = 0; i < startOffset; i++) cells.push(null);
   for (let d = 1; d <= daysInMonth; d++) {
     cells.push(`${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`);
   }
   while (cells.length % 7 !== 0) cells.push(null);
-
   const rows: (string | null)[][] = [];
   for (let i = 0; i < cells.length; i += 7) rows.push(cells.slice(i, i + 7));
   return rows;
 }
-
-// ─── Dot color helper ─────────────────────────────────────────────────────────
 
 function dotColor(dateStr: string, logCache: Record<string, { calories: number }>, calGoal = 2000): string {
   const entry = logCache[dateStr];
@@ -111,10 +102,7 @@ function dotColor(dateStr: string, logCache: Record<string, { calories: number }
 // ─── WeekStrip ────────────────────────────────────────────────────────────────
 
 function WeekStrip({
-  selectedDate,
-  onSelect,
-  logCache,
-  calGoal,
+  selectedDate, onSelect, logCache, calGoal,
 }: {
   selectedDate: string;
   onSelect: (d: string) => void;
@@ -143,7 +131,6 @@ function WeekStrip({
         const isSelected = dateStr === selectedDate;
         const dot = dotColor(dateStr, logCache, calGoal);
         const isToday = dateStr === todayStr();
-
         return (
           <TouchableOpacity
             key={dateStr}
@@ -166,61 +153,20 @@ function WeekStrip({
 }
 
 const stripStyles = StyleSheet.create({
-  container: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    gap: 2,
-    flexDirection: 'row',
-  },
-  cell: {
-    width: DAY_CELL_W,
-    alignItems: 'center',
-    paddingVertical: 8,
-    borderRadius: 12,
-    gap: 2,
-  },
-  cellSelected: {
-    backgroundColor: 'rgba(204,255,0,0.12)',
-    borderWidth: 1,
-    borderColor: 'rgba(204,255,0,0.4)',
-  },
-  cellToday: {
-    borderWidth: 1,
-    borderColor: 'rgba(204,255,0,0.2)',
-    borderRadius: 12,
-  },
-  dayLetter: {
-    fontSize: 11,
-    color: colors.muted,
-    fontFamily: 'SpaceGrotesk_600SemiBold',
-    textTransform: 'uppercase',
-  },
-  dayNum: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: colors.muted,
-    fontFamily: 'SpaceGrotesk_700Bold',
-  },
-  textSelected: {
-    color: colors.neon,
-  },
-  dot: {
-    width: 5,
-    height: 5,
-    borderRadius: 3,
-    marginTop: 2,
-  },
+  container: { paddingHorizontal: 12, paddingVertical: 6, gap: 2, flexDirection: 'row' },
+  cell: { width: DAY_CELL_W, alignItems: 'center', paddingVertical: 8, borderRadius: radius.md, gap: 2 },
+  cellSelected: { backgroundColor: 'rgba(204,255,0,0.12)', borderWidth: 1, borderColor: 'rgba(204,255,0,0.4)' },
+  cellToday: { borderWidth: 1, borderColor: 'rgba(204,255,0,0.2)', borderRadius: radius.md },
+  dayLetter: { ...text.labelSm, color: colors.muted },
+  dayNum: { fontSize: 15, fontWeight: '700', color: colors.muted, fontFamily: 'SpaceGrotesk_700Bold' },
+  textSelected: { color: colors.neon },
+  dot: { width: 5, height: 5, borderRadius: 3, marginTop: 2 },
 });
 
 // ─── CalendarModal ────────────────────────────────────────────────────────────
 
 function CalendarModal({
-  visible,
-  selectedDate,
-  logCache,
-  calGoal,
-  onSelect,
-  onClose,
+  visible, selectedDate, logCache, calGoal, onSelect, onClose,
 }: {
   visible: boolean;
   selectedDate: string;
@@ -233,7 +179,6 @@ function CalendarModal({
   const initD = new Date(selectedDate + 'T12:00:00');
   const [month, setMonth] = useState(initD.getMonth());
   const [year, setYear] = useState(initD.getFullYear());
-
   const rows = useMemo(() => buildCalendarGrid(year, month), [year, month]);
 
   function prevMonth() {
@@ -255,27 +200,20 @@ function CalendarModal({
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <Pressable style={calStyles.overlay} onPress={onClose}>
         <Pressable style={calStyles.card} onPress={() => {}}>
-          {/* Month nav */}
           <View style={calStyles.monthHeader}>
             <TouchableOpacity onPress={prevMonth} style={calStyles.navBtn}>
               <Text style={calStyles.navArrow}>‹</Text>
             </TouchableOpacity>
-            <Text style={calStyles.monthLabel}>
-              {MONTH_SHORT[month]} {year}
-            </Text>
+            <Text style={calStyles.monthLabel}>{MONTH_SHORT[month]} {year}</Text>
             <TouchableOpacity onPress={nextMonth} style={calStyles.navBtn} disabled={isLastMonth}>
               <Text style={[calStyles.navArrow, isLastMonth && calStyles.navDim]}>›</Text>
             </TouchableOpacity>
           </View>
-
-          {/* Day headers */}
           <View style={calStyles.dayHeaders}>
             {['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sa', 'Do'].map((d) => (
               <Text key={d} style={calStyles.dayHeader}>{d}</Text>
             ))}
           </View>
-
-          {/* Grid */}
           {rows.map((row, ri) => (
             <View key={ri} style={calStyles.row}>
               {row.map((dateStr, ci) => {
@@ -284,25 +222,15 @@ function CalendarModal({
                 const isSelected = dateStr === selectedDate;
                 const isToday = dateStr === today;
                 const dot = dotColor(dateStr, logCache, calGoal);
-
                 return (
                   <TouchableOpacity
                     key={ci}
-                    style={[
-                      calStyles.dayCell,
-                      isSelected && calStyles.dayCellSelected,
-                      isToday && !isSelected && calStyles.dayCellToday,
-                    ]}
+                    style={[calStyles.dayCell, isSelected && calStyles.dayCellSelected, isToday && !isSelected && calStyles.dayCellToday]}
                     onPress={() => { if (!isFuture) { onSelect(dateStr); onClose(); } }}
                     activeOpacity={isFuture ? 1 : 0.7}
                     disabled={isFuture}
                   >
-                    <Text style={[
-                      calStyles.dayNum,
-                      isFuture && calStyles.dayFuture,
-                      isSelected && calStyles.dayNumSelected,
-                      isToday && !isSelected && calStyles.dayNumToday,
-                    ]}>
+                    <Text style={[calStyles.dayNum, isFuture && calStyles.dayFuture, isSelected && calStyles.dayNumSelected, isToday && !isSelected && calStyles.dayNumToday]}>
                       {parseInt(dateStr.split('-')[2], 10)}
                     </Text>
                     {dot !== 'transparent' && !isFuture && (
@@ -313,8 +241,6 @@ function CalendarModal({
               })}
             </View>
           ))}
-
-          {/* Legend */}
           <View style={calStyles.legend}>
             <View style={calStyles.legendItem}>
               <View style={[calStyles.legendDot, { backgroundColor: colors.neon }]} />
@@ -325,7 +251,6 @@ function CalendarModal({
               <Text style={calStyles.legendText}>Parcial</Text>
             </View>
           </View>
-
           <TouchableOpacity style={calStyles.closeBtn} onPress={onClose}>
             <Text style={calStyles.closeBtnText}>Cerrar</Text>
           </TouchableOpacity>
@@ -336,100 +261,30 @@ function CalendarModal({
 }
 
 const calStyles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.75)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  card: {
-    width: '100%',
-    backgroundColor: '#111',
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-    padding: 16,
-    gap: 8,
-  },
-  monthHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 4,
-    marginBottom: 4,
-  },
+  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.75)', justifyContent: 'center', alignItems: 'center', padding: 20 },
+  card: { width: '100%', backgroundColor: '#111', borderRadius: 20, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', padding: 16, gap: 8 },
+  monthHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 4, marginBottom: 4 },
   navBtn: { padding: 8 },
   navArrow: { fontSize: 22, color: colors.text, fontWeight: '700' },
   navDim: { color: colors.dim },
-  monthLabel: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: colors.text,
-    fontFamily: 'SpaceGrotesk_700Bold',
-  },
-  dayHeaders: {
-    flexDirection: 'row',
-    marginBottom: 2,
-  },
-  dayHeader: {
-    flex: 1,
-    textAlign: 'center',
-    fontSize: 11,
-    color: colors.dim,
-    fontFamily: 'SpaceGrotesk_600SemiBold',
-    textTransform: 'uppercase',
-  },
+  monthLabel: { fontSize: 17, fontWeight: '700', color: colors.text, fontFamily: 'SpaceGrotesk_700Bold' },
+  dayHeaders: { flexDirection: 'row', marginBottom: 2 },
+  dayHeader: { flex: 1, textAlign: 'center', fontSize: 11, color: colors.dim, fontFamily: 'SpaceGrotesk_600SemiBold', textTransform: 'uppercase' },
   row: { flexDirection: 'row' },
   emptyCell: { flex: 1, height: 44 },
-  dayCell: {
-    flex: 1,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 10,
-    gap: 2,
-  },
-  dayCellSelected: {
-    backgroundColor: colors.neon,
-  },
-  dayCellToday: {
-    borderWidth: 1,
-    borderColor: colors.neon,
-  },
-  dayNum: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.text,
-    fontFamily: 'SpaceGrotesk_600SemiBold',
-  },
+  dayCell: { flex: 1, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 10, gap: 2 },
+  dayCellSelected: { backgroundColor: colors.neon },
+  dayCellToday: { borderWidth: 1, borderColor: colors.neon },
+  dayNum: { fontSize: 14, fontWeight: '600', color: colors.text, fontFamily: 'SpaceGrotesk_600SemiBold' },
   dayNumSelected: { color: colors.bg },
   dayNumToday: { color: colors.neon },
   dayFuture: { color: colors.dim, opacity: 0.4 },
-  dot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-  },
-  legend: {
-    flexDirection: 'row',
-    gap: 16,
-    justifyContent: 'center',
-    paddingTop: 4,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.06)',
-    marginTop: 4,
-  },
+  dot: { width: 4, height: 4, borderRadius: 2 },
+  legend: { flexDirection: 'row', gap: 16, justifyContent: 'center', paddingTop: 4, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.06)', marginTop: 4 },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   legendDot: { width: 8, height: 8, borderRadius: 4 },
   legendText: { fontSize: 11, color: colors.muted, fontFamily: 'SpaceGrotesk_400Regular' },
-  closeBtn: {
-    backgroundColor: 'rgba(255,255,255,0.06)',
-    borderRadius: 10,
-    paddingVertical: 12,
-    alignItems: 'center',
-    marginTop: 4,
-  },
+  closeBtn: { backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 10, paddingVertical: 12, alignItems: 'center', marginTop: 4 },
   closeBtnText: { fontSize: 14, color: colors.muted, fontFamily: 'SpaceGrotesk_600SemiBold' },
 });
 
@@ -463,7 +318,6 @@ export default function NutritionScreen() {
     if (d <= today) setSelectedDate(d);
   }, [today]);
 
-  // Group entries by mealType
   const byMeal = useMemo(() => {
     const m: Record<string, FoodLogEntry[]> = { breakfast: [], lunch: [], snack: [], dinner: [] };
     for (const e of foodLog) {
@@ -472,31 +326,43 @@ export default function NutritionScreen() {
     return m;
   }, [foodLog]);
 
-  // Totals
-  const totalCal = foodLog.reduce((s, e) => s + e.calories, 0);
-  const totalProt = foodLog.reduce((s, e) => s + e.proteinG, 0);
+  const totalCal   = foodLog.reduce((s, e) => s + e.calories, 0);
+  const totalProt  = foodLog.reduce((s, e) => s + e.proteinG, 0);
   const totalCarbs = foodLog.reduce((s, e) => s + e.carbsG, 0);
-  const totalFat = foodLog.reduce((s, e) => s + e.fatG, 0);
+  const totalFat   = foodLog.reduce((s, e) => s + e.fatG, 0);
 
-  const pctOf = (v: number, g: number) => Math.min(100, Math.round((v / g) * 100));
-  const calPct = pctOf(totalCal, goals.calories);
-  const waterPct = Math.round((waterGlasses / WATER_GOAL) * 100);
+  const calPct    = Math.min(1, totalCal / goals.calories);
+  const protPct   = Math.min(1, totalProt / goals.proteinG);
+  const carbsPct  = Math.min(1, totalCarbs / goals.carbsG);
+  const fatPct    = Math.min(1, totalFat / goals.fatG);
+  const waterMl   = waterGlasses * 250;
+  const waterGoalMl = WATER_GOAL * 250;
 
   const isToday = selectedDate === today;
   const cachedDay = logCache[selectedDate];
 
   return (
-    <SafeAreaView style={styles.safe}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.title}>Nutrición</Text>
-        <TouchableOpacity onPress={() => setCalendarOpen(true)} style={styles.calBtn} activeOpacity={0.7}>
-          <Text style={styles.calBtnText}>📅</Text>
-          <Text style={styles.calBtnLabel}>{formatShort(selectedDate)}</Text>
-        </TouchableOpacity>
+    <SafeAreaView style={styles.safe} edges={['top']}>
+      {/* TopAppBar */}
+      <View style={styles.topBar}>
+        <Text style={styles.logo}>FITCORE</Text>
+        <View style={styles.topActions}>
+          <TouchableOpacity
+            onPress={() => router.push('/nutrition/history' as never)}
+            style={styles.topBtn}
+          >
+            <Text style={styles.topBtnIcon}>📊</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setCalendarOpen(true)}
+            style={styles.topBtn}
+          >
+            <Text style={styles.topBtnIcon}>📅</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
-      {/* Week strip (timeline) */}
+      {/* Week strip */}
       <WeekStrip
         selectedDate={selectedDate}
         onSelect={handleSelectDate}
@@ -504,170 +370,169 @@ export default function NutritionScreen() {
         calGoal={goals.calories}
       />
 
-      {/* Past-day banner */}
-      {!isToday && (
-        <View style={styles.pastBanner}>
-          <Text style={styles.pastDate}>{formatLong(selectedDate)}</Text>
-          {cachedDay ? (
-            <Text style={styles.pastStats}>
-              {cachedDay.calories} / {goals.calories} kcal
-              {' · '}{cachedDay.mealsCount} {cachedDay.mealsCount === 1 ? 'comida' : 'comidas'}
-            </Text>
-          ) : null}
-        </View>
-      )}
-
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-        {/* Calorie ring + macros */}
-        <GlassCard style={styles.calorieCard}>
+        {/* Date header */}
+        <View style={styles.dateHeader}>
+          <View>
+            <Text style={styles.todayLabel}>{isToday ? 'HOY' : formatShort(selectedDate).toUpperCase()}</Text>
+            <Text style={styles.pageTitle}>Resumen Nutricional</Text>
+          </View>
+          <Text style={styles.goalLabel}>Meta: {goals.calories.toLocaleString()} kcal</Text>
+        </View>
+
+        {/* Past-day banner */}
+        {!isToday && cachedDay && (
+          <View style={styles.pastBanner}>
+            <Text style={styles.pastDate}>{formatLong(selectedDate)}</Text>
+            <Text style={styles.pastStats}>
+              {cachedDay.calories} / {goals.calories} kcal · {cachedDay.mealsCount} {cachedDay.mealsCount === 1 ? 'comida' : 'comidas'}
+            </Text>
+          </View>
+        )}
+
+        {/* Calorie ring card */}
+        <View style={[glass, styles.calCard]}>
+          <View style={styles.calAccent} />
           {loading ? (
-            <ActivityIndicator color={colors.neon} style={{ flex: 1, paddingVertical: 16 }} />
+            <ActivityIndicator color={colors.neon} style={{ paddingVertical: 40, flex: 1 }} />
           ) : (
-            <>
-              <Ring percentage={calPct} size={90} color={colors.neon} value={Math.max(0, goals.calories - totalCal)} label="Restantes" />
-              <View style={styles.macrosWrap}>
-                {[
-                  { name: 'Proteína', val: totalProt,  goal: goals.proteinG, color: colors.neon   },
-                  { name: 'Carbos',   val: totalCarbs, goal: goals.carbsG,   color: colors.teal  },
-                  { name: 'Grasas',   val: totalFat,   goal: goals.fatG,     color: colors.orange },
-                ].map((m) => (
-                  <View key={m.name} style={styles.macroRow}>
-                    <View style={styles.macroMeta}>
-                      <Text style={styles.macroName}>{m.name}</Text>
-                      <Text style={[styles.macroPct, { color: m.color }]}>
-                        {Math.round(m.val)}g / {m.goal}g
-                      </Text>
-                    </View>
-                    <ProgressBar pct={pctOf(m.val, m.goal)} color={m.color} h={4} />
-                  </View>
-                ))}
-              </View>
-            </>
-          )}
-        </GlassCard>
-
-        {/* Water tracker */}
-        <GlassCard style={styles.waterCard}>
-          <View style={styles.waterHeader}>
-            <View>
-              <Label>Hidratación</Label>
-              <Text style={styles.waterAmount}>
-                <Text style={styles.waterAmountVal}>{waterGlasses * 250}</Text>
-                <Text style={styles.waterAmountGoal}> / 2000 ml</Text>
-              </Text>
-            </View>
-            <Ring percentage={waterPct} size={56} color={colors.teal} value={`${waterPct}%`} label="H₂O" />
-          </View>
-          <ProgressBar pct={waterPct} color={colors.teal} h={6} />
-          <View style={styles.waterGlasses}>
-            {Array.from({ length: WATER_GOAL }, (_, i) => (
-              <TouchableOpacity
-                key={i}
-                onPress={() => setWaterGlasses(selectedDate, i < waterGlasses ? i : i + 1)}
-                style={styles.glassBtn}
-                activeOpacity={0.7}
+            <View style={styles.calContent}>
+              <RingChart
+                size={140}
+                rings={[{ radius: 62, strokeWidth: 12, progress: calPct, color: colors.neon, trackColor: 'rgba(255,255,255,0.05)' }]}
               >
-                <Text style={[styles.glassIcon, i < waterGlasses && styles.glassIconFull]}>
-                  {i < waterGlasses ? '🥤' : '🫙'}
-                </Text>
-              </TouchableOpacity>
-            ))}
+                <View style={styles.calCenter}>
+                  <Text style={styles.calRemaining}>{Math.max(0, goals.calories - totalCal).toLocaleString()}</Text>
+                  <Text style={styles.calRemainingLabel}>KCAL RESTANTES</Text>
+                </View>
+              </RingChart>
+              <View style={styles.calStatsRow}>
+                <View style={styles.calStat}>
+                  <Text style={styles.calStatVal}>{totalCal.toLocaleString()}</Text>
+                  <Text style={styles.calStatLabel}>CONSUMIDAS</Text>
+                </View>
+                <View style={styles.calStatDivider} />
+                <View style={styles.calStat}>
+                  <Text style={styles.calStatVal}>{goals.calories.toLocaleString()}</Text>
+                  <Text style={styles.calStatLabel}>META</Text>
+                </View>
+              </View>
+            </View>
+          )}
+        </View>
+
+        {/* Macros 3-col */}
+        <View style={styles.macrosRow}>
+          {[
+            { label: 'PROTEÍNAS', val: totalProt,  goal: goals.proteinG, pct: protPct,  color: colors.neon },
+            { label: 'CARBOS',    val: totalCarbs,  goal: goals.carbsG,   pct: carbsPct, color: colors.orange },
+            { label: 'GRASAS',    val: totalFat,    goal: goals.fatG,     pct: fatPct,   color: colors.muted },
+          ].map((m) => (
+            <View key={m.label} style={[glass, styles.macroCard, { borderLeftColor: m.color }]}>
+              <Text style={styles.macroLabel}>{m.label}</Text>
+              <Text style={styles.macroVal}>{Math.round(m.val)}/{m.goal}g</Text>
+              <View style={styles.macroBarTrack}>
+                <View style={[styles.macroBarFill, { width: `${Math.round(m.pct * 100)}%`, backgroundColor: m.color }]} />
+              </View>
+            </View>
+          ))}
+        </View>
+
+        {/* Modo Despensa CTA */}
+        <TouchableOpacity
+          style={styles.pantryBtn}
+          onPress={() => router.push('/nutrition/pantry')}
+          activeOpacity={0.85}
+        >
+          <View style={styles.pantryBtnLeft}>
+            <View style={styles.pantryBtnIcon}>
+              <Text style={styles.pantryBtnIconText}>✦</Text>
+            </View>
+            <View style={styles.pantryBtnInfo}>
+              <Text style={styles.pantryBtnTitle}>Modo Despensa</Text>
+              <Text style={styles.pantryBtnSub}>Genera recetas con lo que tenés en casa</Text>
+            </View>
           </View>
-          <Text style={styles.waterHint}>Toca para registrar un vaso (250ml)</Text>
-        </GlassCard>
+          <Text style={styles.pantryBtnArrow}>›</Text>
+        </TouchableOpacity>
 
-        {/* Meals */}
-        <Text style={styles.mealsTitle}>
-          Comidas {isToday ? 'de hoy' : `del ${formatShort(selectedDate)}`}
-        </Text>
+        {/* Diario de hoy header */}
+        <View style={styles.diaryHeader}>
+          <Text style={styles.diaryTitle}>Diario de {isToday ? 'Hoy' : formatShort(selectedDate)}</Text>
+          <TouchableOpacity onPress={() => router.push({ pathname: '/nutrition/add-food', params: { date: selectedDate } } as never)}>
+            <Text style={styles.addCircle}>＋</Text>
+          </TouchableOpacity>
+        </View>
 
+        {/* Meal cards */}
         {MEAL_ORDER.map((mealId) => {
           const entries = byMeal[mealId];
           const mealCal = entries.reduce((s, e) => s + e.calories, 0);
           const hasFoods = entries.length > 0;
-
           return (
             <TouchableOpacity
               key={mealId}
-              style={[glass, styles.mealCard, !hasFoods && styles.mealDim]}
+              style={[glass, styles.mealCard, !hasFoods && styles.mealCardEmpty]}
               activeOpacity={0.75}
-              onPress={() => router.push({ pathname: '/nutrition/meal/[id]', params: { id: mealId, date: selectedDate } })}
+              onPress={() => hasFoods
+                ? router.push({ pathname: '/nutrition/meal/[id]', params: { id: mealId, date: selectedDate } })
+                : router.push({ pathname: '/nutrition/add-food', params: { meal: mealId, date: selectedDate } } as never)
+              }
             >
-              <View style={styles.mealLeft}>
-                <Text style={styles.mealIcon}>{MEAL_ICONS[mealId]}</Text>
-                <View style={{ flex: 1 }}>
-                  <Text style={[styles.mealName, !hasFoods && styles.mealNameDim]}>
+              <View style={[styles.mealIconWrap, !hasFoods && styles.mealIconWrapEmpty]}>
+                <Text style={styles.mealIconText}>{MEAL_ICONS[mealId]}</Text>
+              </View>
+              <View style={styles.mealInfo}>
+                <View style={styles.mealTopRow}>
+                  <Text style={[styles.mealName, !hasFoods && styles.mealNameMuted]}>
                     {MEAL_NAMES[mealId]}
                   </Text>
-                  {hasFoods
-                    ? entries.map((e) => (
-                        <Text key={e.id} style={styles.mealItem}>· {e.foodName}</Text>
-                      ))
-                    : <Text style={styles.mealEmpty}>Sin registrar</Text>
-                  }
+                  {hasFoods ? (
+                    <Text style={styles.mealKcal}>{mealCal} kcal</Text>
+                  ) : (
+                    <Text style={styles.mealPending}>Pendiente</Text>
+                  )}
                 </View>
-              </View>
-              <View style={styles.mealRight}>
                 {hasFoods ? (
-                  <Text style={styles.mealKcal}>{mealCal} kcal</Text>
+                  <Text style={styles.mealDesc} numberOfLines={1}>
+                    {entries.map((e) => e.foodName).join(', ')}
+                  </Text>
                 ) : (
-                  <TouchableOpacity
-                    onPress={() => router.push({ pathname: '/nutrition/search', params: { meal: mealId, date: selectedDate } })}
-                    style={styles.addBtn}
-                  >
-                    <Text style={styles.addBtnText}>+ Añadir</Text>
-                  </TouchableOpacity>
+                  <Text style={styles.mealDescEmpty}>Registra tu {MEAL_NAMES[mealId].toLowerCase()}</Text>
                 )}
-                <Text style={styles.mealArrow}>›</Text>
               </View>
+              <Text style={styles.mealArrow}>{hasFoods ? '›' : '＋'}</Text>
             </TouchableOpacity>
           );
         })}
 
-        {/* Pantry CTA */}
-        <TouchableOpacity
-          style={[glassNeon, styles.pantryCta]}
-          onPress={() => router.push('/nutrition/pantry')}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.pantryEmoji}>✦</Text>
-          <View>
-            <Text style={styles.pantryTitle}>Modo Despensa</Text>
-            <Text style={styles.pantrySub}>Genera recetas con lo que tenés en casa</Text>
+        {/* Hydration */}
+        <View style={[glass, styles.waterCard]}>
+          <View style={styles.waterHeader}>
+            <View style={styles.waterHeaderLeft}>
+              <Text style={styles.waterDrop}>💧</Text>
+              <Text style={styles.waterTitle}>Hidratación</Text>
+            </View>
+            <Text style={styles.waterAmount}>{waterMl} / {waterGoalMl} ml</Text>
           </View>
-          <Text style={styles.pantryArrow}>›</Text>
-        </TouchableOpacity>
-
-        {/* Social groups CTA */}
-        <TouchableOpacity
-          style={[glass, styles.receiptCta]}
-          onPress={() => router.push('/nutrition/groups')}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.receiptEmoji}>👥</Text>
-          <View>
-            <Text style={styles.receiptTitle}>Grupos de nutrición</Text>
-            <Text style={styles.receiptSub}>Compará lo que comés con tus amigos</Text>
-          </View>
-          <Text style={styles.receiptArrow}>›</Text>
-        </TouchableOpacity>
-
-        {/* Receipt scanner CTA */}
-        <TouchableOpacity
-          style={[glass, styles.receiptCta]}
-          onPress={() => router.push({ pathname: '/nutrition/scanner', params: { mode: 'receipt' } })}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.receiptEmoji}>🧾</Text>
-          <View>
-            <Text style={styles.receiptTitle}>Escanear ticket</Text>
-            <Text style={styles.receiptSub}>Fotografiá el ticket y la IA detecta las comidas</Text>
-          </View>
-          <Text style={styles.receiptArrow}>›</Text>
-        </TouchableOpacity>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.waterCups}>
+            {Array.from({ length: WATER_GOAL }, (_, i) => (
+              <TouchableOpacity
+                key={i}
+                style={[styles.waterCup, i < waterGlasses ? styles.waterCupFilled : styles.waterCupEmpty]}
+                onPress={() => setWaterGlasses(selectedDate, i < waterGlasses ? i : i + 1)}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.waterCupIcon, i < waterGlasses && styles.waterCupIconFilled]}>
+                  {i < waterGlasses ? '🥤' : '🫙'}
+                </Text>
+                {i < waterGlasses && <Text style={styles.waterCupMl}>250ml</Text>}
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
       </ScrollView>
 
-      {/* Calendar modal */}
       <CalendarModal
         visible={calendarOpen}
         selectedDate={selectedDate}
@@ -684,92 +549,166 @@ export default function NutritionScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
-  header: {
+
+  topBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: 4,
+    paddingHorizontal: spacing.marginMobile,
+    height: 56,
+    backgroundColor: 'rgba(8,8,8,0.7)',
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
-  title: { fontSize: 22, fontWeight: '700', color: colors.text, fontFamily: 'SpaceGrotesk_700Bold' },
-  calBtn: {
+  logo: { ...text.heroMd, fontSize: 22, color: colors.neon, letterSpacing: -0.5 },
+  topActions: { flexDirection: 'row', gap: spacing.xs },
+  topBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
+  topBtnIcon: { fontSize: 18 },
+
+  container: { paddingHorizontal: spacing.marginMobile, paddingBottom: spacing.xxl, gap: spacing.md, paddingTop: spacing.md },
+
+  dateHeader: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.09)',
-    borderRadius: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
   },
-  calBtnText: { fontSize: 14 },
-  calBtnLabel: { fontSize: 13, color: colors.muted, fontFamily: 'SpaceGrotesk_600SemiBold' },
+  todayLabel: { ...text.labelSm, color: colors.neon },
+  pageTitle: { ...text.headlineLg, color: colors.text },
+  goalLabel: { ...text.dataMono, color: colors.muted },
+
   pastBanner: {
-    marginHorizontal: 20,
-    marginTop: 4,
-    marginBottom: 2,
     backgroundColor: 'rgba(255,255,255,0.04)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.08)',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  pastDate: { fontSize: 13, color: colors.text, fontFamily: 'SpaceGrotesk_600SemiBold' },
-  pastStats: { fontSize: 12, color: colors.muted, fontFamily: 'SpaceGrotesk_400Regular' },
-  container: { padding: 20, paddingTop: 8, gap: 12 },
-  calorieCard: { padding: 16, flexDirection: 'row', gap: 16, alignItems: 'center', minHeight: 100 },
-  macrosWrap: { flex: 1, gap: 7 },
-  remaining: { fontSize: 13, color: colors.muted, fontFamily: 'SpaceGrotesk_400Regular' },
-  remainingVal: { color: colors.neon, fontWeight: '700', fontFamily: 'SpaceGrotesk_700Bold' },
-  macroRow: { gap: 3 },
-  macroMeta: { flexDirection: 'row', justifyContent: 'space-between' },
-  macroName: { fontSize: 12, color: colors.muted, fontFamily: 'SpaceGrotesk_400Regular' },
-  macroPct: { fontSize: 12, fontFamily: 'SpaceGrotesk_600SemiBold' },
-  waterCard: { padding: 14, paddingHorizontal: 16, gap: 10 },
-  waterHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  waterAmount: { marginTop: 2 },
-  waterAmountVal: { fontSize: 20, fontWeight: '700', color: colors.teal, fontFamily: 'SpaceGrotesk_700Bold' },
-  waterAmountGoal: { fontSize: 13, color: colors.muted, fontFamily: 'SpaceGrotesk_400Regular' },
-  waterGlasses: { flexDirection: 'row', gap: 6, marginTop: 2 },
-  glassBtn: { flex: 1, alignItems: 'center', paddingVertical: 4 },
-  glassIcon: { fontSize: 22, opacity: 0.3 },
-  glassIconFull: { opacity: 1 },
-  waterHint: { fontSize: 11, color: colors.dim, textAlign: 'center', fontFamily: 'SpaceGrotesk_400Regular' },
-  mealsTitle: { fontSize: 15, fontWeight: '700', color: colors.text, fontFamily: 'SpaceGrotesk_700Bold', marginTop: 4 },
-  mealCard: { padding: 12, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  mealDim: { opacity: 0.65 },
-  mealLeft: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, flex: 1 },
-  mealIcon: { fontSize: 28, marginTop: 0 },
-  mealName: { fontSize: 15, fontWeight: '700', color: colors.text, fontFamily: 'SpaceGrotesk_700Bold', marginBottom: 2 },
-  mealNameDim: { color: colors.muted, fontWeight: '400' },
-  mealItem: { fontSize: 12, color: colors.muted, fontFamily: 'SpaceGrotesk_400Regular' },
-  mealEmpty: { fontSize: 12, color: colors.dim, fontFamily: 'SpaceGrotesk_400Regular', fontStyle: 'italic' },
-  mealRight: { alignItems: 'flex-end', gap: 4 },
-  mealKcal: { fontSize: 14, fontWeight: '700', color: colors.neon, fontFamily: 'SpaceGrotesk_700Bold' },
-  addBtn: {
-    backgroundColor: 'rgba(255,107,53,0.1)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,107,53,0.3)',
-    borderRadius: 20,
-    paddingHorizontal: 10,
-    paddingVertical: 3,
+  pastDate: { ...text.headlineMd, fontSize: 13, color: colors.text },
+  pastStats: { ...text.bodyMd, color: colors.muted },
+
+  // Calorie ring card
+  calCard: {
+    borderRadius: radius.lg,
+    overflow: 'hidden',
+    flexDirection: 'row',
   },
-  addBtnText: { fontSize: 12, color: colors.orange, fontFamily: 'SpaceGrotesk_600SemiBold' },
-  mealArrow: { color: colors.dim, fontSize: 18 },
-  pantryCta: { padding: 14, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 4, borderStyle: 'dashed', borderColor: colors.neon, borderWidth: 1.5, backgroundColor: 'rgba(204,255,0,0.05)' },
-  pantryEmoji: { fontSize: 22, color: colors.neon },
-  pantryTitle: { fontSize: 15, fontWeight: '700', color: colors.neon, fontFamily: 'SpaceGrotesk_700Bold' },
-  pantrySub: { fontSize: 12, color: colors.muted, fontFamily: 'SpaceGrotesk_400Regular' },
-  pantryArrow: { marginLeft: 'auto', color: colors.neon, fontSize: 20 },
-  receiptCta: { padding: 14, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 12 },
-  receiptEmoji: { fontSize: 22 },
-  receiptTitle: { fontSize: 15, fontWeight: '700', color: colors.text, fontFamily: 'SpaceGrotesk_700Bold' },
-  receiptSub: { fontSize: 12, color: colors.muted, fontFamily: 'SpaceGrotesk_400Regular' },
-  receiptArrow: { marginLeft: 'auto', color: colors.dim, fontSize: 20 },
+  calAccent: { width: 3, backgroundColor: colors.neon },
+  calContent: { flex: 1, alignItems: 'center', paddingVertical: spacing.lg, gap: spacing.md },
+  calCenter: { alignItems: 'center' },
+  calRemaining: { ...text.heroMd, color: colors.text, fontSize: 30 },
+  calRemainingLabel: { ...text.labelSm, color: colors.muted },
+  calStatsRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xl },
+  calStat: { alignItems: 'center', gap: 2 },
+  calStatVal: { ...text.dataMono, color: colors.neon, fontSize: 15 },
+  calStatLabel: { ...text.labelSm, color: colors.muted },
+  calStatDivider: { width: 1, height: 24, backgroundColor: colors.border },
+
+  // Macros 3-col
+  macrosRow: { flexDirection: 'row', gap: spacing.xs },
+  macroCard: {
+    flex: 1,
+    padding: spacing.sm,
+    borderRadius: radius.lg,
+    borderLeftWidth: 2,
+    gap: 4,
+  },
+  macroLabel: { ...text.labelSm, color: colors.muted },
+  macroVal: { ...text.dataMono, color: colors.text, fontSize: 12 },
+  macroBarTrack: { height: 3, backgroundColor: colors.border, borderRadius: radius.full, overflow: 'hidden', marginTop: 2 },
+  macroBarFill: { height: '100%', borderRadius: radius.full },
+
+  // Pantry CTA
+  pantryBtn: {
+    backgroundColor: colors.neon,
+    borderRadius: radius.lg,
+    height: 64,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.md,
+  },
+  pantryBtnLeft: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  pantryBtnIcon: {
+    backgroundColor: 'rgba(0,0,0,0.15)',
+    borderRadius: radius.sm,
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pantryBtnIconText: { fontSize: 18, color: '#111' },
+  pantryBtnInfo: { gap: 2 },
+  pantryBtnTitle: { ...text.headlineMd, color: '#111' },
+  pantryBtnSub: { ...text.labelSm, color: 'rgba(0,0,0,0.6)', letterSpacing: 1 },
+  pantryBtnArrow: { fontSize: 22, color: '#111', fontWeight: '700' },
+
+  // Diary header
+  diaryHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  diaryTitle: { ...text.headlineMd, color: colors.text },
+  addCircle: { fontSize: 22, color: colors.muted },
+
+  // Meal cards
+  mealCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: spacing.md,
+    borderRadius: radius.lg,
+    gap: spacing.md,
+  },
+  mealCardEmpty: { borderStyle: 'dashed' },
+  mealIconWrap: {
+    width: 56,
+    height: 56,
+    borderRadius: radius.md,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  mealIconWrapEmpty: { opacity: 0.5 },
+  mealIconText: { fontSize: 26 },
+  mealInfo: { flex: 1, gap: 4 },
+  mealTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  mealName: { ...text.headlineMd, color: colors.text },
+  mealNameMuted: { color: colors.muted },
+  mealKcal: { ...text.dataMono, color: colors.neon, fontSize: 13 },
+  mealPending: { ...text.dataMono, color: colors.muted, fontSize: 13 },
+  mealDesc: { ...text.bodyMd, color: colors.muted },
+  mealDescEmpty: { ...text.bodyMd, color: colors.dim, fontStyle: 'italic' },
+  mealArrow: { fontSize: 20, color: colors.dim },
+
+  // Water card
+  waterCard: { padding: spacing.md, borderRadius: radius.lg, gap: spacing.md },
+  waterHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  waterHeaderLeft: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  waterDrop: { fontSize: 20 },
+  waterTitle: { ...text.headlineMd, color: colors.text },
+  waterAmount: { ...text.dataMono, color: colors.teal, fontSize: 13 },
+  waterCups: { gap: spacing.xs, paddingRight: spacing.xs },
+  waterCup: {
+    width: 48,
+    height: 64,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 2,
+  },
+  waterCupFilled: {
+    backgroundColor: 'rgba(204,255,0,0.08)',
+    borderColor: 'rgba(204,255,0,0.35)',
+  },
+  waterCupEmpty: {
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    borderColor: colors.border,
+    opacity: 0.5,
+  },
+  waterCupIcon: { fontSize: 20 },
+  waterCupIconFilled: { opacity: 1 },
+  waterCupMl: { fontSize: 9, color: colors.neon, fontFamily: 'SpaceGrotesk_600SemiBold' },
 });

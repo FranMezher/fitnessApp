@@ -1,9 +1,6 @@
 export const colors = {
+  // Base
   bg:           '#080808',
-  surface:      'rgba(255,255,255,0.05)',
-  surfaceHover: 'rgba(255,255,255,0.08)',
-  border:       'rgba(255,255,255,0.09)',
-  borderAccent: 'rgba(204,255,0,0.35)',
   neon:         '#CCFF00',
   orange:       '#FF6B35',
   teal:         '#3DFFA0',
@@ -12,25 +9,41 @@ export const colors = {
   muted:        '#888888',
   dim:          '#444444',
   gold:         '#FFD700',
+
+  // Surface layers (Stitch "Kinetic Obsidian")
+  surface:               '#131313',
+  surfaceDim:            '#131313',
+  surfaceBright:         '#3a3939',
+  surfaceContainerLowest:'#0e0e0e',
+  surfaceContainerLow:   '#1c1b1b',
+  surfaceContainer:      '#201f1f',
+  surfaceContainerHigh:  '#2a2a2a',
+  surfaceContainerHighest:'#353534',
+
+  // Legacy aliases (kept for backward compat)
+  surfaceHover: 'rgba(255,255,255,0.08)',
+  border:       'rgba(255,255,255,0.09)',
+  borderAccent: 'rgba(204,255,0,0.35)',
 };
 
 export const glass = {
-  backgroundColor: colors.surface,
+  backgroundColor: 'rgba(255,255,255,0.04)',
+  backdropFilter: 'blur(16px)',
   borderWidth: 1,
   borderColor: colors.border,
-  borderRadius: 16,
+  borderRadius: 12,
 } as const;
 
 export const glassNeon = {
   ...glass,
-  backgroundColor: 'rgba(204,255,0,0.07)',
+  backgroundColor: 'rgba(204,255,0,0.08)',
   borderColor: colors.borderAccent,
 } as const;
 
 export const glassOrange = {
   ...glass,
-  backgroundColor: 'rgba(255,107,53,0.08)',
-  borderColor: 'rgba(255,107,53,0.3)',
+  backgroundColor: 'rgba(255,107,53,0.10)',
+  borderColor: 'rgba(255,107,53,0.4)',
 } as const;
 
 export const glowShadows = {

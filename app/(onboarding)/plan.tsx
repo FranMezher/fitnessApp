@@ -2,8 +2,12 @@ import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-nat
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { colors, glass, glassNeon } from '@/constants/colors';
+import { colors, glass, glassNeon, glowShadows } from '@/constants/colors';
+import { text } from '@/constants/typography';
+import { spacing, radius } from '@/constants/spacing';
 import { Btn } from '@/components/ui/Btn';
+import { ProgressBar } from '@/components/ui/ProgressBar';
+import { HudBackground } from '@/components/ui/HudBackground';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useOnboardingStore } from '@/stores/useOnboardingStore';
@@ -12,71 +16,60 @@ const TOTAL_STEPS = 10;
 const STEP = 10;
 
 const ACTIVITY_MULT: Record<string, number> = {
-  none: 1.2, '1-2': 1.375, '3-4': 1.55, '5-6': 1.725, daily: 1.9,
+  sedentary: 1.2, lightly_active: 1.375, active: 1.55, very_active: 1.725,
 };
-const LIFESTYLE_BONUS: Record<string, number> = {
-  seated: 0, sometimes_standing: 0.05, mostly_standing: 0.1, moving: 0.15, intense: 0.2,
+const STRENGTH_PROTEIN: Record<string, number> = {
+  beginner: 1.6, intermediate: 1.8, advanced: 2.0, pro_athlete: 2.2,
 };
 const GOAL_DELTA: Record<string, number> = {
-  fat_loss: -500, muscle: 300, maintain: 0, wellness: 0,
+  fat_loss: -500, muscle: 300, maintain: 0,
 };
-const SPEED_DELTA: Record<string, number> = { slow: -100, recommended: 0, fast: 150 };
+const SPEED_DELTA: Record<string, number> = {
+  sostenible: -100, moderado: 0, agresivo: 150,
+};
 
 function calcMacros(data: ReturnType<typeof useOnboardingStore.getState>['data']) {
   const {
     sex = 'male', age = 25, heightCm = 170, weightKg = 70,
-    strengthTraining = false, activityLevel = 'none', lifestyle = 'seated',
-    goal = 'maintain', weightLossSpeed = 'recommended',
+    strengthLevel = 'beginner', activityLevel = 'sedentary',
+    goal = 'maintain', weightLossSpeed = 'moderado',
   } = data;
 
   const bmr = sex === 'male'
     ? 10 * weightKg + 6.25 * heightCm - 5 * age + 5
     : 10 * weightKg + 6.25 * heightCm - 5 * age - 161;
 
-  const tdee = bmr * ((ACTIVITY_MULT[activityLevel] ?? 1.2) + (LIFESTYLE_BONUS[lifestyle] ?? 0));
+  const tdee = bmr * (ACTIVITY_MULT[activityLevel] ?? 1.2);
   const speedAdj = goal === 'fat_loss' ? (SPEED_DELTA[weightLossSpeed] ?? 0) : 0;
-  const targetCalories = Math.round(tdee + (GOAL_DELTA[goal] ?? 0) + speedAdj);
+  const targetCalories = Math.max(1200, Math.round(tdee + (GOAL_DELTA[goal] ?? 0) + speedAdj));
 
-  const proteinMultiplier = strengthTraining ? 2.2 : 1.6;
-  const targetProteinG = Math.round(weightKg * proteinMultiplier);
+  const proteinMult = STRENGTH_PROTEIN[strengthLevel] ?? 1.6;
+  const targetProteinG = Math.round(weightKg * proteinMult);
   const proteinKcal = targetProteinG * 4;
   const fatKcal = targetCalories * 0.25;
   const targetFatG = Math.round(fatKcal / 9);
-  const targetCarbsG = Math.round((targetCalories - proteinKcal - fatKcal) / 4);
+  const targetCarbsG = Math.max(0, Math.round((targetCalories - proteinKcal - fatKcal) / 4));
 
   return { targetCalories, targetProteinG, targetFatG, targetCarbsG };
 }
 
-const WEEKS = 8;
+function goalLabel(goal?: string) {
+  const map: Record<string, string> = { fat_loss: 'Perder Grasa', muscle: 'Ganar Músculo', maintain: 'Mantenimiento' };
+  return map[goal ?? ''] ?? '—';
+}
 
-function ProgressChart({ startKg, endKg, goal }: { startKg: number; endKg: number; goal: string }) {
-  const barColor = goal === 'muscle' ? colors.orange : colors.neon;
-  const kgPerWeek = (endKg - startKg) / WEEKS;
-  const sign = kgPerWeek >= 0 ? '+' : '';
-  const label = `${sign}${kgPerWeek.toFixed(2)} kg / semana`;
+function activityLabel(level?: string) {
+  const map: Record<string, string> = {
+    sedentary: 'Sedentario', lightly_active: 'Lig. activo', active: 'Activo', very_active: 'Muy activo',
+  };
+  return map[level ?? ''] ?? '—';
+}
 
-  return (
-    <View style={chartStyles.wrap}>
-      <View style={chartStyles.bars}>
-        {Array.from({ length: WEEKS }, (_, i) => {
-          const pct = (i + 1) / WEEKS;
-          return (
-            <View key={i} style={chartStyles.barCol}>
-              <View style={chartStyles.barTrack}>
-                <View style={[chartStyles.barFill, { height: `${Math.round(pct * 100)}%`, backgroundColor: barColor }]} />
-              </View>
-              <Text style={chartStyles.weekNum}>{i + 1}</Text>
-            </View>
-          );
-        })}
-      </View>
-      <View style={chartStyles.footer}>
-        <Text style={chartStyles.startKg}>{startKg} kg</Text>
-        <Text style={chartStyles.rateLabel}>{label}</Text>
-        <Text style={chartStyles.endKg}>{endKg} kg</Text>
-      </View>
-    </View>
-  );
+function strengthLabel(level?: string) {
+  const map: Record<string, string> = {
+    beginner: 'Principiante', intermediate: 'Intermedio', advanced: 'Avanzado', pro_athlete: 'Atleta Pro',
+  };
+  return map[level ?? ''] ?? '—';
 }
 
 export default function PlanScreen() {
@@ -90,13 +83,8 @@ export default function PlanScreen() {
   const [loading, setLoading] = useState(false);
 
   const { targetCalories, targetProteinG, targetFatG, targetCarbsG } = useMemo(
-    () => calcMacros(data),
-    [data],
+    () => calcMacros(data), [data],
   );
-
-  const weightKg = data.weightKg ?? 75;
-  const targetWeightKg = data.targetWeightKg ?? weightKg - 5;
-  const showChart = data.goal === 'fat_loss' || data.goal === 'muscle';
 
   const macroTotal = targetProteinG * 4 + targetCarbsG * 4 + targetFatG * 9;
   const proteinPct = Math.round((targetProteinG * 4 / macroTotal) * 100);
@@ -109,13 +97,12 @@ export default function PlanScreen() {
 
     if (token) {
       await api.upsertProfile(token, {
-        name: (email?.includes('@') ? email.split('@')[0] : null) ?? 'Usuario',
+        name: email?.includes('@') ? email.split('@')[0] : 'Usuario',
         ...data,
         targetCalories,
         targetProteinG,
         targetCarbsG,
         targetFatG,
-        activityLifestyle: data.lifestyle,
       }).catch(() => {});
     }
 
@@ -123,64 +110,79 @@ export default function PlanScreen() {
     resetStore();
     setLoading(false);
 
-    if (isEdit) {
-      router.back();
-    } else {
-      router.replace('/(tabs)');
-    }
+    router.replace(isEdit ? '../' : '/(tabs)');
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <View style={styles.progressTrack}>
-        <View style={styles.progressFill} />
-      </View>
-
-      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-        <Text style={styles.step}>Paso {STEP} de {TOTAL_STEPS} · Tu plan</Text>
-        <Text style={styles.title}>¡Genial! Estas son las calorías que necesitás por día</Text>
-
-        {/* Calorie ring */}
-        <View style={[glassNeon, styles.calorieCard]}>
-          <Text style={styles.calorieNum}>{targetCalories.toLocaleString()}</Text>
-          <Text style={styles.calorieUnit}>kcal / día</Text>
-        </View>
-
-        {/* Macros */}
-        <View style={styles.macrosRow}>
-          <MacroCard label="Proteína" grams={targetProteinG} pct={proteinPct} color={colors.teal} />
-          <MacroCard label="Carbos" grams={targetCarbsG} pct={carbsPct} color={colors.neon} />
-          <MacroCard label="Grasas" grams={targetFatG} pct={fatPct} color={colors.orange} />
-        </View>
-
-        {/* Progress chart */}
-        {showChart && (
-          <View style={[glass, styles.chartCard]}>
-            <Text style={styles.chartTitle}>...y así será tu progreso</Text>
-            <ProgressChart startKg={weightKg} endKg={targetWeightKg} goal={data.goal ?? 'fat_loss'} />
+    <HudBackground>
+      <SafeAreaView style={styles.safe}>
+        {/* Progress header */}
+        <View style={styles.header}>
+          <View style={styles.progressMeta}>
+            <Text style={styles.stepLabel}>PASO 10</Text>
+            <Text style={styles.stepPct}>100%</Text>
           </View>
-        )}
-
-        {/* Summary */}
-        <View style={[glass, styles.summaryCard]}>
-          <SummaryRow icon="🎯" label="Objetivo" value={goalLabel(data.goal)} />
-          <SummaryRow icon="⚡" label="Actividad" value={activityLabel(data.activityLevel)} />
-          <SummaryRow icon="💪" label="Fuerza" value={data.strengthTraining ? 'Sí' : 'No'} />
+          <ProgressBar pct={100} />
         </View>
 
-        <View style={styles.btnWrap}>
-          {loading
-            ? <ActivityIndicator color={colors.neon} />
-            : <Btn onPress={handleStart}>{isEdit ? 'Guardar plan' : '¡Empezar ahora! ⚡'}</Btn>}
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+        <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+          {/* Hero celebratory */}
+          <View style={styles.heroSection}>
+            <View style={styles.trophyBadge}>
+              <Text style={styles.trophyIcon}>🏆</Text>
+            </View>
+            <Text style={styles.heroTitle}>¡Plan Listo!</Text>
+            <Text style={styles.heroSub}>Tu programa personalizado está listo. Basado en tu biometría y objetivos.</Text>
+          </View>
+
+          {/* Calorie card */}
+          <View style={[glassNeon, styles.calorieCard]}>
+            <Text style={styles.calorieLabelTop}>OBJETIVO DIARIO</Text>
+            <Text style={styles.calorieNum}>{targetCalories.toLocaleString()}</Text>
+            <Text style={styles.calorieUnit}>kcal / día</Text>
+          </View>
+
+          {/* Macros */}
+          <View style={styles.macrosRow}>
+            <MacroCard label="Proteína" grams={targetProteinG} pct={proteinPct} color={colors.teal} />
+            <MacroCard label="Carbos" grams={targetCarbsG} pct={carbsPct} color={colors.neon} />
+            <MacroCard label="Grasas" grams={targetFatG} pct={fatPct} color={colors.orange} />
+          </View>
+
+          {/* Macro visual bar */}
+          <View style={styles.macroBar}>
+            <View style={[styles.macroBarSegment, { flex: proteinPct, backgroundColor: colors.teal }]} />
+            <View style={[styles.macroBarSegment, { flex: carbsPct, backgroundColor: colors.neon }]} />
+            <View style={[styles.macroBarSegment, { flex: fatPct, backgroundColor: colors.orange }]} />
+          </View>
+
+          {/* Summary */}
+          <View style={[glass, styles.summaryCard]}>
+            <Text style={styles.summaryTitle}>RESUMEN DE TU PLAN</Text>
+            <SummaryRow icon="🎯" label="Objetivo" value={goalLabel(data.goal)} />
+            <View style={styles.divider} />
+            <SummaryRow icon="⚡" label="Actividad" value={activityLabel(data.activityLevel)} />
+            <View style={styles.divider} />
+            <SummaryRow icon="💪" label="Nivel de fuerza" value={strengthLabel(data.strengthLevel)} />
+            <View style={styles.divider} />
+            <SummaryRow icon="😴" label="Sueño" value={data.sleepHours ? `${data.sleepHours}h` : '—'} />
+          </View>
+
+          <View style={styles.btnWrap}>
+            {loading
+              ? <ActivityIndicator color={colors.neon} size="large" />
+              : <Btn onPress={handleStart}>{isEdit ? 'GUARDAR PLAN' : 'COMENZAR MI TRANSFORMACIÓN'}</Btn>
+            }
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    </HudBackground>
   );
 }
 
 function MacroCard({ label, grams, pct, color }: { label: string; grams: number; pct: number; color: string }) {
   return (
-    <View style={[macroStyles.card, { borderLeftColor: color }]}>
+    <View style={[macroStyles.card, { borderTopColor: color }]}>
       <Text style={[macroStyles.grams, { color }]}>{grams}g</Text>
       <Text style={macroStyles.label}>{label}</Text>
       <Text style={macroStyles.pct}>{pct}%</Text>
@@ -198,98 +200,104 @@ function SummaryRow({ icon, label, value }: { icon: string; label: string; value
   );
 }
 
-function goalLabel(goal?: string) {
-  const map: Record<string, string> = { fat_loss: 'Perder grasa', muscle: 'Ganar músculo', maintain: 'Mantener peso', wellness: 'Bienestar' };
-  return map[goal ?? ''] ?? '—';
-}
-
-function activityLabel(level?: string) {
-  const map: Record<string, string> = { none: 'Sin ejercicio', '1-2': '1–2 días/sem', '3-4': '3–4 días/sem', '5-6': '5–6 días/sem', daily: 'Diario' };
-  return map[level ?? ''] ?? '—';
-}
-
-const chartStyles = StyleSheet.create({
-  wrap: { width: '100%' },
-  bars: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: 6,
-    height: 100,
-    marginBottom: 6,
-  },
-  barCol: {
-    flex: 1,
-    alignItems: 'center',
-    gap: 4,
-    height: '100%',
-    justifyContent: 'flex-end',
-  },
-  barTrack: {
-    flex: 1,
-    width: '100%',
-    backgroundColor: 'rgba(255,255,255,0.06)',
-    borderRadius: 4,
-    justifyContent: 'flex-end',
-    overflow: 'hidden',
-  },
-  barFill: {
-    width: '100%',
-    borderRadius: 4,
-    opacity: 0.85,
-  },
-  weekNum: {
-    fontSize: 9,
-    color: colors.dim,
-    fontFamily: 'SpaceGrotesk_400Regular',
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 4,
-  },
-  startKg: { fontSize: 12, color: colors.muted, fontFamily: 'SpaceGrotesk_600SemiBold' },
-  endKg: { fontSize: 12, color: colors.muted, fontFamily: 'SpaceGrotesk_600SemiBold' },
-  rateLabel: { fontSize: 11, color: colors.dim, fontFamily: 'SpaceGrotesk_400Regular' },
-});
-
 const macroStyles = StyleSheet.create({
   card: {
     flex: 1,
     backgroundColor: 'rgba(255,255,255,0.04)',
     borderWidth: 1,
     borderColor: colors.border,
-    borderLeftWidth: 3,
-    borderRadius: 12,
+    borderTopWidth: 3,
+    borderRadius: radius.md,
     alignItems: 'center',
-    paddingVertical: 14,
-    gap: 2,
+    paddingVertical: spacing.lg,
+    gap: spacing.base,
   },
-  grams: { fontSize: 20, fontWeight: '700', fontFamily: 'SpaceGrotesk_700Bold' },
-  label: { fontSize: 11, color: colors.muted, fontFamily: 'SpaceGrotesk_400Regular' },
-  pct: { fontSize: 11, color: colors.dim, fontFamily: 'SpaceGrotesk_400Regular' },
+  grams: { ...text.headlineLg, fontSize: 20 },
+  label: { ...text.labelSm, color: colors.muted },
+  pct: { ...text.dataMono, fontSize: 11, color: colors.dim },
 });
 
 const summaryStyles = StyleSheet.create({
-  row: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8 },
+  row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.sm },
   icon: { fontSize: 16, width: 24 },
-  label: { flex: 1, fontSize: 14, color: colors.muted, fontFamily: 'SpaceGrotesk_400Regular' },
-  value: { fontSize: 14, fontWeight: '600', color: colors.text, fontFamily: 'SpaceGrotesk_600SemiBold' },
+  label: { flex: 1, ...text.bodyMd, color: colors.muted },
+  value: { ...text.headlineMd, fontSize: 14, color: colors.text },
 });
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
-  progressTrack: { height: 3, backgroundColor: 'rgba(255,255,255,0.08)' },
-  progressFill: { height: 3, backgroundColor: colors.neon, borderRadius: 2, width: '100%' },
-  container: { padding: 24, paddingTop: 16, paddingBottom: 40 },
-  step: { fontSize: 12, color: colors.muted, fontFamily: 'SpaceGrotesk_400Regular', marginBottom: 8 },
-  title: { fontSize: 22, fontWeight: '700', color: colors.text, marginBottom: 20, fontFamily: 'SpaceGrotesk_700Bold', lineHeight: 30 },
-  calorieCard: { alignItems: 'center', paddingVertical: 28, marginBottom: 16 },
-  calorieNum: { fontSize: 52, fontWeight: '700', color: colors.neon, fontFamily: 'SpaceGrotesk_700Bold', textShadowColor: `${colors.neon}66`, textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 20 },
-  calorieUnit: { fontSize: 14, color: colors.muted, fontFamily: 'SpaceGrotesk_400Regular' },
-  macrosRow: { flexDirection: 'row', gap: 10, marginBottom: 16 },
-  chartCard: { padding: 16, marginBottom: 16, alignItems: 'center' },
-  chartTitle: { fontSize: 15, fontWeight: '600', color: colors.text, fontFamily: 'SpaceGrotesk_600SemiBold', marginBottom: 12, alignSelf: 'flex-start' },
-  summaryCard: { padding: 16, marginBottom: 8 },
-  btnWrap: { marginTop: 16 },
+  safe: { flex: 1 },
+  header: {
+    paddingHorizontal: spacing.marginMobile,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.sm,
+    gap: spacing.xs,
+  },
+  progressMeta: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  stepLabel: { ...text.labelCaps, color: colors.neon, fontSize: 11 },
+  stepPct: { ...text.dataMono, color: colors.muted },
+  container: {
+    padding: spacing.marginMobile,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.xxl,
+    gap: spacing.lg,
+  },
+  heroSection: {
+    alignItems: 'center',
+    gap: spacing.md,
+    paddingVertical: spacing.xl,
+  },
+  trophyBadge: {
+    width: 72,
+    height: 72,
+    borderRadius: radius.full,
+    backgroundColor: 'rgba(204,255,0,0.08)',
+    borderWidth: 1,
+    borderColor: colors.borderAccent,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...glowShadows.neon,
+  },
+  trophyIcon: { fontSize: 36 },
+  heroTitle: { ...text.heroMd, color: colors.text, textAlign: 'center' },
+  heroSub: { ...text.bodyMd, color: colors.muted, textAlign: 'center', maxWidth: 280 },
+  calorieCard: {
+    alignItems: 'center',
+    paddingVertical: spacing.xl,
+    gap: spacing.xs,
+    borderRadius: radius.lg,
+  },
+  calorieLabelTop: { ...text.labelCaps, color: colors.neon, fontSize: 11 },
+  calorieNum: {
+    ...text.heroLg,
+    fontSize: 56,
+    color: colors.neon,
+    lineHeight: 60,
+    shadowColor: colors.neon,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.4,
+    shadowRadius: 20,
+    elevation: 0,
+  },
+  calorieUnit: { ...text.bodyMd, color: colors.muted },
+  macrosRow: { flexDirection: 'row', gap: spacing.sm },
+  macroBar: {
+    flexDirection: 'row',
+    height: 4,
+    borderRadius: radius.full,
+    overflow: 'hidden',
+    gap: 2,
+  },
+  macroBarSegment: { borderRadius: radius.full },
+  summaryCard: {
+    padding: spacing.lg,
+    borderRadius: radius.lg,
+    gap: spacing.xs,
+  },
+  summaryTitle: { ...text.labelCaps, color: colors.neon, fontSize: 11, marginBottom: spacing.xs },
+  divider: { height: 1, backgroundColor: colors.border },
+  btnWrap: { marginTop: spacing.xs },
 });

@@ -168,26 +168,40 @@ export const api = {
 // ── Types ────────────────────────────────────────────────────────────────────
 
 export interface Profile {
-  userId:            string;
-  name:              string;
-  avatarUrl?:        string;
-  weightKg?:         number;
-  heightCm?:         number;
-  age?:              number;
-  sex?:              string;
-  goal?:             string;
-  activityLevel?:    string;
-  targetWeightKg?:   number;
-  strengthTraining?: boolean;
-  activityLifestyle?:string;
-  weightLossSpeed?:  string;
-  foodVariety?:      string;
-  availableFoods?:   string[];
-  mealPlanning?:     string;
-  targetCalories?:   number;
-  targetProteinG?:   number;
-  targetCarbsG?:     number;
-  targetFatG?:       number;
+  userId:           string;
+  name:             string;
+  avatarUrl?:       string;
+
+  // Biometrics
+  weightKg?:        number;
+  heightCm?:        number;
+  age?:             number;
+  sex?:             string;
+  targetWeightKg?:  number;
+
+  // Onboarding — goals & activity
+  goal?:            string;
+  activityLevel?:   string;    // sedentary | lightly_active | active | very_active
+  strengthLevel?:   string;    // beginner | intermediate | advanced | pro_athlete
+  weightLossSpeed?: string;    // sostenible | moderado | agresivo
+
+  // Onboarding — lifestyle
+  sleepHours?:      number;
+  stressLevel?:     number;
+  smokingHabit?:    boolean;
+  alcoholHabit?:    boolean;
+
+  // Onboarding — diet & planning
+  dietType?:        string[];
+  availableFoods?:  string[];
+  mealFrequency?:   number;
+  cookingTime?:     string;    // quick | home_cook | chef
+
+  // Calculated macros
+  targetCalories?:  number;
+  targetProteinG?:  number;
+  targetCarbsG?:    number;
+  targetFatG?:      number;
 }
 
 export interface FoodLogEntry {

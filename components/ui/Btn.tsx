@@ -4,7 +4,7 @@ import { colors, glowShadows } from '@/constants/colors';
 
 interface BtnProps {
   children: React.ReactNode;
-  variant?: 'primary' | 'ghost' | 'orange';
+  variant?: 'primary' | 'ghost' | 'orange' | 'glass';
   onPress?: () => void;
   style?: ViewStyle;
   disabled?: boolean;
@@ -12,18 +12,16 @@ interface BtnProps {
 
 export function Btn({ children, variant = 'primary', onPress, style, disabled }: BtnProps) {
   const variantStyle =
-    variant === 'primary'
-      ? styles.primary
-      : variant === 'orange'
-      ? styles.orange
-      : styles.ghost;
+    variant === 'primary' ? styles.primary :
+    variant === 'orange'  ? styles.orange  :
+    variant === 'glass'   ? styles.glassAction :
+    styles.ghost;
 
   const textStyle =
-    variant === 'primary'
-      ? styles.textPrimary
-      : variant === 'orange'
-      ? styles.textOrange
-      : styles.textGhost;
+    variant === 'primary' ? styles.textPrimary :
+    variant === 'orange'  ? styles.textOrange  :
+    variant === 'glass'   ? styles.textGlass   :
+    styles.textGhost;
 
   return (
     <TouchableOpacity
@@ -39,8 +37,8 @@ export function Btn({ children, variant = 'primary', onPress, style, disabled }:
 
 const styles = StyleSheet.create({
   base: {
-    borderRadius: 50,
-    paddingVertical: 13,
+    borderRadius: 8,
+    height: 56,
     paddingHorizontal: 16,
     alignItems: 'center',
     justifyContent: 'center',
@@ -55,8 +53,14 @@ const styles = StyleSheet.create({
     borderColor: colors.borderAccent,
   },
   orange: {
-    backgroundColor: colors.orange,
-    ...glowShadows.orange,
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: colors.orange,
+  },
+  glassAction: {
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.09)',
   },
   text: {
     fontSize: 16,
@@ -71,6 +75,9 @@ const styles = StyleSheet.create({
     color: colors.neon,
   },
   textOrange: {
-    color: '#fff',
+    color: colors.orange,
+  },
+  textGlass: {
+    color: colors.text,
   },
 });

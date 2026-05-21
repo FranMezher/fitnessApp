@@ -25,6 +25,6 @@ export function GlassCard({ children, variant = 'default', style }: GlassCardPro
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 16,
+    borderRadius: 12,
   },
 });
