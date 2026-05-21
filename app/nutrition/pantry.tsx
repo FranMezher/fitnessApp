@@ -5,30 +5,16 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { colors, glass, glassNeon } from '@/constants/colors';
+import { Ionicons } from '@expo/vector-icons';
+import { colors, glass, glassNeon, glowShadows } from '@/constants/colors';
 import { text } from '@/constants/typography';
 import { spacing, radius } from '@/constants/spacing';
-import { Btn } from '@/components/ui/Btn';
+import { HudBackground } from '@/components/ui/HudBackground';
 import { api, Recipe } from '@/lib/api';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useNutritionStore } from '@/stores/useNutritionStore';
 
 const CATEGORIES = ['Todos', 'Proteínas', 'Verduras', 'Carbos', 'Lácteos'];
-
-const INGREDIENT_EMOJI: Record<string, string> = {
-  huevo: '🥚', pollo: '🍗', salmón: '🐟', atún: '🐟', carne: '🥩', cerdo: '🥩',
-  espinaca: '🥬', brócoli: '🥦', zanahoria: '🥕', tomate: '🍅', lechuga: '🥬',
-  arroz: '🍚', avena: '🌾', pasta: '🍝', pan: '🍞', quinoa: '🌾',
-  leche: '🥛', queso: '🧀', yogur: '🥛', aceite: '🫙',
-};
-
-function getEmoji(name: string): string {
-  const lower = name.toLowerCase();
-  for (const [key, emoji] of Object.entries(INGREDIENT_EMOJI)) {
-    if (lower.includes(key)) return emoji;
-  }
-  return '🥗';
-}
 
 export default function PantryScreen() {
   const token = useAuthStore((s) => s.token);
@@ -130,253 +116,259 @@ export default function PantryScreen() {
   const canGenerate = pantryItems.length > 0 && !loading;
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top']}>
-      {/* TopAppBar */}
-      <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Text style={styles.backBtnText}>←</Text>
-        </TouchableOpacity>
-        <Text style={styles.logo}>MODO DESPENSA</Text>
-        <View style={{ width: 40 }} />
-      </View>
+    <HudBackground style={styles.flex}>
+      <SafeAreaView style={styles.flex} edges={['top']}>
+        {/* TopAppBar */}
+        <View style={styles.topBar}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+            <Ionicons name="arrow-back" size={22} color={colors.text} />
+          </TouchableOpacity>
+          <Text style={styles.logo}>MODO DESPENSA</Text>
+          <View style={{ width: 40 }} />
+        </View>
 
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
-        <ScrollView
-          contentContainerStyle={styles.container}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-        >
-          {/* Search */}
-          <View style={styles.searchWrap}>
-            <Text style={styles.searchIcon}>🔍</Text>
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Buscar ingredientes..."
-              placeholderTextColor={colors.dim}
-              value={search}
-              onChangeText={setSearch}
-            />
-          </View>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+          <ScrollView
+            contentContainerStyle={styles.container}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            {/* Search */}
+            <View style={styles.searchWrap}>
+              <Ionicons name="search-outline" size={18} color={colors.dim} />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Buscar ingredientes..."
+                placeholderTextColor={colors.dim}
+                value={search}
+                onChangeText={setSearch}
+              />
+            </View>
 
-          {/* Category chips */}
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsRow}>
-            {CATEGORIES.map((cat) => (
+            {/* Category chips */}
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsRow}>
+              {CATEGORIES.map((cat) => (
+                <TouchableOpacity
+                  key={cat}
+                  style={[styles.chip, activeFilter === cat && styles.chipActive]}
+                  onPress={() => setActiveFilter(cat)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.chipText, activeFilter === cat && styles.chipTextActive]}>{cat}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            {/* Macros restantes */}
+            <View style={[glass, styles.macroCard]}>
+              <Text style={styles.macroCardTitle}>MACROS RESTANTES HOY</Text>
+              <View style={styles.macroCardRow}>
+                <View style={styles.macroStat}>
+                  <Text style={[styles.macroStatVal, { color: colors.orange }]}>{remainingMacros.calories}</Text>
+                  <Text style={styles.macroStatLabel}>KCAL</Text>
+                </View>
+                <View style={styles.macroStatDivider} />
+                <View style={styles.macroStat}>
+                  <Text style={[styles.macroStatVal, { color: colors.neon }]}>{remainingMacros.proteinG}g</Text>
+                  <Text style={styles.macroStatLabel}>PROT</Text>
+                </View>
+                <View style={styles.macroStatDivider} />
+                <View style={styles.macroStat}>
+                  <Text style={[styles.macroStatVal, { color: colors.teal }]}>{remainingMacros.carbsG}g</Text>
+                  <Text style={styles.macroStatLabel}>CARB</Text>
+                </View>
+                <View style={styles.macroStatDivider} />
+                <View style={styles.macroStat}>
+                  <Text style={[styles.macroStatVal, { color: colors.muted }]}>{remainingMacros.fatG}g</Text>
+                  <Text style={styles.macroStatLabel}>GRAS</Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Grid header */}
+            <View style={styles.gridHeader}>
+              <Text style={styles.gridTitle}>Tu Despensa</Text>
+              <Text style={styles.selectedCount}>
+                {selectedIds.length > 0 ? `${selectedIds.length} seleccionados` : `${pantryItems.length} ingredientes`}
+              </Text>
+            </View>
+
+            {/* Ingredient grid */}
+            <View style={styles.grid}>
+              {filteredItems.map((item) => {
+                const isSelected = selectedIds.includes(item.id);
+                return (
+                  <TouchableOpacity
+                    key={item.id}
+                    style={[styles.gridCell, isSelected ? styles.gridCellSelected : glass]}
+                    onPress={() => toggleSelect(item.id)}
+                    onLongPress={() => Alert.alert('Eliminar', `¿Eliminar ${item.foodName}?`, [
+                      { text: 'Cancelar', style: 'cancel' },
+                      { text: 'Eliminar', style: 'destructive', onPress: () => deletePantryItem(item.id) },
+                    ])}
+                    activeOpacity={0.75}
+                  >
+                    <View style={[styles.gridIconWrap, isSelected && styles.gridIconWrapSelected]}>
+                      <Ionicons name="nutrition-outline" size={22} color={isSelected ? colors.neon : colors.muted} />
+                    </View>
+                    <Text style={[styles.gridName, isSelected && styles.gridNameSelected]} numberOfLines={1}>
+                      {item.foodName.toUpperCase()}
+                    </Text>
+                    <Text style={styles.gridQty}>{item.quantity}{item.unit}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+
+              {/* Add card */}
               <TouchableOpacity
-                key={cat}
-                style={[styles.chip, activeFilter === cat && styles.chipActive]}
-                onPress={() => setActiveFilter(cat)}
+                style={[styles.gridCell, styles.gridCellAdd]}
+                onPress={() => setShowAdd(true)}
                 activeOpacity={0.7}
               >
-                <Text style={[styles.chipText, activeFilter === cat && styles.chipTextActive]}>{cat}</Text>
+                <Ionicons name="add" size={28} color={colors.dim} />
+                <Text style={styles.addPlusLabel}>AÑADIR</Text>
               </TouchableOpacity>
+            </View>
+
+            {/* Add form */}
+            {showAdd && (
+              <View style={[glass, styles.addForm]}>
+                <Text style={styles.addFormTitle}>Nuevo ingrediente</Text>
+                <TextInput
+                  style={styles.addInput}
+                  placeholder="Nombre (ej: Pollo)"
+                  placeholderTextColor={colors.dim}
+                  value={addName}
+                  onChangeText={setAddName}
+                  autoFocus
+                />
+                <View style={styles.addRow2}>
+                  <TextInput
+                    style={[styles.addInput, { flex: 1 }]}
+                    placeholder="Cantidad"
+                    placeholderTextColor={colors.dim}
+                    value={addQty}
+                    onChangeText={setAddQty}
+                    keyboardType="numeric"
+                  />
+                  <TextInput
+                    style={[styles.addInput, { width: 64 }]}
+                    placeholder="Und"
+                    placeholderTextColor={colors.dim}
+                    value={addUnit}
+                    onChangeText={setAddUnit}
+                  />
+                </View>
+                <View style={styles.addFormBtns}>
+                  <TouchableOpacity
+                    style={styles.cancelBtn}
+                    onPress={() => { setShowAdd(false); setAddName(''); setAddQty(''); setAddUnit('g'); }}
+                  >
+                    <Text style={styles.cancelText}>Cancelar</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.confirmBtn, (!addName.trim() || !addQty.trim()) && { opacity: 0.4 }]}
+                    onPress={handleAddItem}
+                    disabled={addLoading || !addName.trim() || !addQty.trim()}
+                  >
+                    <Text style={styles.confirmText}>{addLoading ? '...' : 'Añadir'}</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
+
+            {/* AI banner */}
+            <View style={[glass, styles.aiBanner]}>
+              <View style={styles.aiBannerOverlay} />
+              <View style={styles.aiBannerContent}>
+                <Text style={styles.aiBannerTag}>POTENCIADO POR FITCORE AI</Text>
+                <Text style={styles.aiBannerTitle}>¿Sin ideas para hoy?</Text>
+              </View>
+            </View>
+
+            {loading && <ActivityIndicator color={colors.neon} style={{ marginTop: spacing.sm }} />}
+
+            {generateError && (
+              <View style={styles.errorBanner}>
+                <Ionicons name="warning-outline" size={16} color={colors.orange} />
+                <Text style={styles.errorText}>{generateError}</Text>
+              </View>
+            )}
+
+            {/* Recipe cards */}
+            {recipes.map((recipe, idx) => (
+              <View key={idx} style={[glassNeon, styles.recipeCard]}>
+                <View style={styles.recipeHeader}>
+                  <Text style={styles.recipeKcalBadge}>{recipe.calories} KCAL</Text>
+                  <Text style={styles.recipePrepTime}>~{recipe.prepMinutes} min</Text>
+                </View>
+                <Text style={styles.recipeTitle}>{recipe.name}</Text>
+                <Text style={styles.recipeMacros}>
+                  {recipe.proteinG}g P · {recipe.carbsG}g C · {recipe.fatG}g G
+                </Text>
+                {expandedIdx === idx && (
+                  <Text style={styles.recipeInstructions}>{recipe.instructions}</Text>
+                )}
+                <View style={styles.recipeActions}>
+                  <TouchableOpacity
+                    style={styles.recipeSecondaryBtn}
+                    onPress={() => setExpandedIdx(expandedIdx === idx ? null : idx)}
+                  >
+                    <Text style={styles.recipeSecondaryText}>
+                      {expandedIdx === idx ? 'Ocultar' : 'Ver receta'}
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.recipePrimaryBtn} onPress={() => handleRegister(recipe)}>
+                    <Text style={styles.recipePrimaryText}>Registrar</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
             ))}
+
+            <View style={{ height: 80 }} />
           </ScrollView>
+        </KeyboardAvoidingView>
 
-          {/* Macros restantes */}
-          <View style={[glass, styles.macroCard]}>
-            <Text style={styles.macroCardTitle}>MACROS RESTANTES HOY</Text>
-            <View style={styles.macroCardRow}>
-              <View style={styles.macroStat}>
-                <Text style={[styles.macroStatVal, { color: colors.orange }]}>{remainingMacros.calories}</Text>
-                <Text style={styles.macroStatLabel}>KCAL</Text>
-              </View>
-              <View style={styles.macroStatDivider} />
-              <View style={styles.macroStat}>
-                <Text style={[styles.macroStatVal, { color: colors.neon }]}>{remainingMacros.proteinG}g</Text>
-                <Text style={styles.macroStatLabel}>PROT</Text>
-              </View>
-              <View style={styles.macroStatDivider} />
-              <View style={styles.macroStat}>
-                <Text style={[styles.macroStatVal, { color: colors.teal }]}>{remainingMacros.carbsG}g</Text>
-                <Text style={styles.macroStatLabel}>CARB</Text>
-              </View>
-              <View style={styles.macroStatDivider} />
-              <View style={styles.macroStat}>
-                <Text style={[styles.macroStatVal, { color: colors.muted }]}>{remainingMacros.fatG}g</Text>
-                <Text style={styles.macroStatLabel}>GRAS</Text>
-              </View>
-            </View>
-          </View>
-
-          {/* Grid header */}
-          <View style={styles.gridHeader}>
-            <Text style={styles.gridTitle}>Tu Despensa</Text>
-            <Text style={styles.selectedCount}>
-              {selectedIds.length > 0 ? `${selectedIds.length} seleccionados` : `${pantryItems.length} ingredientes`}
-            </Text>
-          </View>
-
-          {/* Ingredient grid */}
-          <View style={styles.grid}>
-            {filteredItems.map((item) => {
-              const isSelected = selectedIds.includes(item.id);
-              return (
-                <TouchableOpacity
-                  key={item.id}
-                  style={[styles.gridCell, isSelected ? styles.gridCellSelected : glass]}
-                  onPress={() => toggleSelect(item.id)}
-                  onLongPress={() => Alert.alert('Eliminar', `¿Eliminar ${item.foodName}?`, [
-                    { text: 'Cancelar', style: 'cancel' },
-                    { text: 'Eliminar', style: 'destructive', onPress: () => deletePantryItem(item.id) },
-                  ])}
-                  activeOpacity={0.75}
-                >
-                  <Text style={styles.gridEmoji}>{getEmoji(item.foodName)}</Text>
-                  <Text style={[styles.gridName, isSelected && styles.gridNameSelected]} numberOfLines={1}>
-                    {item.foodName.toUpperCase()}
-                  </Text>
-                  <Text style={styles.gridQty}>{item.quantity}{item.unit}</Text>
-                </TouchableOpacity>
-              );
-            })}
-
-            {/* Add card */}
-            <TouchableOpacity
-              style={[styles.gridCell, styles.gridCellAdd]}
-              onPress={() => setShowAdd(true)}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.addPlusIcon}>＋</Text>
-              <Text style={styles.addPlusLabel}>AÑADIR</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Add form */}
-          {showAdd && (
-            <View style={[glass, styles.addForm]}>
-              <Text style={styles.addFormTitle}>Nuevo ingrediente</Text>
-              <TextInput
-                style={styles.addInput}
-                placeholder="Nombre (ej: Pollo)"
-                placeholderTextColor={colors.dim}
-                value={addName}
-                onChangeText={setAddName}
-                autoFocus
-              />
-              <View style={styles.addRow2}>
-                <TextInput
-                  style={[styles.addInput, { flex: 1 }]}
-                  placeholder="Cantidad"
-                  placeholderTextColor={colors.dim}
-                  value={addQty}
-                  onChangeText={setAddQty}
-                  keyboardType="numeric"
-                />
-                <TextInput
-                  style={[styles.addInput, { width: 64 }]}
-                  placeholder="Und"
-                  placeholderTextColor={colors.dim}
-                  value={addUnit}
-                  onChangeText={setAddUnit}
-                />
-              </View>
-              <View style={styles.addFormBtns}>
-                <TouchableOpacity
-                  style={styles.cancelBtn}
-                  onPress={() => { setShowAdd(false); setAddName(''); setAddQty(''); setAddUnit('g'); }}
-                >
-                  <Text style={styles.cancelText}>Cancelar</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.confirmBtn, (!addName.trim() || !addQty.trim()) && { opacity: 0.4 }]}
-                  onPress={handleAddItem}
-                  disabled={addLoading || !addName.trim() || !addQty.trim()}
-                >
-                  <Text style={styles.confirmText}>{addLoading ? '...' : 'Añadir'}</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          )}
-
-          {/* AI banner */}
-          <View style={[glass, styles.aiBanner]}>
-            <View style={styles.aiBannerOverlay} />
-            <View style={styles.aiBannerContent}>
-              <Text style={styles.aiBannerTag}>POTENCIADO POR FITCORE AI</Text>
-              <Text style={styles.aiBannerTitle}>¿Sin ideas para hoy?</Text>
-            </View>
-          </View>
-
-          {loading && <ActivityIndicator color={colors.neon} style={{ marginTop: spacing.sm }} />}
-
-          {generateError && (
-            <View style={styles.errorBanner}>
-              <Text style={styles.errorText}>⚠ {generateError}</Text>
-            </View>
-          )}
-
-          {/* Recipe cards */}
-          {recipes.map((recipe, idx) => (
-            <View key={idx} style={[glassNeon, styles.recipeCard]}>
-              <View style={styles.recipeHeader}>
-                <Text style={styles.recipeKcalBadge}>{recipe.calories} KCAL</Text>
-                <Text style={styles.recipePrepTime}>~{recipe.prepMinutes} min</Text>
-              </View>
-              <Text style={styles.recipeTitle}>{recipe.name}</Text>
-              <Text style={styles.recipeMacros}>
-                {recipe.proteinG}g P · {recipe.carbsG}g C · {recipe.fatG}g G
-              </Text>
-              {expandedIdx === idx && (
-                <Text style={styles.recipeInstructions}>{recipe.instructions}</Text>
-              )}
-              <View style={styles.recipeActions}>
-                <TouchableOpacity
-                  style={styles.recipeSecondaryBtn}
-                  onPress={() => setExpandedIdx(expandedIdx === idx ? null : idx)}
-                >
-                  <Text style={styles.recipeSecondaryText}>
-                    {expandedIdx === idx ? 'Ocultar' : 'Ver receta'}
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.recipePrimaryBtn} onPress={() => handleRegister(recipe)}>
-                  <Text style={styles.recipePrimaryText}>Registrar</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          ))}
-
-          {/* Bottom spacer for fixed button */}
-          <View style={{ height: 80 }} />
-        </ScrollView>
-      </KeyboardAvoidingView>
-
-      {/* Fixed generate button */}
-      <View style={styles.fixedBottom}>
-        <TouchableOpacity
-          style={[styles.generateBtn, !canGenerate && styles.generateBtnDisabled]}
-          onPress={handleGenerate}
-          disabled={!canGenerate}
-          activeOpacity={0.85}
-        >
-          {loading ? (
-            <ActivityIndicator color="#111" size="small" />
-          ) : (
-            <Text style={styles.generateBtnText}>⚡ Generar Sugerencias con IA</Text>
-          )}
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
+        {/* Fixed generate button */}
+        <View style={styles.fixedBottom}>
+          <TouchableOpacity
+            style={[styles.generateBtn, !canGenerate && styles.generateBtnDisabled]}
+            onPress={handleGenerate}
+            disabled={!canGenerate}
+            activeOpacity={0.85}
+          >
+            {loading ? (
+              <ActivityIndicator color={colors.bg} size="small" />
+            ) : (
+              <>
+                <Ionicons name="flash" size={18} color={colors.bg} />
+                <Text style={styles.generateBtnText}>Generar Sugerencias con IA</Text>
+              </>
+            )}
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    </HudBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
+  flex: { flex: 1 },
 
   topBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: spacing.marginMobile,
+    paddingHorizontal: spacing.lg,
     height: 56,
-    backgroundColor: 'rgba(8,8,8,0.7)',
+    backgroundColor: 'rgba(8,8,8,0.85)',
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
   backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-  backBtnText: { fontSize: 22, color: colors.muted },
   logo: { ...text.headlineMd, color: colors.neon, fontSize: 14, letterSpacing: 2 },
 
-  container: { paddingHorizontal: spacing.marginMobile, paddingTop: spacing.md, gap: spacing.md },
+  container: { paddingHorizontal: spacing.lg, paddingTop: spacing.md, gap: spacing.md },
 
   searchWrap: {
     flexDirection: 'row',
@@ -389,7 +381,6 @@ const styles = StyleSheet.create({
     height: 48,
     gap: spacing.sm,
   },
-  searchIcon: { fontSize: 16 },
   searchInput: { flex: 1, ...text.bodyMd, color: colors.text },
 
   chipsRow: { gap: spacing.xs, paddingBottom: 2 },
@@ -431,6 +422,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(204,255,0,0.08)',
     borderWidth: 1,
     borderColor: 'rgba(204,255,0,0.35)',
+    borderRadius: radius.lg,
   },
   gridCellAdd: {
     backgroundColor: 'rgba(255,255,255,0.02)',
@@ -438,11 +430,18 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     borderStyle: 'dashed',
   },
-  gridEmoji: { fontSize: 28 },
+  gridIconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: radius.full,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  gridIconWrapSelected: { backgroundColor: 'rgba(204,255,0,0.12)' },
   gridName: { ...text.labelSm, color: colors.muted, textAlign: 'center' },
   gridNameSelected: { color: colors.neon },
   gridQty: { ...text.labelSm, color: colors.dim, fontSize: 9 },
-  addPlusIcon: { fontSize: 24, color: colors.dim },
   addPlusLabel: { ...text.labelSm, color: colors.dim },
 
   addForm: { padding: spacing.md, borderRadius: radius.lg, gap: spacing.sm },
@@ -479,13 +478,16 @@ const styles = StyleSheet.create({
   aiBannerTitle: { ...text.headlineMd, color: colors.text },
 
   errorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
     backgroundColor: 'rgba(255,107,53,0.12)',
     borderWidth: 1,
     borderColor: 'rgba(255,107,53,0.3)',
     borderRadius: radius.md,
     padding: spacing.md,
   },
-  errorText: { ...text.bodyMd, color: colors.orange },
+  errorText: { ...text.bodyMd, color: colors.orange, flex: 1 },
 
   recipeCard: { padding: spacing.md, borderRadius: radius.lg, gap: spacing.xs },
   recipeHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
@@ -505,10 +507,10 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    paddingHorizontal: spacing.marginMobile,
+    paddingHorizontal: spacing.lg,
     paddingBottom: spacing.xl,
     paddingTop: spacing.md,
-    backgroundColor: colors.bg,
+    backgroundColor: 'rgba(8,8,8,0.9)',
     borderTopWidth: 1,
     borderTopColor: colors.border,
   },
@@ -520,7 +522,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     flexDirection: 'row',
     gap: spacing.sm,
+    ...glowShadows.neon,
   },
   generateBtnDisabled: { opacity: 0.4 },
-  generateBtnText: { ...text.headlineMd, color: '#111' },
+  generateBtnText: { ...text.headlineMd, color: colors.bg },
 });

@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { colors, glass, glassNeon, glowShadows } from '@/constants/colors';
 import { text } from '@/constants/typography';
 import { spacing, radius } from '@/constants/spacing';
-import { Btn } from '@/components/ui/Btn';
+import { HudBackground } from '@/components/ui/HudBackground';
 import { api, WorkoutPlan, PlanExerciseDetail } from '@/lib/api';
 import { useAuthStore } from '@/stores/useAuthStore';
 
@@ -67,173 +68,204 @@ export default function WorkoutDetailScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.safe}>
-        <ActivityIndicator color={colors.neon} style={{ marginTop: 60 }} />
-      </SafeAreaView>
+      <HudBackground style={styles.flex}>
+        <SafeAreaView style={styles.flex}>
+          <View style={styles.center}>
+            <ActivityIndicator color={colors.neon} size="large" />
+          </View>
+        </SafeAreaView>
+      </HudBackground>
     );
   }
 
   if (error) {
     return (
-      <SafeAreaView style={styles.safe}>
-        <View style={styles.errorState}>
-          <Text style={styles.errorText}>{error}</Text>
-          <Btn onPress={loadPlan}>Reintentar</Btn>
-          <TouchableOpacity onPress={() => router.back()}>
-            <Text style={styles.backLink}>← Volver</Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
+      <HudBackground style={styles.flex}>
+        <SafeAreaView style={styles.flex}>
+          <View style={styles.errorState}>
+            <Ionicons name="alert-circle-outline" size={48} color={colors.orange} />
+            <Text style={styles.errorText}>{error}</Text>
+            <TouchableOpacity style={styles.retryBtn} onPress={loadPlan}>
+              <Text style={styles.retryBtnText}>Reintentar</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => router.back()} style={styles.backLink}>
+              <Ionicons name="arrow-back" size={16} color={colors.muted} />
+              <Text style={styles.backLinkText}>Volver</Text>
+            </TouchableOpacity>
+          </View>
+        </SafeAreaView>
+      </HudBackground>
     );
   }
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top']}>
-      {/* TopAppBar */}
-      <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Text style={styles.backBtnText}>←</Text>
-        </TouchableOpacity>
-        <Text style={styles.logo}>FITCORE</Text>
-        <View style={{ width: 40 }} />
-      </View>
-
-      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-        {/* Hero header */}
-        <View style={[glass, styles.heroCard]}>
-          <View style={styles.heroOverlay} />
-          <View style={styles.heroContent}>
-            <View style={styles.heroBadgeRow}>
-              {plan?.difficulty && (
-                <View style={[glassNeon, styles.diffBadge]}>
-                  <Text style={styles.diffBadgeText}>
-                    {DIFFICULTY_LABELS[plan.difficulty] ?? plan.difficulty.toUpperCase()}
-                  </Text>
-                </View>
-              )}
-            </View>
-            <Text style={styles.heroTitle}>{plan?.name ?? 'Entrenamiento'}</Text>
-            <View style={styles.heroStats}>
-              <Text style={styles.heroStat}>⏱ {plan?.daysPerWeek ?? '—'} días/sem</Text>
-              <Text style={styles.heroStat}>💪 {exercises.length} ejercicios</Text>
-            </View>
-          </View>
+    <HudBackground style={styles.flex}>
+      <SafeAreaView style={styles.flex} edges={['top']}>
+        {/* TopAppBar */}
+        <View style={styles.topBar}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+            <Ionicons name="arrow-back" size={22} color={colors.text} />
+          </TouchableOpacity>
+          <Text style={styles.logo}>FITCORE</Text>
+          <View style={{ width: 40 }} />
         </View>
 
-        {/* Progress stats */}
-        <View style={styles.statsRow}>
-          <View style={[glass, styles.statCard]}>
-            <Text style={styles.statLabel}>COMPLETADOS</Text>
-            <Text style={styles.statValue}>{completedCount}/{exercises.length}</Text>
-          </View>
-          <View style={[glass, styles.statCard]}>
-            <Text style={styles.statLabel}>PROGRESO</Text>
-            <Text style={[styles.statValue, { color: colors.neon }]}>{progressPct}%</Text>
-            <View style={styles.statBar}>
-              <View style={[styles.statBarFill, { width: `${progressPct}%` }]} />
-            </View>
-          </View>
-        </View>
-
-        {/* Exercise list */}
-        <View style={styles.listSection}>
-          <View style={styles.listHeader}>
-            <Text style={styles.listTitle}>Protocolo de ejercicios</Text>
-            <Text style={styles.listCount}>{exercises.length} EJERCICIOS</Text>
-          </View>
-
-          {exercises.map((ex, i) => {
-            const isDone = completedIds.includes(ex.id);
-            const isActive = i === activeIdx;
-            const mc = MUSCLE_COLORS[ex.exercise?.muscleGroup ?? ''] ?? colors.muted;
-
-            return (
-              <TouchableOpacity
-                key={ex.id}
-                style={[
-                  glass,
-                  styles.exCard,
-                  isActive && { borderColor: colors.neon + '50', ...glowShadows.neon },
-                  isDone && styles.exCardDone,
-                ]}
-                activeOpacity={0.8}
-                onPress={() => isActive ? handleStart() : handleToggle(ex.id)}
-              >
-                <View style={[styles.exAccent, { backgroundColor: mc }]} />
-                <View style={styles.exInfo}>
-                  <Text style={[styles.exName, isActive && { color: colors.neon }]}>
-                    {ex.exercise?.name ?? `Ejercicio ${i + 1}`}
-                  </Text>
-                  <View style={styles.exMeta}>
-                    {ex.exercise?.muscleGroup && (
-                      <Text style={[styles.exMuscle, { color: mc }]}>{ex.exercise.muscleGroup}</Text>
-                    )}
-                    <Text style={styles.exSets}>{ex.sets} series · {ex.reps} reps</Text>
+        <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+          {/* Hero header */}
+          <View style={[glass, styles.heroCard]}>
+            <View style={styles.heroOverlay} />
+            <View style={styles.heroContent}>
+              <View style={styles.heroBadgeRow}>
+                {plan?.difficulty && (
+                  <View style={[glassNeon, styles.diffBadge]}>
+                    <Text style={styles.diffBadgeText}>
+                      {DIFFICULTY_LABELS[plan.difficulty] ?? plan.difficulty.toUpperCase()}
+                    </Text>
                   </View>
+                )}
+              </View>
+              <Text style={styles.heroTitle}>{plan?.name ?? 'Entrenamiento'}</Text>
+              <View style={styles.heroStats}>
+                <View style={styles.heroStatItem}>
+                  <Ionicons name="time-outline" size={14} color={colors.muted} />
+                  <Text style={styles.heroStat}>{plan?.daysPerWeek ?? '—'} días/sem</Text>
                 </View>
-                <View style={styles.exRight}>
-                  {isDone ? (
-                    <View style={styles.doneCheck}>
-                      <Text style={styles.doneCheckText}>✓</Text>
-                    </View>
-                  ) : isActive ? (
-                    <Text style={styles.playIcon}>▶</Text>
-                  ) : (
-                    <Text style={styles.exArrow}>›</Text>
-                  )}
+                <View style={styles.heroStatItem}>
+                  <Ionicons name="barbell-outline" size={14} color={colors.muted} />
+                  <Text style={styles.heroStat}>{exercises.length} ejercicios</Text>
                 </View>
-              </TouchableOpacity>
-            );
-          })}
-
-          {exercises.length === 0 && (
-            <View style={[glass, styles.emptyCard]}>
-              <Text style={styles.emptyText}>No hay ejercicios en este plan</Text>
+              </View>
             </View>
-          )}
-        </View>
+          </View>
 
+          {/* Progress stats */}
+          <View style={styles.statsRow}>
+            <View style={[glass, styles.statCard]}>
+              <Text style={styles.statLabel}>COMPLETADOS</Text>
+              <Text style={styles.statValue}>{completedCount}/{exercises.length}</Text>
+            </View>
+            <View style={[glass, styles.statCard]}>
+              <Text style={styles.statLabel}>PROGRESO</Text>
+              <Text style={[styles.statValue, { color: colors.neon }]}>{progressPct}%</Text>
+              <View style={styles.statBar}>
+                <View style={[styles.statBarFill, { width: `${progressPct}%` }]} />
+              </View>
+            </View>
+          </View>
+
+          {/* Exercise list */}
+          <View style={styles.listSection}>
+            <View style={styles.listHeader}>
+              <Text style={styles.listTitle}>Protocolo de ejercicios</Text>
+              <Text style={styles.listCount}>{exercises.length} EJERCICIOS</Text>
+            </View>
+
+            {exercises.map((ex, i) => {
+              const isDone = completedIds.includes(ex.id);
+              const isActive = i === activeIdx;
+              const mc = MUSCLE_COLORS[ex.exercise?.muscleGroup ?? ''] ?? colors.muted;
+
+              return (
+                <TouchableOpacity
+                  key={ex.id}
+                  style={[
+                    glass,
+                    styles.exCard,
+                    isActive && { borderColor: colors.neon + '50', ...glowShadows.neon },
+                    isDone && styles.exCardDone,
+                  ]}
+                  activeOpacity={0.8}
+                  onPress={() => isActive ? handleStart() : handleToggle(ex.id)}
+                >
+                  <View style={[styles.exAccent, { backgroundColor: mc }]} />
+                  <View style={styles.exInfo}>
+                    <Text style={[styles.exName, isActive && { color: colors.neon }]}>
+                      {ex.exercise?.name ?? `Ejercicio ${i + 1}`}
+                    </Text>
+                    <View style={styles.exMeta}>
+                      {ex.exercise?.muscleGroup && (
+                        <Text style={[styles.exMuscle, { color: mc }]}>{ex.exercise.muscleGroup}</Text>
+                      )}
+                      <Text style={styles.exSets}>{ex.sets} series · {ex.reps} reps</Text>
+                    </View>
+                  </View>
+                  <View style={styles.exRight}>
+                    {isDone ? (
+                      <View style={styles.doneCheck}>
+                        <Ionicons name="checkmark" size={14} color={colors.bg} />
+                      </View>
+                    ) : isActive ? (
+                      <Ionicons name="play" size={18} color={colors.neon} />
+                    ) : (
+                      <Ionicons name="chevron-forward" size={18} color={colors.dim} />
+                    )}
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+
+            {exercises.length === 0 && (
+              <View style={[glass, styles.emptyCard]}>
+                <Ionicons name="fitness-outline" size={32} color={colors.dim} />
+                <Text style={styles.emptyText}>No hay ejercicios en este plan</Text>
+              </View>
+            )}
+          </View>
+
+          {/* Bottom spacing for FAB */}
+          <View style={{ height: 80 }} />
+        </ScrollView>
+
+        {/* Sticky CTA */}
         <View style={styles.ctaWrap}>
-          <Btn onPress={handleStart} disabled={exercises.length === 0}>
-            INICIAR SESIÓN
-          </Btn>
+          <TouchableOpacity
+            style={[styles.ctaBtn, exercises.length === 0 && styles.ctaBtnDisabled]}
+            onPress={handleStart}
+            disabled={exercises.length === 0}
+            activeOpacity={0.85}
+          >
+            <Ionicons name="play" size={20} color={colors.bg} />
+            <Text style={styles.ctaBtnText}>INICIAR SESIÓN</Text>
+          </TouchableOpacity>
         </View>
-      </ScrollView>
-    </SafeAreaView>
+      </SafeAreaView>
+    </HudBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
+  flex: { flex: 1 },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   errorState: { flex: 1, padding: spacing.xl, justifyContent: 'center', alignItems: 'center', gap: spacing.lg },
   errorText: { ...text.bodyMd, color: colors.orange, textAlign: 'center' },
-  backLink: { ...text.bodyMd, color: colors.muted },
+  retryBtn: {
+    borderWidth: 1,
+    borderColor: colors.borderAccent,
+    borderRadius: radius.full,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.sm,
+  },
+  retryBtnText: { ...text.labelSm, color: colors.neon },
+  backLink: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  backLinkText: { ...text.bodyMd, color: colors.muted },
 
   topBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: spacing.marginMobile,
+    paddingHorizontal: spacing.lg,
     height: 56,
-    backgroundColor: 'rgba(8,8,8,0.7)',
+    backgroundColor: 'rgba(8,8,8,0.85)',
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
   backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-  backBtnText: { fontSize: 22, color: colors.muted },
   logo: { ...text.heroMd, fontSize: 20, color: colors.neon, letterSpacing: -0.5 },
 
-  container: { paddingHorizontal: spacing.marginMobile, paddingBottom: 100, gap: spacing.md, paddingTop: spacing.md },
+  container: { paddingHorizontal: spacing.lg, paddingBottom: 20, gap: spacing.md, paddingTop: spacing.md },
 
-  heroCard: {
-    borderRadius: radius.lg,
-    overflow: 'hidden',
-    minHeight: 160,
-  },
-  heroOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-  },
+  heroCard: { borderRadius: radius.lg, overflow: 'hidden', minHeight: 160 },
+  heroOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.5)' },
   heroContent: { padding: spacing.lg, gap: spacing.sm },
   heroBadgeRow: { flexDirection: 'row', gap: spacing.xs },
   diffBadge: {
@@ -245,6 +277,7 @@ const styles = StyleSheet.create({
   diffBadgeText: { ...text.labelSm, color: colors.neon },
   heroTitle: { ...text.heroMd, color: colors.text },
   heroStats: { flexDirection: 'row', gap: spacing.lg },
+  heroStatItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   heroStat: { ...text.bodyMd, color: colors.muted },
 
   statsRow: { flexDirection: 'row', gap: spacing.md },
@@ -274,7 +307,7 @@ const styles = StyleSheet.create({
     paddingRight: spacing.md,
     gap: spacing.md,
   },
-  exCardDone: { opacity: 0.5 },
+  exCardDone: { opacity: 0.45 },
   exAccent: { width: 3, alignSelf: 'stretch' },
   exInfo: { flex: 1, gap: 4, paddingLeft: spacing.xs },
   exName: { ...text.headlineMd, color: colors.text },
@@ -290,11 +323,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  doneCheckText: { fontSize: 12, color: '#111', fontWeight: '700' },
-  playIcon: { fontSize: 16, color: colors.neon },
-  exArrow: { fontSize: 18, color: colors.dim },
 
-  emptyCard: { padding: spacing.xl, alignItems: 'center', borderRadius: radius.lg },
+  emptyCard: { padding: spacing.xl, alignItems: 'center', borderRadius: radius.lg, gap: spacing.sm },
   emptyText: { ...text.bodyMd, color: colors.muted },
 
   ctaWrap: {
@@ -302,11 +332,23 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    paddingHorizontal: spacing.marginMobile,
+    paddingHorizontal: spacing.lg,
     paddingBottom: spacing.xl,
     paddingTop: spacing.md,
-    backgroundColor: colors.bg,
+    backgroundColor: 'rgba(8,8,8,0.9)',
     borderTopWidth: 1,
     borderTopColor: colors.border,
   },
+  ctaBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    backgroundColor: colors.neon,
+    borderRadius: radius.md,
+    height: 56,
+    ...glowShadows.neon,
+  },
+  ctaBtnDisabled: { opacity: 0.4 },
+  ctaBtnText: { ...text.headlineMd, color: colors.bg },
 });

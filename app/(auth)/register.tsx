@@ -1,10 +1,12 @@
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { colors, glass } from '@/constants/colors';
-import { Btn } from '@/components/ui/Btn';
-import { Label } from '@/components/ui/Label';
+import { Ionicons } from '@expo/vector-icons';
+import { colors, glass, glowShadows } from '@/constants/colors';
+import { text } from '@/constants/typography';
+import { spacing, radius } from '@/constants/spacing';
+import { HudBackground } from '@/components/ui/HudBackground';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/useAuthStore';
 
@@ -40,7 +42,6 @@ export default function RegisterScreen() {
     }
 
     setLoading(true);
-    // Mark as new user BEFORE signUp so _layout.tsx doesn't redirect to tabs
     setIsNewUser(true);
 
     try {
@@ -61,7 +62,6 @@ export default function RegisterScreen() {
         return;
       }
 
-      // If email confirmation is required, data.session will be null
       if (!data.session) {
         setIsNewUser(false);
         Alert.alert(
@@ -72,7 +72,6 @@ export default function RegisterScreen() {
         return;
       }
 
-      // Email confirmation disabled → go straight to onboarding
       router.replace('/(onboarding)/goal');
     } catch (err: any) {
       Alert.alert('Error al registrarse', err.message ?? 'Intentá de nuevo.');
@@ -82,110 +81,171 @@ export default function RegisterScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-        <TouchableOpacity style={styles.back} onPress={() => router.back()}>
-          <Text style={styles.backText}>← Volver</Text>
-        </TouchableOpacity>
-
-        <Text style={styles.title}>Crear cuenta</Text>
-        <Text style={styles.sub}>Es gratis. Siempre.</Text>
-
-        <Label>Nombre</Label>
-        <TextInput
-          style={styles.input}
-          placeholder="Tu nombre"
-          placeholderTextColor={colors.dim}
-          autoCapitalize="words"
-          selectionColor={colors.neon}
-          value={name}
-          onChangeText={setName}
-        />
-
-        <Label>Email</Label>
-        <TextInput
-          style={styles.input}
-          placeholder="tu@email.com"
-          placeholderTextColor={colors.dim}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          selectionColor={colors.neon}
-          value={email}
-          onChangeText={setEmail}
-        />
-
-        <Label>Contraseña</Label>
-        <TextInput
-          style={styles.input}
-          placeholder="Mínimo 6 caracteres"
-          placeholderTextColor={colors.dim}
-          secureTextEntry
-          selectionColor={colors.neon}
-          value={password}
-          onChangeText={setPassword}
-        />
-
-        <Label>Confirmar contraseña</Label>
-        <TextInput
-          style={styles.input}
-          placeholder="Repetí la contraseña"
-          placeholderTextColor={colors.dim}
-          secureTextEntry
-          selectionColor={colors.neon}
-          value={confirm}
-          onChangeText={setConfirm}
-        />
-
-        <View style={styles.btnWrap}>
-          <Btn onPress={handleRegister}>
-            {loading ? 'Creando cuenta...' : 'Crear cuenta gratis'}
-          </Btn>
+    <HudBackground style={styles.flex}>
+      <SafeAreaView style={styles.flex}>
+        {/* TopAppBar */}
+        <View style={styles.topBar}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+            <Ionicons name="arrow-back" size={22} color={colors.text} />
+          </TouchableOpacity>
+          <Text style={styles.logo}>FITCORE</Text>
+          <View style={{ width: 40 }} />
         </View>
 
-        <Text style={styles.terms}>
-          Al registrarte aceptás nuestros términos de uso y política de privacidad.
-        </Text>
-      </ScrollView>
-    </SafeAreaView>
+        <ScrollView
+          contentContainerStyle={styles.container}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.titleSection}>
+            <Text style={styles.title}>Crear cuenta</Text>
+            <Text style={styles.subtitle}>Es gratis. Siempre.</Text>
+          </View>
+
+          <View style={[glass, styles.formCard]}>
+            <View style={styles.fieldGroup}>
+              <Text style={styles.fieldLabel}>NOMBRE</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Tu nombre"
+                placeholderTextColor={colors.dim}
+                autoCapitalize="words"
+                selectionColor={colors.neon}
+                value={name}
+                onChangeText={setName}
+              />
+            </View>
+
+            <View style={styles.fieldGroup}>
+              <Text style={styles.fieldLabel}>EMAIL</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="tu@email.com"
+                placeholderTextColor={colors.dim}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                selectionColor={colors.neon}
+                value={email}
+                onChangeText={setEmail}
+              />
+            </View>
+
+            <View style={styles.fieldGroup}>
+              <Text style={styles.fieldLabel}>CONTRASEÑA</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Mínimo 6 caracteres"
+                placeholderTextColor={colors.dim}
+                secureTextEntry
+                selectionColor={colors.neon}
+                value={password}
+                onChangeText={setPassword}
+              />
+            </View>
+
+            <View style={styles.fieldGroup}>
+              <Text style={styles.fieldLabel}>CONFIRMAR CONTRASEÑA</Text>
+              <TextInput
+                style={[styles.input, { marginBottom: 0 }]}
+                placeholder="Repetí la contraseña"
+                placeholderTextColor={colors.dim}
+                secureTextEntry
+                selectionColor={colors.neon}
+                value={confirm}
+                onChangeText={setConfirm}
+              />
+            </View>
+          </View>
+
+          <TouchableOpacity
+            style={[styles.ctaBtn, loading && styles.ctaBtnDisabled]}
+            onPress={handleRegister}
+            disabled={loading}
+            activeOpacity={0.85}
+          >
+            {loading ? (
+              <ActivityIndicator color={colors.bg} size="small" />
+            ) : (
+              <>
+                <Ionicons name="person-add-outline" size={18} color={colors.bg} />
+                <Text style={styles.ctaBtnText}>CREAR CUENTA GRATIS</Text>
+              </>
+            )}
+          </TouchableOpacity>
+
+          <Text style={styles.terms}>
+            Al registrarte aceptás nuestros términos de uso y política de privacidad.
+          </Text>
+        </ScrollView>
+      </SafeAreaView>
+    </HudBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
-  container: { padding: 24, paddingTop: 12 },
-  back: { marginBottom: 20 },
-  backText: { color: colors.muted, fontSize: 14, fontFamily: 'SpaceGrotesk_400Regular' },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: colors.text,
-    fontFamily: 'SpaceGrotesk_700Bold',
-    marginBottom: 4,
+  flex: { flex: 1 },
+
+  topBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: spacing.lg,
+    height: 56,
+    backgroundColor: 'rgba(8,8,8,0.85)',
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
-  sub: {
-    fontSize: 14,
-    color: colors.muted,
-    fontFamily: 'SpaceGrotesk_400Regular',
-    marginBottom: 28,
+  backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+  logo: { ...text.heroMd, fontSize: 20, color: colors.neon, letterSpacing: -0.5 },
+
+  container: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.xl,
+    paddingBottom: spacing.xxl,
+    gap: spacing.lg,
   },
+
+  titleSection: { gap: spacing.xs },
+  title: { ...text.heroMd, color: colors.text },
+  subtitle: { ...text.bodyMd, color: colors.muted },
+
+  formCard: {
+    padding: spacing.lg,
+    borderRadius: radius.lg,
+    gap: spacing.md,
+  },
+  fieldGroup: { gap: spacing.xs },
+  fieldLabel: { ...text.labelSm, color: colors.muted },
   input: {
     backgroundColor: 'rgba(255,255,255,0.04)',
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 11,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 12,
     color: colors.text,
-    fontSize: 15,
-    fontFamily: 'SpaceGrotesk_400Regular',
-    marginBottom: 12,
+    ...text.bodyMd,
   },
-  btnWrap: { marginTop: 8, marginBottom: 16 },
+
+  ctaBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    backgroundColor: colors.neon,
+    borderRadius: radius.md,
+    height: 56,
+    ...glowShadows.neon,
+  },
+  ctaBtnDisabled: { opacity: 0.5 },
+  ctaBtnText: { ...text.headlineMd, color: colors.bg },
+
   terms: {
-    fontSize: 11,
+    ...text.labelSm,
     color: colors.dim,
     textAlign: 'center',
-    fontFamily: 'SpaceGrotesk_400Regular',
     lineHeight: 16,
+    textTransform: 'none',
+    letterSpacing: 0,
   },
 });

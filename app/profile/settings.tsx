@@ -1,11 +1,14 @@
 import { useState } from 'react';
 import {
-  View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator,
+  View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { colors, glass } from '@/constants/colors';
-import { Btn } from '@/components/ui/Btn';
+import { Ionicons } from '@expo/vector-icons';
+import { colors, glass, glowShadows } from '@/constants/colors';
+import { text } from '@/constants/typography';
+import { spacing, radius } from '@/constants/spacing';
+import { HudBackground } from '@/components/ui/HudBackground';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/useAuthStore';
 
@@ -37,93 +40,117 @@ export default function SettingsScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <View style={styles.container}>
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <Text style={styles.backText}>← Volver</Text>
+    <HudBackground style={styles.flex}>
+      <SafeAreaView style={styles.flex} edges={['top']}>
+        {/* TopAppBar */}
+        <View style={styles.topBar}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+            <Ionicons name="arrow-back" size={22} color={colors.text} />
           </TouchableOpacity>
-          <Text style={styles.title}>Ajustes de cuenta</Text>
-          <View style={{ width: 72 }} />
+          <Text style={styles.logo}>FITCORE</Text>
+          <View style={{ width: 40 }} />
         </View>
 
-        {/* Name field */}
-        <View style={[glass, styles.fieldCard]}>
-          <Text style={styles.fieldLabel}>NOMBRE DE USUARIO</Text>
-          <TextInput
-            style={styles.input}
-            value={name}
-            onChangeText={setName}
-            placeholder="Tu nombre"
-            placeholderTextColor={colors.dim}
-            autoCapitalize="words"
-            autoCorrect={false}
-            maxLength={40}
-          />
-        </View>
+        <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+          <Text style={styles.sectionTitle}>Ajustes de cuenta</Text>
 
-        {/* Email (read-only) */}
-        <View style={[glass, styles.fieldCard]}>
-          <Text style={styles.fieldLabel}>EMAIL</Text>
-          <Text style={styles.readOnlyText}>{email ?? '—'}</Text>
-        </View>
+          {/* Name field */}
+          <View style={[glass, styles.fieldCard]}>
+            <View style={styles.fieldHeader}>
+              <Ionicons name="person-outline" size={16} color={colors.muted} />
+              <Text style={styles.fieldLabel}>NOMBRE DE USUARIO</Text>
+            </View>
+            <TextInput
+              style={styles.input}
+              value={name}
+              onChangeText={setName}
+              placeholder="Tu nombre"
+              placeholderTextColor={colors.dim}
+              autoCapitalize="words"
+              autoCorrect={false}
+              maxLength={40}
+              selectionColor={colors.neon}
+            />
+          </View>
 
-        {saving ? (
-          <ActivityIndicator color={colors.neon} style={{ marginTop: 8 }} />
-        ) : (
-          <Btn onPress={handleSave}>Guardar cambios</Btn>
-        )}
-      </View>
-    </SafeAreaView>
+          {/* Email (read-only) */}
+          <View style={[glass, styles.fieldCard]}>
+            <View style={styles.fieldHeader}>
+              <Ionicons name="mail-outline" size={16} color={colors.muted} />
+              <Text style={styles.fieldLabel}>EMAIL</Text>
+            </View>
+            <Text style={styles.readOnlyText}>{email ?? '—'}</Text>
+          </View>
+
+          {saving ? (
+            <ActivityIndicator color={colors.neon} style={{ marginTop: spacing.sm }} />
+          ) : (
+            <TouchableOpacity
+              style={styles.saveBtn}
+              onPress={handleSave}
+              activeOpacity={0.85}
+            >
+              <Ionicons name="checkmark" size={18} color={colors.bg} />
+              <Text style={styles.saveBtnText}>GUARDAR CAMBIOS</Text>
+            </TouchableOpacity>
+          )}
+        </ScrollView>
+      </SafeAreaView>
+    </HudBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
-  container: { flex: 1, padding: 20, gap: 14 },
-  header: {
+  flex: { flex: 1 },
+
+  topBar: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 6,
-  },
-  backText: {
-    fontSize: 14,
-    color: colors.muted,
-    fontFamily: 'SpaceGrotesk_400Regular',
-    width: 72,
-  },
-  title: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: colors.text,
-    fontFamily: 'SpaceGrotesk_700Bold',
-    textAlign: 'center',
-  },
-  fieldCard: {
-    padding: 14,
-    paddingHorizontal: 16,
-    gap: 6,
-  },
-  fieldLabel: {
-    fontSize: 10,
-    color: colors.muted,
-    fontFamily: 'SpaceGrotesk_600SemiBold',
-    letterSpacing: 1.2,
-    textTransform: 'uppercase',
-  },
-  input: {
-    fontSize: 16,
-    color: colors.text,
-    fontFamily: 'SpaceGrotesk_400Regular',
-    paddingVertical: 4,
+    alignItems: 'center',
+    paddingHorizontal: spacing.lg,
+    height: 56,
+    backgroundColor: 'rgba(8,8,8,0.85)',
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
-  readOnlyText: {
-    fontSize: 15,
-    color: colors.muted,
-    fontFamily: 'SpaceGrotesk_400Regular',
+  backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+  logo: { ...text.heroMd, fontSize: 20, color: colors.neon, letterSpacing: -0.5 },
+
+  container: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.xxl,
+    gap: spacing.md,
   },
+
+  sectionTitle: { ...text.headlineLg, color: colors.text, marginBottom: spacing.xs },
+
+  fieldCard: {
+    padding: spacing.md,
+    borderRadius: radius.lg,
+    gap: spacing.sm,
+  },
+  fieldHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  fieldLabel: { ...text.labelSm, color: colors.muted },
+  input: {
+    ...text.bodyMd,
+    color: colors.text,
+    paddingVertical: spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  readOnlyText: { ...text.bodyMd, color: colors.muted },
+
+  saveBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    backgroundColor: colors.neon,
+    borderRadius: radius.md,
+    height: 56,
+    marginTop: spacing.sm,
+    ...glowShadows.neon,
+  },
+  saveBtnText: { ...text.headlineMd, color: colors.bg },
 });

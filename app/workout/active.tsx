@@ -2,10 +2,11 @@ import { useEffect, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { colors, glass, glassNeon, glowShadows } from '@/constants/colors';
 import { text } from '@/constants/typography';
 import { spacing, radius } from '@/constants/spacing';
-import { Btn } from '@/components/ui/Btn';
+import { HudBackground } from '@/components/ui/HudBackground';
 import { RepBadges } from '@/components/ui/RepBadges';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/useAuthStore';
@@ -172,12 +173,17 @@ export default function WorkoutActiveScreen() {
 
   if (!currentEx && phase === 'exercise') {
     return (
-      <SafeAreaView style={styles.safe}>
-        <View style={styles.emptyState}>
-          <Text style={styles.emptyText}>No hay ejercicios en este plan.</Text>
-          <Btn onPress={() => router.back()}>Volver</Btn>
-        </View>
-      </SafeAreaView>
+      <HudBackground style={styles.flex}>
+        <SafeAreaView style={styles.flex}>
+          <View style={styles.emptyState}>
+            <Ionicons name="fitness-outline" size={48} color={colors.dim} />
+            <Text style={styles.emptyText}>No hay ejercicios en este plan.</Text>
+            <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+              <Text style={styles.backBtnText}>Volver</Text>
+            </TouchableOpacity>
+          </View>
+        </SafeAreaView>
+      </HudBackground>
     );
   }
 
@@ -186,22 +192,99 @@ export default function WorkoutActiveScreen() {
     const restMm = String(Math.floor(restSeconds / 60)).padStart(2, '0');
     const restSs = String(restSeconds % 60).padStart(2, '0');
     return (
-      <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
+      <HudBackground style={styles.flex}>
+        <SafeAreaView style={styles.flex} edges={['top', 'bottom']}>
+          {/* Header */}
+          <View style={styles.topBar}>
+            <TouchableOpacity onPress={() => finishWorkout(loggedSets)} style={styles.exitBtn}>
+              <Ionicons name="close" size={20} color={colors.muted} />
+            </TouchableOpacity>
+            <View style={styles.topBarCenter}>
+              <Text style={styles.topBarSub}>Workout</Text>
+              <Text style={styles.topBarTitle}>DESCANSO</Text>
+            </View>
+            <View style={styles.topBarTimer}>
+              <Text style={styles.topBarTimerText}>{mm}:{ss}</Text>
+            </View>
+          </View>
+
+          {/* Progress */}
+          <View style={styles.progressSection}>
+            <View style={styles.progressInfo}>
+              <Text style={styles.progressLabel}>Ejercicio {currentExIdx + 1} de {exercises.length}</Text>
+              <Text style={styles.progressPct}>{progressPct}%</Text>
+            </View>
+            <View style={styles.progressTrack}>
+              <View style={[styles.progressFill, { width: `${progressPct}%` }]} />
+            </View>
+          </View>
+
+          {/* Rest counter */}
+          <View style={styles.restCenter}>
+            <Text style={styles.restCounterLabel}>DESCANSO</Text>
+            <Text style={styles.restTimer}>{restMm}:{restSs}</Text>
+            <Text style={styles.restSubLabel}>Recuperate para la siguiente serie</Text>
+          </View>
+
+          {/* Next card */}
+          {currentEx && (
+            <View style={[glassNeon, styles.nextCard]}>
+              <Text style={styles.nextCardLabel}>
+                {currentSet > 1 ? 'PRÓXIMA SERIE' : 'SIGUIENTE EJERCICIO'}
+              </Text>
+              <Text style={styles.nextCardName}>{currentEx.name}</Text>
+              <Text style={styles.nextCardSub}>
+                {currentSet > 1
+                  ? `Serie ${currentSet} de ${currentEx.sets} · Objetivo: ${currentEx.reps} reps`
+                  : `${currentEx.sets} series × ${currentEx.reps} reps`}
+              </Text>
+            </View>
+          )}
+
+          {/* Bottom controls */}
+          <View style={styles.bottomPanel}>
+            <View style={[glass, styles.controlsRow]}>
+              <View style={styles.statMini}>
+                <Text style={styles.statMiniLabel}>CALORÍAS</Text>
+                <Text style={styles.statMiniValue}>{caloriesBurned}</Text>
+              </View>
+              <TouchableOpacity
+                style={styles.playBtnOrange}
+                onPress={() => { setRestSeconds(0); setPhase('exercise'); }}
+                activeOpacity={0.85}
+              >
+                <Ionicons name="play-skip-forward" size={24} color="#fff" />
+              </TouchableOpacity>
+              <View style={styles.statMini}>
+                <Text style={styles.statMiniLabel}>SERIES</Text>
+                <Text style={styles.statMiniValue}>{loggedSets.length}</Text>
+              </View>
+            </View>
+          </View>
+        </SafeAreaView>
+      </HudBackground>
+    );
+  }
+
+  // ── EXERCISE PHASE ──
+  return (
+    <HudBackground style={styles.flex}>
+      <SafeAreaView style={styles.flex} edges={['top', 'bottom']}>
         {/* Header */}
         <View style={styles.topBar}>
           <TouchableOpacity onPress={() => finishWorkout(loggedSets)} style={styles.exitBtn}>
-            <Text style={styles.exitBtnText}>✕</Text>
+            <Ionicons name="close" size={20} color={colors.muted} />
           </TouchableOpacity>
           <View style={styles.topBarCenter}>
             <Text style={styles.topBarSub}>Workout</Text>
-            <Text style={styles.topBarTitle}>DESCANSO</Text>
+            <Text style={styles.topBarTitle} numberOfLines={1}>{planName}</Text>
           </View>
           <View style={styles.topBarTimer}>
             <Text style={styles.topBarTimerText}>{mm}:{ss}</Text>
           </View>
         </View>
 
-        {/* Progress */}
+        {/* Progress bar */}
         <View style={styles.progressSection}>
           <View style={styles.progressInfo}>
             <Text style={styles.progressLabel}>Ejercicio {currentExIdx + 1} de {exercises.length}</Text>
@@ -212,27 +295,88 @@ export default function WorkoutActiveScreen() {
           </View>
         </View>
 
-        {/* Rest counter */}
-        <View style={styles.restCenter}>
-          <Text style={styles.restCounterLabel}>DESCANSO</Text>
-          <Text style={styles.restTimer}>{restMm}:{restSs}</Text>
-          <Text style={styles.restSubLabel}>Recuperate para la siguiente serie</Text>
+        {/* Timer + exercise name */}
+        <View style={styles.timerSection}>
+          <Text style={styles.mainTimer}>{mm}:{ss}</Text>
+          <Text style={styles.exerciseName}>{currentEx.name}</Text>
+          {currentEx.muscleGroup && (
+            <Text style={styles.muscleLabel}>{currentEx.muscleGroup}</Text>
+          )}
+          {nextEx && (
+            <View style={[glass, styles.nextChip]}>
+              <Text style={styles.nextChipText}>Siguiente: {nextEx.name}</Text>
+            </View>
+          )}
         </View>
 
-        {/* Next card */}
-        {currentEx && (
-          <View style={[glassNeon, styles.nextCard]}>
-            <Text style={styles.nextCardLabel}>
-              {currentSet > 1 ? 'PRÓXIMA SERIE' : 'SIGUIENTE EJERCICIO'}
-            </Text>
-            <Text style={styles.nextCardName}>{currentEx.name}</Text>
-            <Text style={styles.nextCardSub}>
-              {currentSet > 1
-                ? `Serie ${currentSet} de ${currentEx.sets} · Objetivo: ${currentEx.reps} reps`
-                : `${currentEx.sets} series × ${currentEx.reps} reps`}
-            </Text>
+        {/* Form area */}
+        <View style={[glass, styles.formArea]}>
+          {/* Series dots */}
+          <View style={styles.seriesDotsOverlay}>
+            <Text style={styles.seriesOverlayLabel}>SERIE</Text>
+            <Text style={styles.seriesOverlayValue}>{currentSet}/{currentEx.sets}</Text>
+            <View style={styles.seriesDots}>
+              {Array.from({ length: currentEx.sets }, (_, i) => (
+                <View
+                  key={i}
+                  style={[
+                    styles.dot,
+                    i < currentSet - 1 ? styles.dotDone
+                    : i === currentSet - 1 ? styles.dotActive
+                    : styles.dotPending,
+                  ]}
+                />
+              ))}
+            </View>
           </View>
-        )}
+
+          {/* Rep counter */}
+          <View style={styles.repCenter}>
+            <RepBadges completed={Math.min(actualReps, currentEx.reps)} total={currentEx.reps} />
+            <View style={styles.repRow}>
+              <TouchableOpacity
+                style={styles.repMinus}
+                onPress={() => setActualReps((r) => Math.max(0, r - 1))}
+              >
+                <Text style={styles.repMinusText}>−</Text>
+              </TouchableOpacity>
+              <Text style={styles.repValue}>{actualReps}</Text>
+              <TouchableOpacity
+                style={styles.repPlus}
+                onPress={() => setActualReps((r) => r + 1)}
+              >
+                <Text style={styles.repPlusText}>+</Text>
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.repTargetLabel}>Objetivo: {currentEx.reps} reps</Text>
+          </View>
+
+          {/* Weight input */}
+          <View style={styles.weightRow}>
+            <Text style={styles.weightLabel}>Peso (kg)</Text>
+            <TextInput
+              style={styles.weightInput}
+              placeholder="0"
+              placeholderTextColor={colors.dim}
+              keyboardType="decimal-pad"
+              value={weight !== null ? String(weight) : ''}
+              onChangeText={(val) => setWeight(val === '' ? null : parseFloat(val) || null)}
+            />
+          </View>
+
+          {/* Instructions */}
+          {currentEx.instructions && (
+            <TouchableOpacity onPress={() => setShowInstructions((v) => !v)} activeOpacity={0.8}>
+              <View style={styles.instructionsToggle}>
+                <Ionicons name={showInstructions ? 'chevron-up' : 'chevron-down'} size={14} color={colors.muted} />
+                <Text style={styles.instructionsToggleText}>Instrucciones</Text>
+              </View>
+              {showInstructions && (
+                <Text style={styles.instructionsText}>{currentEx.instructions}</Text>
+              )}
+            </TouchableOpacity>
+          )}
+        </View>
 
         {/* Bottom controls */}
         <View style={styles.bottomPanel}>
@@ -242,173 +386,52 @@ export default function WorkoutActiveScreen() {
               <Text style={styles.statMiniValue}>{caloriesBurned}</Text>
             </View>
             <TouchableOpacity
-              style={[styles.playBtnOrange]}
-              onPress={() => { setRestSeconds(0); setPhase('exercise'); }}
+              style={styles.playBtn}
+              onPress={completeSerie}
               activeOpacity={0.85}
             >
-              <Text style={styles.skipText}>SALTAR ▶</Text>
+              <Ionicons name="checkmark" size={32} color={colors.bg} />
             </TouchableOpacity>
-            <View style={styles.statMini}>
-              <Text style={styles.statMiniLabel}>SERIES</Text>
-              <Text style={styles.statMiniValue}>{loggedSets.length}</Text>
-            </View>
-          </View>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  // ── EXERCISE PHASE ──
-  return (
-    <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-      {/* Header */}
-      <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => finishWorkout(loggedSets)} style={styles.exitBtn}>
-          <Text style={styles.exitBtnText}>✕</Text>
-        </TouchableOpacity>
-        <View style={styles.topBarCenter}>
-          <Text style={styles.topBarSub}>Workout</Text>
-          <Text style={styles.topBarTitle} numberOfLines={1}>{planName}</Text>
-        </View>
-        <View style={styles.topBarTimer}>
-          <Text style={styles.topBarTimerText}>{mm}:{ss}</Text>
-        </View>
-      </View>
-
-      {/* Progress bar */}
-      <View style={styles.progressSection}>
-        <View style={styles.progressInfo}>
-          <Text style={styles.progressLabel}>Ejercicio {currentExIdx + 1} de {exercises.length}</Text>
-          <Text style={styles.progressPct}>{progressPct}%</Text>
-        </View>
-        <View style={styles.progressTrack}>
-          <View style={[styles.progressFill, { width: `${progressPct}%` }]} />
-        </View>
-      </View>
-
-      {/* Timer + exercise name */}
-      <View style={styles.timerSection}>
-        <Text style={styles.mainTimer}>{mm}:{ss}</Text>
-        <Text style={styles.exerciseName}>{currentEx.name}</Text>
-        {currentEx.muscleGroup && (
-          <Text style={styles.muscleLabel}>{currentEx.muscleGroup}</Text>
-        )}
-        {nextEx && (
-          <View style={[glass, styles.nextChip]}>
-            <Text style={styles.nextChipText}>Siguiente: {nextEx.name}</Text>
-          </View>
-        )}
-      </View>
-
-      {/* Visual form area — exercise info + rep counter */}
-      <View style={[glass, styles.formArea]}>
-        {/* Top-left: series dots */}
-        <View style={styles.seriesDotsOverlay}>
-          <Text style={styles.seriesOverlayLabel}>SERIE</Text>
-          <Text style={styles.seriesOverlayValue}>{currentSet}/{currentEx.sets}</Text>
-          <View style={styles.seriesDots}>
-            {Array.from({ length: currentEx.sets }, (_, i) => (
-              <View
-                key={i}
-                style={[
-                  styles.dot,
-                  i < currentSet - 1 ? styles.dotDone
-                  : i === currentSet - 1 ? styles.dotActive
-                  : styles.dotPending,
-                ]}
-              />
-            ))}
-          </View>
-        </View>
-
-        {/* Center: rep counter */}
-        <View style={styles.repCenter}>
-          <RepBadges completed={Math.min(actualReps, currentEx.reps)} total={currentEx.reps} />
-          <View style={styles.repRow}>
             <TouchableOpacity
-              style={styles.repMinus}
-              onPress={() => setActualReps((r) => Math.max(0, r - 1))}
+              style={styles.statMiniBtn}
+              onPress={() => finishWorkout(loggedSets)}
             >
-              <Text style={styles.repMinusText}>−</Text>
+              <Text style={styles.statMiniLabel}>FINALIZAR</Text>
+              <Text style={styles.finishSmall}>Terminar</Text>
             </TouchableOpacity>
-            <Text style={styles.repValue}>{actualReps}</Text>
-            <TouchableOpacity
-              style={styles.repPlus}
-              onPress={() => setActualReps((r) => r + 1)}
-            >
-              <Text style={styles.repPlusText}>+</Text>
-            </TouchableOpacity>
-          </View>
-          <Text style={styles.repTargetLabel}>Objetivo: {currentEx.reps} reps</Text>
-        </View>
-
-        {/* Weight input */}
-        <View style={styles.weightRow}>
-          <Text style={styles.weightLabel}>Peso (kg)</Text>
-          <TextInput
-            style={styles.weightInput}
-            placeholder="0"
-            placeholderTextColor={colors.dim}
-            keyboardType="decimal-pad"
-            value={weight !== null ? String(weight) : ''}
-            onChangeText={(val) => setWeight(val === '' ? null : parseFloat(val) || null)}
-          />
-        </View>
-
-        {/* Instructions */}
-        {currentEx.instructions && (
-          <TouchableOpacity onPress={() => setShowInstructions((v) => !v)} activeOpacity={0.8}>
-            <Text style={styles.instructionsToggle}>
-              {showInstructions ? '▲' : '▼'} Instrucciones
-            </Text>
-            {showInstructions && (
-              <Text style={styles.instructionsText}>{currentEx.instructions}</Text>
-            )}
-          </TouchableOpacity>
-        )}
-      </View>
-
-      {/* Bottom controls */}
-      <View style={styles.bottomPanel}>
-        <View style={[glass, styles.controlsRow]}>
-          <View style={styles.statMini}>
-            <Text style={styles.statMiniLabel}>CALORÍAS</Text>
-            <Text style={styles.statMiniValue}>{caloriesBurned}</Text>
           </View>
           <TouchableOpacity
-            style={styles.playBtn}
+            style={styles.completeCta}
             onPress={completeSerie}
             activeOpacity={0.85}
           >
-            <Text style={styles.playBtnText}>✓</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.statMiniBtn}
-            onPress={() => finishWorkout(loggedSets)}
-          >
-            <Text style={styles.statMiniLabel}>FINALIZAR</Text>
-            <Text style={styles.finishSmall}>Terminar</Text>
+            <Text style={styles.completeCtaText}>COMPLETAR SERIE</Text>
           </TouchableOpacity>
         </View>
-        <View style={styles.completeCta}>
-          <Btn onPress={completeSerie}>COMPLETAR SERIE</Btn>
-        </View>
-      </View>
-    </SafeAreaView>
+      </SafeAreaView>
+    </HudBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
+  flex: { flex: 1 },
   emptyState: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.lg, padding: spacing.xl },
   emptyText: { ...text.bodyMd, color: colors.muted, textAlign: 'center' },
+  backBtn: {
+    borderWidth: 1,
+    borderColor: colors.borderAccent,
+    borderRadius: radius.full,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.sm,
+  },
+  backBtnText: { ...text.labelSm, color: colors.neon },
 
   topBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: spacing.marginMobile,
+    paddingHorizontal: spacing.lg,
     height: 56,
-    backgroundColor: 'rgba(8,8,8,0.7)',
+    backgroundColor: 'rgba(8,8,8,0.85)',
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
     gap: spacing.sm,
@@ -421,14 +444,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  exitBtnText: { ...text.headlineMd, color: colors.muted },
   topBarCenter: { flex: 1, alignItems: 'center' },
   topBarSub: { ...text.labelSm, color: colors.muted },
   topBarTitle: { ...text.bodyMd, color: colors.text, fontWeight: '600' },
   topBarTimer: { width: 56, alignItems: 'flex-end' },
   topBarTimerText: { ...text.dataMono, color: colors.muted },
 
-  progressSection: { paddingHorizontal: spacing.marginMobile, paddingTop: spacing.md, gap: spacing.xs },
+  progressSection: { paddingHorizontal: spacing.lg, paddingTop: spacing.md, gap: spacing.xs },
   progressInfo: { flexDirection: 'row', justifyContent: 'space-between' },
   progressLabel: { ...text.labelSm, color: colors.neon },
   progressPct: { ...text.dataMono, color: colors.muted },
@@ -438,15 +460,11 @@ const styles = StyleSheet.create({
     borderRadius: radius.full,
     overflow: 'hidden',
   },
-  progressFill: {
-    height: '100%',
-    backgroundColor: colors.neon,
-    borderRadius: radius.full,
-  },
+  progressFill: { height: '100%', backgroundColor: colors.neon, borderRadius: radius.full },
 
   timerSection: {
     alignItems: 'center',
-    paddingHorizontal: spacing.marginMobile,
+    paddingHorizontal: spacing.lg,
     paddingTop: spacing.lg,
     gap: spacing.xs,
   },
@@ -471,7 +489,7 @@ const styles = StyleSheet.create({
 
   formArea: {
     flex: 1,
-    marginHorizontal: spacing.marginMobile,
+    marginHorizontal: spacing.lg,
     marginTop: spacing.md,
     borderRadius: radius.lg,
     padding: spacing.lg,
@@ -509,7 +527,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     ...glowShadows.neon,
   },
-  repPlusText: { fontSize: 28, color: '#111', fontWeight: '700' },
+  repPlusText: { fontSize: 28, color: colors.bg, fontWeight: '700' },
   repValue: {
     fontSize: 72,
     fontWeight: '700',
@@ -544,11 +562,18 @@ const styles = StyleSheet.create({
     minWidth: 80,
     textAlign: 'center',
   },
-  instructionsToggle: { ...text.labelSm, color: colors.muted, textAlign: 'center', paddingVertical: spacing.xs },
+  instructionsToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    paddingVertical: spacing.xs,
+  },
+  instructionsToggleText: { ...text.labelSm, color: colors.muted },
   instructionsText: { ...text.bodyMd, color: colors.muted, lineHeight: 20 },
 
   bottomPanel: {
-    paddingHorizontal: spacing.marginMobile,
+    paddingHorizontal: spacing.lg,
     paddingBottom: spacing.lg,
     paddingTop: spacing.sm,
     gap: spacing.sm,
@@ -575,7 +600,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     ...glowShadows.neon,
   },
-  playBtnText: { fontSize: 28, color: '#111', fontWeight: '700' },
   playBtnOrange: {
     width: 64,
     height: 64,
@@ -585,8 +609,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     ...glowShadows.orange,
   },
-  skipText: { ...text.labelSm, color: '#fff' },
-  completeCta: { marginTop: spacing.xs },
+  completeCta: {
+    backgroundColor: colors.neon,
+    borderRadius: radius.md,
+    height: 56,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...glowShadows.neon,
+  },
+  completeCtaText: { ...text.headlineMd, color: colors.bg },
 
   // Rest phase
   restCenter: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.sm },
@@ -602,7 +633,7 @@ const styles = StyleSheet.create({
   },
   restSubLabel: { ...text.bodyMd, color: colors.muted },
   nextCard: {
-    marginHorizontal: spacing.marginMobile,
+    marginHorizontal: spacing.lg,
     marginBottom: spacing.md,
     padding: spacing.lg,
     borderRadius: radius.lg,

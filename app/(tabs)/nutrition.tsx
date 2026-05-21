@@ -5,9 +5,11 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { colors, glass, glassNeon } from '@/constants/colors';
+import { Ionicons } from '@expo/vector-icons';
+import { colors, glass } from '@/constants/colors';
 import { text } from '@/constants/typography';
 import { spacing, radius } from '@/constants/spacing';
+import { HudBackground } from '@/components/ui/HudBackground';
 import { RingChart } from '@/components/ui/RingChart';
 import { useNutritionStore } from '@/stores/useNutritionStore';
 import { useAuthStore } from '@/stores/useAuthStore';
@@ -16,7 +18,10 @@ import { FoodLogEntry } from '@/lib/api';
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const MEAL_ICONS: Record<string, string> = {
-  breakfast: '🌅', lunch: '☀️', snack: '🍎', dinner: '🌙',
+  breakfast: 'sunny-outline',
+  lunch:     'sunny',
+  snack:     'cafe-outline',
+  dinner:    'moon-outline',
 };
 const MEAL_NAMES: Record<string, string> = {
   breakfast: 'Desayuno', lunch: 'Almuerzo', snack: 'Merienda', dinner: 'Cena',
@@ -42,13 +47,8 @@ const STRIP_DAYS = 60;
 
 // ─── Date helpers ─────────────────────────────────────────────────────────────
 
-function toDateStr(d: Date): string {
-  return d.toISOString().slice(0, 10);
-}
-
-function todayStr(): string {
-  return toDateStr(new Date());
-}
+function toDateStr(d: Date): string { return d.toISOString().slice(0, 10); }
+function todayStr(): string { return toDateStr(new Date()); }
 
 function addDays(dateStr: string, n: number): string {
   const d = new Date(dateStr + 'T12:00:00');
@@ -153,7 +153,7 @@ function WeekStrip({
 }
 
 const stripStyles = StyleSheet.create({
-  container: { paddingHorizontal: 12, paddingVertical: 6, gap: 2, flexDirection: 'row' },
+  container: { paddingHorizontal: spacing.md, paddingVertical: 6, gap: 2, flexDirection: 'row' },
   cell: { width: DAY_CELL_W, alignItems: 'center', paddingVertical: 8, borderRadius: radius.md, gap: 2 },
   cellSelected: { backgroundColor: 'rgba(204,255,0,0.12)', borderWidth: 1, borderColor: 'rgba(204,255,0,0.4)' },
   cellToday: { borderWidth: 1, borderColor: 'rgba(204,255,0,0.2)', borderRadius: radius.md },
@@ -202,11 +202,11 @@ function CalendarModal({
         <Pressable style={calStyles.card} onPress={() => {}}>
           <View style={calStyles.monthHeader}>
             <TouchableOpacity onPress={prevMonth} style={calStyles.navBtn}>
-              <Text style={calStyles.navArrow}>‹</Text>
+              <Ionicons name="chevron-back" size={22} color={colors.text} />
             </TouchableOpacity>
             <Text style={calStyles.monthLabel}>{MONTH_SHORT[month]} {year}</Text>
             <TouchableOpacity onPress={nextMonth} style={calStyles.navBtn} disabled={isLastMonth}>
-              <Text style={[calStyles.navArrow, isLastMonth && calStyles.navDim]}>›</Text>
+              <Ionicons name="chevron-forward" size={22} color={isLastMonth ? colors.dim : colors.text} />
             </TouchableOpacity>
           </View>
           <View style={calStyles.dayHeaders}>
@@ -261,18 +261,16 @@ function CalendarModal({
 }
 
 const calStyles = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.75)', justifyContent: 'center', alignItems: 'center', padding: 20 },
-  card: { width: '100%', backgroundColor: '#111', borderRadius: 20, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', padding: 16, gap: 8 },
+  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.75)', justifyContent: 'center', alignItems: 'center', padding: spacing.lg },
+  card: { width: '100%', backgroundColor: '#111', borderRadius: radius.xl, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', padding: spacing.md, gap: spacing.sm },
   monthHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 4, marginBottom: 4 },
-  navBtn: { padding: 8 },
-  navArrow: { fontSize: 22, color: colors.text, fontWeight: '700' },
-  navDim: { color: colors.dim },
-  monthLabel: { fontSize: 17, fontWeight: '700', color: colors.text, fontFamily: 'SpaceGrotesk_700Bold' },
+  navBtn: { padding: spacing.sm },
+  monthLabel: { ...text.headlineMd, color: colors.text },
   dayHeaders: { flexDirection: 'row', marginBottom: 2 },
-  dayHeader: { flex: 1, textAlign: 'center', fontSize: 11, color: colors.dim, fontFamily: 'SpaceGrotesk_600SemiBold', textTransform: 'uppercase' },
+  dayHeader: { flex: 1, textAlign: 'center', ...text.labelSm, color: colors.dim, fontSize: 10 },
   row: { flexDirection: 'row' },
   emptyCell: { flex: 1, height: 44 },
-  dayCell: { flex: 1, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 10, gap: 2 },
+  dayCell: { flex: 1, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: radius.sm, gap: 2 },
   dayCellSelected: { backgroundColor: colors.neon },
   dayCellToday: { borderWidth: 1, borderColor: colors.neon },
   dayNum: { fontSize: 14, fontWeight: '600', color: colors.text, fontFamily: 'SpaceGrotesk_600SemiBold' },
@@ -280,12 +278,12 @@ const calStyles = StyleSheet.create({
   dayNumToday: { color: colors.neon },
   dayFuture: { color: colors.dim, opacity: 0.4 },
   dot: { width: 4, height: 4, borderRadius: 2 },
-  legend: { flexDirection: 'row', gap: 16, justifyContent: 'center', paddingTop: 4, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.06)', marginTop: 4 },
+  legend: { flexDirection: 'row', gap: spacing.lg, justifyContent: 'center', paddingTop: spacing.xs, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.06)', marginTop: 4 },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   legendDot: { width: 8, height: 8, borderRadius: 4 },
-  legendText: { fontSize: 11, color: colors.muted, fontFamily: 'SpaceGrotesk_400Regular' },
-  closeBtn: { backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 10, paddingVertical: 12, alignItems: 'center', marginTop: 4 },
-  closeBtnText: { fontSize: 14, color: colors.muted, fontFamily: 'SpaceGrotesk_600SemiBold' },
+  legendText: { ...text.labelSm, color: colors.muted },
+  closeBtn: { backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: radius.sm, paddingVertical: spacing.md, alignItems: 'center', marginTop: 4 },
+  closeBtnText: { ...text.bodyMd, color: colors.muted, fontFamily: 'SpaceGrotesk_600SemiBold' },
 });
 
 // ─── Main screen ──────────────────────────────────────────────────────────────
@@ -305,14 +303,8 @@ export default function NutritionScreen() {
     fatG:     profile?.targetFatG     ?? DAILY_GOALS.fatG,
   };
 
-  useEffect(() => {
-    if (!profile) fetchProfile();
-  }, []);
-
-  useEffect(() => {
-    fetchFoodLog(selectedDate);
-    fetchWater(selectedDate);
-  }, [selectedDate]);
+  useEffect(() => { if (!profile) fetchProfile(); }, []);
+  useEffect(() => { fetchFoodLog(selectedDate); fetchWater(selectedDate); }, [selectedDate]);
 
   const handleSelectDate = useCallback((d: string) => {
     if (d <= today) setSelectedDate(d);
@@ -320,9 +312,7 @@ export default function NutritionScreen() {
 
   const byMeal = useMemo(() => {
     const m: Record<string, FoodLogEntry[]> = { breakfast: [], lunch: [], snack: [], dinner: [] };
-    for (const e of foodLog) {
-      if (m[e.mealType]) m[e.mealType].push(e);
-    }
+    for (const e of foodLog) { if (m[e.mealType]) m[e.mealType].push(e); }
     return m;
   }, [foodLog]);
 
@@ -331,247 +321,246 @@ export default function NutritionScreen() {
   const totalCarbs = foodLog.reduce((s, e) => s + e.carbsG, 0);
   const totalFat   = foodLog.reduce((s, e) => s + e.fatG, 0);
 
-  const calPct    = Math.min(1, totalCal / goals.calories);
-  const protPct   = Math.min(1, totalProt / goals.proteinG);
-  const carbsPct  = Math.min(1, totalCarbs / goals.carbsG);
-  const fatPct    = Math.min(1, totalFat / goals.fatG);
-  const waterMl   = waterGlasses * 250;
+  const calPct   = Math.min(1, totalCal / goals.calories);
+  const protPct  = Math.min(1, totalProt / goals.proteinG);
+  const carbsPct = Math.min(1, totalCarbs / goals.carbsG);
+  const fatPct   = Math.min(1, totalFat / goals.fatG);
+  const waterMl  = waterGlasses * 250;
   const waterGoalMl = WATER_GOAL * 250;
 
   const isToday = selectedDate === today;
   const cachedDay = logCache[selectedDate];
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top']}>
-      {/* TopAppBar */}
-      <View style={styles.topBar}>
-        <Text style={styles.logo}>FITCORE</Text>
-        <View style={styles.topActions}>
-          <TouchableOpacity
-            onPress={() => router.push('/nutrition/history' as never)}
-            style={styles.topBtn}
-          >
-            <Text style={styles.topBtnIcon}>📊</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => setCalendarOpen(true)}
-            style={styles.topBtn}
-          >
-            <Text style={styles.topBtnIcon}>📅</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* Week strip */}
-      <WeekStrip
-        selectedDate={selectedDate}
-        onSelect={handleSelectDate}
-        logCache={logCache}
-        calGoal={goals.calories}
-      />
-
-      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-        {/* Date header */}
-        <View style={styles.dateHeader}>
-          <View>
-            <Text style={styles.todayLabel}>{isToday ? 'HOY' : formatShort(selectedDate).toUpperCase()}</Text>
-            <Text style={styles.pageTitle}>Resumen Nutricional</Text>
+    <HudBackground style={styles.flex}>
+      <SafeAreaView style={styles.flex} edges={['top']}>
+        {/* TopAppBar */}
+        <View style={styles.topBar}>
+          <Text style={styles.logo}>FITCORE</Text>
+          <View style={styles.topActions}>
+            <TouchableOpacity
+              onPress={() => router.push('/nutrition/history' as never)}
+              style={styles.topBtn}
+            >
+              <Ionicons name="bar-chart-outline" size={22} color={colors.muted} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setCalendarOpen(true)}
+              style={styles.topBtn}
+            >
+              <Ionicons name="calendar-outline" size={22} color={colors.neon} />
+            </TouchableOpacity>
           </View>
-          <Text style={styles.goalLabel}>Meta: {goals.calories.toLocaleString()} kcal</Text>
         </View>
 
-        {/* Past-day banner */}
-        {!isToday && cachedDay && (
-          <View style={styles.pastBanner}>
-            <Text style={styles.pastDate}>{formatLong(selectedDate)}</Text>
-            <Text style={styles.pastStats}>
-              {cachedDay.calories} / {goals.calories} kcal · {cachedDay.mealsCount} {cachedDay.mealsCount === 1 ? 'comida' : 'comidas'}
-            </Text>
-          </View>
-        )}
+        {/* Week strip */}
+        <WeekStrip
+          selectedDate={selectedDate}
+          onSelect={handleSelectDate}
+          logCache={logCache}
+          calGoal={goals.calories}
+        />
 
-        {/* Calorie ring card */}
-        <View style={[glass, styles.calCard]}>
-          <View style={styles.calAccent} />
-          {loading ? (
-            <ActivityIndicator color={colors.neon} style={{ paddingVertical: 40, flex: 1 }} />
-          ) : (
-            <View style={styles.calContent}>
-              <RingChart
-                size={140}
-                rings={[{ radius: 62, strokeWidth: 12, progress: calPct, color: colors.neon, trackColor: 'rgba(255,255,255,0.05)' }]}
-              >
-                <View style={styles.calCenter}>
-                  <Text style={styles.calRemaining}>{Math.max(0, goals.calories - totalCal).toLocaleString()}</Text>
-                  <Text style={styles.calRemainingLabel}>KCAL RESTANTES</Text>
-                </View>
-              </RingChart>
-              <View style={styles.calStatsRow}>
-                <View style={styles.calStat}>
-                  <Text style={styles.calStatVal}>{totalCal.toLocaleString()}</Text>
-                  <Text style={styles.calStatLabel}>CONSUMIDAS</Text>
-                </View>
-                <View style={styles.calStatDivider} />
-                <View style={styles.calStat}>
-                  <Text style={styles.calStatVal}>{goals.calories.toLocaleString()}</Text>
-                  <Text style={styles.calStatLabel}>META</Text>
-                </View>
-              </View>
+        <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+          {/* Date header */}
+          <View style={styles.dateHeader}>
+            <View>
+              <Text style={styles.todayLabel}>{isToday ? 'HOY' : formatShort(selectedDate).toUpperCase()}</Text>
+              <Text style={styles.pageTitle}>Resumen Nutricional</Text>
+            </View>
+            <Text style={styles.goalLabel}>Meta: {goals.calories.toLocaleString()} kcal</Text>
+          </View>
+
+          {/* Past-day banner */}
+          {!isToday && cachedDay && (
+            <View style={styles.pastBanner}>
+              <Text style={styles.pastDate}>{formatLong(selectedDate)}</Text>
+              <Text style={styles.pastStats}>
+                {cachedDay.calories} / {goals.calories} kcal · {cachedDay.mealsCount} {cachedDay.mealsCount === 1 ? 'comida' : 'comidas'}
+              </Text>
             </View>
           )}
-        </View>
 
-        {/* Macros 3-col */}
-        <View style={styles.macrosRow}>
-          {[
-            { label: 'PROTEÍNAS', val: totalProt,  goal: goals.proteinG, pct: protPct,  color: colors.neon },
-            { label: 'CARBOS',    val: totalCarbs,  goal: goals.carbsG,   pct: carbsPct, color: colors.orange },
-            { label: 'GRASAS',    val: totalFat,    goal: goals.fatG,     pct: fatPct,   color: colors.muted },
-          ].map((m) => (
-            <View key={m.label} style={[glass, styles.macroCard, { borderLeftColor: m.color }]}>
-              <Text style={styles.macroLabel}>{m.label}</Text>
-              <Text style={styles.macroVal}>{Math.round(m.val)}/{m.goal}g</Text>
-              <View style={styles.macroBarTrack}>
-                <View style={[styles.macroBarFill, { width: `${Math.round(m.pct * 100)}%`, backgroundColor: m.color }]} />
+          {/* Calorie ring card */}
+          <View style={[glass, styles.calCard]}>
+            <View style={styles.calAccent} />
+            {loading ? (
+              <ActivityIndicator color={colors.neon} style={{ paddingVertical: 40, flex: 1 }} />
+            ) : (
+              <View style={styles.calContent}>
+                <RingChart
+                  size={140}
+                  rings={[{ radius: 62, strokeWidth: 12, progress: calPct, color: colors.neon, trackColor: 'rgba(255,255,255,0.05)' }]}
+                >
+                  <View style={styles.calCenter}>
+                    <Text style={styles.calRemaining}>{Math.max(0, goals.calories - totalCal).toLocaleString()}</Text>
+                    <Text style={styles.calRemainingLabel}>KCAL RESTANTES</Text>
+                  </View>
+                </RingChart>
+                <View style={styles.calStatsRow}>
+                  <View style={styles.calStat}>
+                    <Text style={styles.calStatVal}>{totalCal.toLocaleString()}</Text>
+                    <Text style={styles.calStatLabel}>CONSUMIDAS</Text>
+                  </View>
+                  <View style={styles.calStatDivider} />
+                  <View style={styles.calStat}>
+                    <Text style={styles.calStatVal}>{goals.calories.toLocaleString()}</Text>
+                    <Text style={styles.calStatLabel}>META</Text>
+                  </View>
+                </View>
               </View>
-            </View>
-          ))}
-        </View>
-
-        {/* Modo Despensa CTA */}
-        <TouchableOpacity
-          style={styles.pantryBtn}
-          onPress={() => router.push('/nutrition/pantry')}
-          activeOpacity={0.85}
-        >
-          <View style={styles.pantryBtnLeft}>
-            <View style={styles.pantryBtnIcon}>
-              <Text style={styles.pantryBtnIconText}>✦</Text>
-            </View>
-            <View style={styles.pantryBtnInfo}>
-              <Text style={styles.pantryBtnTitle}>Modo Despensa</Text>
-              <Text style={styles.pantryBtnSub}>Genera recetas con lo que tenés en casa</Text>
-            </View>
+            )}
           </View>
-          <Text style={styles.pantryBtnArrow}>›</Text>
-        </TouchableOpacity>
 
-        {/* Diario de hoy header */}
-        <View style={styles.diaryHeader}>
-          <Text style={styles.diaryTitle}>Diario de {isToday ? 'Hoy' : formatShort(selectedDate)}</Text>
-          <TouchableOpacity onPress={() => router.push({ pathname: '/nutrition/add-food', params: { date: selectedDate } } as never)}>
-            <Text style={styles.addCircle}>＋</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Meal cards */}
-        {MEAL_ORDER.map((mealId) => {
-          const entries = byMeal[mealId];
-          const mealCal = entries.reduce((s, e) => s + e.calories, 0);
-          const hasFoods = entries.length > 0;
-          return (
-            <TouchableOpacity
-              key={mealId}
-              style={[glass, styles.mealCard, !hasFoods && styles.mealCardEmpty]}
-              activeOpacity={0.75}
-              onPress={() => hasFoods
-                ? router.push({ pathname: '/nutrition/meal/[id]', params: { id: mealId, date: selectedDate } })
-                : router.push({ pathname: '/nutrition/add-food', params: { meal: mealId, date: selectedDate } } as never)
-              }
-            >
-              <View style={[styles.mealIconWrap, !hasFoods && styles.mealIconWrapEmpty]}>
-                <Text style={styles.mealIconText}>{MEAL_ICONS[mealId]}</Text>
+          {/* Macros 3-col */}
+          <View style={styles.macrosRow}>
+            {[
+              { label: 'PROTEÍNAS', val: totalProt,  goal: goals.proteinG, pct: protPct,  color: colors.neon },
+              { label: 'CARBOS',    val: totalCarbs,  goal: goals.carbsG,   pct: carbsPct, color: colors.orange },
+              { label: 'GRASAS',    val: totalFat,    goal: goals.fatG,     pct: fatPct,   color: colors.teal },
+            ].map((m) => (
+              <View key={m.label} style={[glass, styles.macroCard, { borderLeftColor: m.color }]}>
+                <Text style={styles.macroLabel}>{m.label}</Text>
+                <Text style={styles.macroVal}>{Math.round(m.val)}/{m.goal}g</Text>
+                <View style={styles.macroBarTrack}>
+                  <View style={[styles.macroBarFill, { width: `${Math.round(m.pct * 100)}%`, backgroundColor: m.color }]} />
+                </View>
               </View>
-              <View style={styles.mealInfo}>
-                <View style={styles.mealTopRow}>
-                  <Text style={[styles.mealName, !hasFoods && styles.mealNameMuted]}>
-                    {MEAL_NAMES[mealId]}
-                  </Text>
+            ))}
+          </View>
+
+          {/* Modo Despensa CTA */}
+          <TouchableOpacity
+            style={styles.pantryBtn}
+            onPress={() => router.push('/nutrition/pantry')}
+            activeOpacity={0.85}
+          >
+            <View style={styles.pantryBtnLeft}>
+              <View style={styles.pantryBtnIcon}>
+                <Ionicons name="sparkles" size={18} color={colors.bg} />
+              </View>
+              <View style={styles.pantryBtnInfo}>
+                <Text style={styles.pantryBtnTitle}>Modo Despensa</Text>
+                <Text style={styles.pantryBtnSub}>Genera recetas con lo que tenés en casa</Text>
+              </View>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={colors.bg} />
+          </TouchableOpacity>
+
+          {/* Diario header */}
+          <View style={styles.diaryHeader}>
+            <Text style={styles.diaryTitle}>Diario de {isToday ? 'Hoy' : formatShort(selectedDate)}</Text>
+            <TouchableOpacity onPress={() => router.push({ pathname: '/nutrition/add-food', params: { date: selectedDate } } as never)}>
+              <Ionicons name="add-circle-outline" size={24} color={colors.muted} />
+            </TouchableOpacity>
+          </View>
+
+          {/* Meal cards */}
+          {MEAL_ORDER.map((mealId) => {
+            const entries = byMeal[mealId];
+            const mealCal = entries.reduce((s, e) => s + e.calories, 0);
+            const hasFoods = entries.length > 0;
+            return (
+              <TouchableOpacity
+                key={mealId}
+                style={[glass, styles.mealCard, !hasFoods && styles.mealCardEmpty]}
+                activeOpacity={0.75}
+                onPress={() => hasFoods
+                  ? router.push({ pathname: '/nutrition/meal/[id]', params: { id: mealId, date: selectedDate } })
+                  : router.push({ pathname: '/nutrition/add-food', params: { meal: mealId, date: selectedDate } } as never)
+                }
+              >
+                <View style={[styles.mealIconWrap, !hasFoods && styles.mealIconWrapEmpty]}>
+                  <Ionicons name={MEAL_ICONS[mealId] as any} size={24} color={hasFoods ? colors.neon : colors.dim} />
+                </View>
+                <View style={styles.mealInfo}>
+                  <View style={styles.mealTopRow}>
+                    <Text style={[styles.mealName, !hasFoods && styles.mealNameMuted]}>
+                      {MEAL_NAMES[mealId]}
+                    </Text>
+                    {hasFoods ? (
+                      <Text style={styles.mealKcal}>{mealCal} kcal</Text>
+                    ) : (
+                      <Text style={styles.mealPending}>Pendiente</Text>
+                    )}
+                  </View>
                   {hasFoods ? (
-                    <Text style={styles.mealKcal}>{mealCal} kcal</Text>
+                    <Text style={styles.mealDesc} numberOfLines={1}>
+                      {entries.map((e) => e.foodName).join(', ')}
+                    </Text>
                   ) : (
-                    <Text style={styles.mealPending}>Pendiente</Text>
+                    <Text style={styles.mealDescEmpty}>Registra tu {MEAL_NAMES[mealId].toLowerCase()}</Text>
                   )}
                 </View>
-                {hasFoods ? (
-                  <Text style={styles.mealDesc} numberOfLines={1}>
-                    {entries.map((e) => e.foodName).join(', ')}
-                  </Text>
-                ) : (
-                  <Text style={styles.mealDescEmpty}>Registra tu {MEAL_NAMES[mealId].toLowerCase()}</Text>
-                )}
-              </View>
-              <Text style={styles.mealArrow}>{hasFoods ? '›' : '＋'}</Text>
-            </TouchableOpacity>
-          );
-        })}
-
-        {/* Hydration */}
-        <View style={[glass, styles.waterCard]}>
-          <View style={styles.waterHeader}>
-            <View style={styles.waterHeaderLeft}>
-              <Text style={styles.waterDrop}>💧</Text>
-              <Text style={styles.waterTitle}>Hidratación</Text>
-            </View>
-            <Text style={styles.waterAmount}>{waterMl} / {waterGoalMl} ml</Text>
-          </View>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.waterCups}>
-            {Array.from({ length: WATER_GOAL }, (_, i) => (
-              <TouchableOpacity
-                key={i}
-                style={[styles.waterCup, i < waterGlasses ? styles.waterCupFilled : styles.waterCupEmpty]}
-                onPress={() => setWaterGlasses(selectedDate, i < waterGlasses ? i : i + 1)}
-                activeOpacity={0.7}
-              >
-                <Text style={[styles.waterCupIcon, i < waterGlasses && styles.waterCupIconFilled]}>
-                  {i < waterGlasses ? '🥤' : '🫙'}
-                </Text>
-                {i < waterGlasses && <Text style={styles.waterCupMl}>250ml</Text>}
+                <Ionicons name={hasFoods ? 'chevron-forward' : 'add'} size={20} color={colors.dim} />
               </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-      </ScrollView>
+            );
+          })}
 
-      <CalendarModal
-        visible={calendarOpen}
-        selectedDate={selectedDate}
-        logCache={logCache}
-        calGoal={goals.calories}
-        onSelect={handleSelectDate}
-        onClose={() => setCalendarOpen(false)}
-      />
-    </SafeAreaView>
+          {/* Hydration */}
+          <View style={[glass, styles.waterCard]}>
+            <View style={styles.waterHeader}>
+              <View style={styles.waterHeaderLeft}>
+                <Ionicons name="water-outline" size={20} color={colors.teal} />
+                <Text style={styles.waterTitle}>Hidratación</Text>
+              </View>
+              <Text style={styles.waterAmount}>{waterMl} / {waterGoalMl} ml</Text>
+            </View>
+            <View style={styles.waterCups}>
+              {Array.from({ length: WATER_GOAL }, (_, i) => (
+                <TouchableOpacity
+                  key={i}
+                  style={[styles.waterCup, i < waterGlasses ? styles.waterCupFilled : styles.waterCupEmpty]}
+                  onPress={() => setWaterGlasses(selectedDate, i < waterGlasses ? i : i + 1)}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons
+                    name={i < waterGlasses ? 'water' : 'water-outline'}
+                    size={18}
+                    color={i < waterGlasses ? colors.teal : colors.dim}
+                  />
+                  {i < waterGlasses && <Text style={styles.waterCupMl}>250ml</Text>}
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        </ScrollView>
+
+        <CalendarModal
+          visible={calendarOpen}
+          selectedDate={selectedDate}
+          logCache={logCache}
+          calGoal={goals.calories}
+          onSelect={handleSelectDate}
+          onClose={() => setCalendarOpen(false)}
+        />
+      </SafeAreaView>
+    </HudBackground>
   );
 }
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
+  flex: { flex: 1 },
 
   topBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: spacing.marginMobile,
+    paddingHorizontal: spacing.lg,
     height: 56,
-    backgroundColor: 'rgba(8,8,8,0.7)',
+    backgroundColor: 'rgba(8,8,8,0.85)',
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
-  logo: { ...text.heroMd, fontSize: 22, color: colors.neon, letterSpacing: -0.5 },
-  topActions: { flexDirection: 'row', gap: spacing.xs },
+  logo: { ...text.heroMd, fontSize: 20, color: colors.neon, letterSpacing: -0.5 },
+  topActions: { flexDirection: 'row', gap: spacing.sm },
   topBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
-  topBtnIcon: { fontSize: 18 },
 
-  container: { paddingHorizontal: spacing.marginMobile, paddingBottom: spacing.xxl, gap: spacing.md, paddingTop: spacing.md },
+  container: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxl, gap: spacing.md, paddingTop: spacing.md },
 
-  dateHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-  },
+  dateHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' },
   todayLabel: { ...text.labelSm, color: colors.neon },
   pageTitle: { ...text.headlineLg, color: colors.text },
   goalLabel: { ...text.dataMono, color: colors.muted },
@@ -579,7 +568,7 @@ const styles = StyleSheet.create({
   pastBanner: {
     backgroundColor: 'rgba(255,255,255,0.04)',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: colors.border,
     borderRadius: radius.md,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
@@ -590,12 +579,7 @@ const styles = StyleSheet.create({
   pastDate: { ...text.headlineMd, fontSize: 13, color: colors.text },
   pastStats: { ...text.bodyMd, color: colors.muted },
 
-  // Calorie ring card
-  calCard: {
-    borderRadius: radius.lg,
-    overflow: 'hidden',
-    flexDirection: 'row',
-  },
+  calCard: { borderRadius: radius.lg, overflow: 'hidden', flexDirection: 'row' },
   calAccent: { width: 3, backgroundColor: colors.neon },
   calContent: { flex: 1, alignItems: 'center', paddingVertical: spacing.lg, gap: spacing.md },
   calCenter: { alignItems: 'center' },
@@ -607,21 +591,13 @@ const styles = StyleSheet.create({
   calStatLabel: { ...text.labelSm, color: colors.muted },
   calStatDivider: { width: 1, height: 24, backgroundColor: colors.border },
 
-  // Macros 3-col
   macrosRow: { flexDirection: 'row', gap: spacing.xs },
-  macroCard: {
-    flex: 1,
-    padding: spacing.sm,
-    borderRadius: radius.lg,
-    borderLeftWidth: 2,
-    gap: 4,
-  },
+  macroCard: { flex: 1, padding: spacing.sm, borderRadius: radius.lg, borderLeftWidth: 2, gap: 4 },
   macroLabel: { ...text.labelSm, color: colors.muted },
   macroVal: { ...text.dataMono, color: colors.text, fontSize: 12 },
   macroBarTrack: { height: 3, backgroundColor: colors.border, borderRadius: radius.full, overflow: 'hidden', marginTop: 2 },
   macroBarFill: { height: '100%', borderRadius: radius.full },
 
-  // Pantry CTA
   pantryBtn: {
     backgroundColor: colors.neon,
     borderRadius: radius.lg,
@@ -640,18 +616,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  pantryBtnIconText: { fontSize: 18, color: '#111' },
   pantryBtnInfo: { gap: 2 },
-  pantryBtnTitle: { ...text.headlineMd, color: '#111' },
+  pantryBtnTitle: { ...text.headlineMd, color: colors.bg },
   pantryBtnSub: { ...text.labelSm, color: 'rgba(0,0,0,0.6)', letterSpacing: 1 },
-  pantryBtnArrow: { fontSize: 22, color: '#111', fontWeight: '700' },
 
-  // Diary header
   diaryHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   diaryTitle: { ...text.headlineMd, color: colors.text },
-  addCircle: { fontSize: 22, color: colors.muted },
 
-  // Meal cards
   mealCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -661,8 +632,8 @@ const styles = StyleSheet.create({
   },
   mealCardEmpty: { borderStyle: 'dashed' },
   mealIconWrap: {
-    width: 56,
-    height: 56,
+    width: 48,
+    height: 48,
     borderRadius: radius.md,
     backgroundColor: 'rgba(255,255,255,0.06)',
     borderWidth: 1,
@@ -671,7 +642,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   mealIconWrapEmpty: { opacity: 0.5 },
-  mealIconText: { fontSize: 26 },
   mealInfo: { flex: 1, gap: 4 },
   mealTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   mealName: { ...text.headlineMd, color: colors.text },
@@ -680,19 +650,16 @@ const styles = StyleSheet.create({
   mealPending: { ...text.dataMono, color: colors.muted, fontSize: 13 },
   mealDesc: { ...text.bodyMd, color: colors.muted },
   mealDescEmpty: { ...text.bodyMd, color: colors.dim, fontStyle: 'italic' },
-  mealArrow: { fontSize: 20, color: colors.dim },
 
-  // Water card
   waterCard: { padding: spacing.md, borderRadius: radius.lg, gap: spacing.md },
   waterHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   waterHeaderLeft: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  waterDrop: { fontSize: 20 },
   waterTitle: { ...text.headlineMd, color: colors.text },
   waterAmount: { ...text.dataMono, color: colors.teal, fontSize: 13 },
-  waterCups: { gap: spacing.xs, paddingRight: spacing.xs },
+  waterCups: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
   waterCup: {
-    width: 48,
-    height: 64,
+    width: 44,
+    height: 56,
     borderRadius: radius.sm,
     borderWidth: 1,
     alignItems: 'center',
@@ -700,15 +667,12 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   waterCupFilled: {
-    backgroundColor: 'rgba(204,255,0,0.08)',
-    borderColor: 'rgba(204,255,0,0.35)',
+    backgroundColor: 'rgba(61,255,160,0.08)',
+    borderColor: 'rgba(61,255,160,0.35)',
   },
   waterCupEmpty: {
     backgroundColor: 'rgba(255,255,255,0.04)',
     borderColor: colors.border,
-    opacity: 0.5,
   },
-  waterCupIcon: { fontSize: 20 },
-  waterCupIconFilled: { opacity: 1 },
-  waterCupMl: { fontSize: 9, color: colors.neon, fontFamily: 'SpaceGrotesk_600SemiBold' },
+  waterCupMl: { fontSize: 8, color: colors.teal, fontFamily: 'SpaceGrotesk_600SemiBold' },
 });
