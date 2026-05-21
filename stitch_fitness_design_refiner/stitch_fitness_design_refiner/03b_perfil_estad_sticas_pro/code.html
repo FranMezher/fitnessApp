@@ -1,0 +1,332 @@
+<!DOCTYPE html><html class="dark" lang="en" style="scroll-behavior: smooth;"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>FITCORE Athlete Profile</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<style>
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background-color: #080808;
+            color: #e5e2e1;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.09);
+        }
+        .neon-glow {
+            box-shadow: 0px 0px 12px rgba(204, 255, 0, 0.3);
+        }
+        .radar-grid {
+            background-image: radial-gradient(circle, rgba(204, 255, 0, 0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                "on-secondary": "#5d1900",
+                "inverse-primary": "#506600",
+                "surface-dim": "#131313",
+                "surface-container-lowest": "#0e0e0e",
+                "surface-container-high": "#2a2a2a",
+                "on-primary-container": "#556d00",
+                "secondary": "#ffb59d",
+                "inverse-on-surface": "#313030",
+                "text-muted": "#888888",
+                "on-tertiary-fixed": "#1c1b1b",
+                "on-surface-variant": "#c4c9ac",
+                "background": "#131313",
+                "surface-container-low": "#1c1b1b",
+                "primary-container": "#c3f400",
+                "tertiary-container": "#e5e2e1",
+                "on-secondary-fixed-variant": "#832600",
+                "text-primary": "#F2F2F2",
+                "on-error-container": "#ffdad6",
+                "secondary-fixed": "#ffdbd0",
+                "surface-container-highest": "#353534",
+                "primary-fixed-dim": "#abd600",
+                "surface": "#131313",
+                "outline-variant": "#444933",
+                "on-tertiary": "#313030",
+                "error-container": "#93000a",
+                "inverse-surface": "#e5e2e1",
+                "secondary-fixed-dim": "#ffb59d",
+                "outline": "#8e9379",
+                "tertiary-fixed-dim": "#c9c6c5",
+                "surface-tint": "#abd600",
+                "on-error": "#690005",
+                "tertiary": "#ffffff",
+                "on-secondary-container": "#ffddd2",
+                "on-primary-fixed": "#161e00",
+                "brand-glass-fill": "rgba(204, 255, 0, 0.08)",
+                "surface-variant": "#353534",
+                "surface-container": "#201f1f",
+                "error": "#ffb4ab",
+                "tertiary-fixed": "#e5e2e1",
+                "on-secondary-fixed": "#390c00",
+                "primary": "#ffffff",
+                "accent-glass-border": "rgba(255, 107, 53, 0.4)",
+                "primary-fixed": "#c3f400",
+                "on-background": "#e5e2e1",
+                "accent-glass-fill": "rgba(255, 107, 53, 0.1)",
+                "glass-border": "rgba(255, 255, 255, 0.09)",
+                "brand-glass-border": "rgba(204, 255, 0, 0.35)",
+                "surface-bright": "#3a3939",
+                "on-surface": "#e5e2e1",
+                "glass-fill": "rgba(255, 255, 255, 0.04)",
+                "on-tertiary-fixed-variant": "#474646",
+                "on-primary-fixed-variant": "#3c4d00",
+                "on-primary": "#283500",
+                "on-tertiary-container": "#656464",
+                "secondary-container": "#b83900"
+              },
+              "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+              },
+              "spacing": {
+                "lg": "24px",
+                "sm": "12px",
+                "md": "16px",
+                "margin-mobile": "20px",
+                "xs": "8px",
+                "gutter": "12px",
+                "base": "4px",
+                "xl": "32px"
+              },
+              "fontFamily": {
+                "label-sm": ["Space Grotesk"],
+                "data-mono": ["monospace"],
+                "label-caps": ["Space Grotesk"],
+                "body-md": ["Space Grotesk"],
+                "body-lg": ["Space Grotesk"],
+                "hero-lg": ["Space Grotesk"],
+                "headline-lg": ["Space Grotesk"],
+                "hero-md": ["Space Grotesk"],
+                "headline-md": ["Space Grotesk"]
+              },
+              "fontSize": {
+                "label-sm": ["10px", {"lineHeight": "1", "letterSpacing": "2px", "fontWeight": "500"}],
+                "data-mono": ["14px", {"lineHeight": "1", "fontWeight": "500"}],
+                "label-caps": ["12px", {"lineHeight": "1", "letterSpacing": "4px", "fontWeight": "700"}],
+                "body-md": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                "body-lg": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                "hero-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                "headline-lg": ["24px", {"lineHeight": "1.3", "fontWeight": "700"}],
+                "hero-md": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                "headline-md": ["18px", {"lineHeight": "1.4", "fontWeight": "600"}]
+              }
+            }
+          }
+        }
+    </script>
+</head>
+<body class="pb-32">
+<!-- Top AppBar -->
+<header class="fixed top-0 w-full z-50 bg-glass-fill backdrop-blur-[25px] border-b border-glass-border flex justify-between items-center px-margin-mobile h-16">
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer">menu</span>
+<h1 class="font-hero-md text-hero-md text-primary-fixed tracking-tighter">FITCORE</h1>
+</div>
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer">notifications</span>
+</div>
+</header>
+<main class="pt-24 px-margin-mobile max-w-lg mx-auto">
+<!-- Hero Section -->
+<section class="relative mb-xl flex flex-col items-center">
+<div class="relative w-32 h-32 rounded-full overflow-hidden border-2 border-primary-fixed p-1 bg-surface-container mb-md">
+<img alt="Athlete Profile Photo" class="w-full h-full object-cover rounded-full" data-alt="A focused professional athlete with a determined expression, captured in high-contrast cinematic lighting. The setting is a technical, dark obsidian-themed fitness laboratory with subtle neon green accent lights reflecting off glass surfaces. The style is modern, hyper-realistic, and exudes high-performance energy with deep shadows and sharp details." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCbcs3F3yEU8xhZ-067Bo8JDIJNsFfrRgOgkFu6dVZVlldo4tSZuR-xA4nAvh3qHOT-chwbv2OtCJ9P5Vnym20gis6PJzANZej0tqONvrgEHp2mZeOem3laRUYh_8FB6qKOVNQoumCZ6rb0zrDYujuX5EWnzdMplqdmY4RpJRHEuHsxC_3LRggY1_RTAuqMTixvzshNozDRAv9Tqp4-yNNwCExyimzkzZdVxjd5VcxdZF_tyfmJe-Lm-2dl_x6Bk_2o59CTohcc2HY">
+</div>
+<div class="absolute top-2 right-1/4 translate-x-12">
+<span class="bg-primary-fixed text-on-primary font-label-sm text-label-sm px-3 py-1 rounded-full neon-glow uppercase tracking-widest">ELITE</span>
+</div>
+<h2 class="font-hero-md text-hero-md text-white">Alex Volkov</h2>
+<p class="font-body-md text-text-muted">Bio-Hacking Level 42 • Heavyweight</p>
+</section>
+<!-- Core Stats Grid -->
+<section class="grid grid-cols-2 gap-sm mb-xl">
+<div class="glass-card p-md rounded-xl flex flex-col justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase mb-xs">Total Sessions</span>
+<div class="flex items-end gap-xs">
+<span class="font-hero-md text-hero-md text-white">342</span>
+<span class="font-data-mono text-data-mono text-primary-fixed pb-1">YR</span>
+</div>
+</div>
+<div class="glass-card p-md rounded-xl flex flex-col justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase mb-xs">Total Calories</span>
+<div class="flex items-end gap-xs">
+<span class="font-hero-md text-hero-md text-white">84.2</span>
+<span class="font-data-mono text-data-mono text-primary-fixed pb-1">K</span>
+</div>
+</div>
+<div class="glass-card p-md rounded-xl flex flex-col justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase mb-xs">Volume Lifted</span>
+<div class="flex items-end gap-xs">
+<span class="font-hero-md text-hero-md text-white">12.8</span>
+<span class="font-data-mono text-data-mono text-primary-fixed pb-1">T</span>
+</div>
+</div>
+<div class="glass-card p-md rounded-xl flex flex-col justify-between border-brand-glass-border">
+<span class="font-label-sm text-label-sm text-primary-fixed uppercase mb-xs">Consistency</span>
+<div class="flex items-end gap-xs">
+<span class="font-hero-md text-hero-md text-white">24</span>
+<span class="font-data-mono text-data-mono text-primary-fixed pb-1">DAYS</span>
+</div>
+</div>
+</section>
+<!-- Personal Records Section -->
+<section class="mb-xl">
+<h3 class="font-headline-md text-headline-md text-white mb-md flex items-center gap-xs">
+<span class="material-symbols-outlined text-primary-fixed">military_tech</span>
+                Personal Records
+            </h3>
+<div class="space-y-sm">
+<!-- Lift Card -->
+<div class="glass-card p-md rounded-xl">
+<div class="flex justify-between items-center mb-sm">
+<span class="font-body-lg text-body-lg text-white">Deadlift</span>
+<span class="font-data-mono text-data-mono text-primary-fixed">240 kg</span>
+</div>
+<div class="h-1 w-full bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-primary-fixed" style="width: 85%;"></div>
+</div>
+</div>
+<div class="glass-card p-md rounded-xl">
+<div class="flex justify-between items-center mb-sm">
+<span class="font-body-lg text-body-lg text-white">Bench Press</span>
+<span class="font-data-mono text-data-mono text-primary-fixed">145 kg</span>
+</div>
+<div class="h-1 w-full bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-primary-fixed" style="width: 72%;"></div>
+</div>
+</div>
+<div class="glass-card p-md rounded-xl">
+<div class="flex justify-between items-center mb-sm">
+<span class="font-body-lg text-body-lg text-white">Squat</span>
+<span class="font-data-mono text-data-mono text-primary-fixed">190 kg</span>
+</div>
+<div class="h-1 w-full bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-primary-fixed" style="width: 78%;"></div>
+</div>
+</div>
+<div class="glass-card p-md rounded-xl">
+<div class="flex justify-between items-center mb-sm">
+<span class="font-body-lg text-body-lg text-white">Overhead Press</span>
+<span class="font-data-mono text-data-mono text-primary-fixed">95 kg</span>
+</div>
+<div class="h-1 w-full bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-primary-fixed" style="width: 60%;"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- Advanced Metrics (Radar Visualization Simulation) -->
+<section class="mb-xl">
+<h3 class="font-headline-md text-headline-md text-white mb-md flex items-center gap-xs">
+<span class="material-symbols-outlined text-primary-fixed">analytics</span>
+                Advanced Metrics
+            </h3>
+<div class="glass-card p-lg rounded-xl flex flex-col items-center relative overflow-hidden radar-grid">
+<!-- Visualizing the Radar with SVG -->
+<div class="w-64 h-64 relative flex items-center justify-center">
+<svg class="w-full h-full transform -rotate-18" viewBox="0 0 100 100">
+<!-- Background Octagon -->
+<polygon fill="none" points="50,5 95,50 50,95 5,50" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"></polygon>
+<polygon fill="none" points="50,20 80,50 50,80 20,50" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"></polygon>
+<polygon fill="none" points="50,35 65,50 50,65 35,50" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"></polygon>
+<!-- Data Polygon -->
+<polygon class="neon-glow" fill="rgba(204, 255, 0, 0.2)" points="50,15 90,50 50,85 10,50" stroke="#ccff00" stroke-width="2"></polygon>
+</svg>
+<!-- Labels -->
+<div class="absolute -top-4 left-1/2 -translate-x-1/2 font-label-sm text-label-sm uppercase text-primary-fixed">Strength</div>
+<div class="absolute top-1/2 -right-4 -translate-y-1/2 font-label-sm text-label-sm uppercase text-white rotate-90">Endurance</div>
+<div class="absolute -bottom-4 left-1/2 -translate-x-1/2 font-label-sm text-label-sm uppercase text-white">Recovery</div>
+<div class="absolute top-1/2 -left-4 -translate-y-1/2 font-label-sm text-label-sm uppercase text-white -rotate-90">Power</div>
+</div>
+<div class="mt-xl grid grid-cols-2 gap-lg w-full">
+<div class="text-center">
+<div class="text-white font-data-mono text-data-mono">92/100</div>
+<div class="text-on-surface-variant font-label-sm text-label-sm uppercase mt-1">Efficiency</div>
+</div>
+<div class="text-center">
+<div class="text-white font-data-mono text-data-mono">8.4 ms</div>
+<div class="text-on-surface-variant font-label-sm text-label-sm uppercase mt-1">Reaction</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Achievements Mini-section -->
+<section class="mb-xl">
+<h3 class="font-headline-md text-headline-md text-white mb-md">Elite Badges</h3>
+<div class="flex gap-md overflow-x-auto pb-4 no-scrollbar">
+<div class="flex-shrink-0 w-16 h-16 rounded-xl glass-card flex items-center justify-center border-brand-glass-border">
+<span class="material-symbols-outlined text-primary-fixed" style="font-variation-settings: 'FILL' 1;">workspace_premium</span>
+</div>
+<div class="flex-shrink-0 w-16 h-16 rounded-xl glass-card flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant">bolt</span>
+</div>
+<div class="flex-shrink-0 w-16 h-16 rounded-xl glass-card flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant">timer</span>
+</div>
+<div class="flex-shrink-0 w-16 h-16 rounded-xl glass-card flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant">local_fire_department</span>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-gutter py-xs bg-surface-container backdrop-blur-[25px] border-t border-glass-border rounded-t-xl shadow-lg">
+<div class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary-fixed-dim transition-all active:scale-90 duration-150">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-sm text-label-sm uppercase tracking-[2px] mt-1">Inicio</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary-fixed-dim transition-all active:scale-90 duration-150">
+<span class="material-symbols-outlined">fitness_center</span>
+<span class="font-label-sm text-label-sm uppercase tracking-[2px] mt-1">Entreno</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary-fixed-dim transition-all active:scale-90 duration-150">
+<span class="material-symbols-outlined">restaurant</span>
+<span class="font-label-sm text-label-sm uppercase tracking-[2px] mt-1">Nutrición</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary-fixed-dim transition-all active:scale-90 duration-150">
+<span class="material-symbols-outlined">group</span>
+<span class="font-label-sm text-label-sm uppercase tracking-[2px] mt-1">Social</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-brand-glass-fill text-primary-fixed rounded-xl px-2 py-1 active:scale-90 duration-150">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">person</span>
+<span class="font-label-sm text-label-sm uppercase tracking-[2px] mt-1">Perfil</span>
+</div>
+</nav>
+<script>
+        // Simple Interaction logic
+        document.querySelectorAll('.glass-card').forEach(card => {
+            card.addEventListener('click', () => {
+                card.style.transform = 'scale(0.98)';
+                setTimeout(() => {
+                    card.style.transform = 'scale(1)';
+                }, 150);
+            });
+        });
+
+        // Add smooth scrolling
+        document.documentElement.style.scrollBehavior = 'smooth';
+    </script>
+
+
+</body></html>

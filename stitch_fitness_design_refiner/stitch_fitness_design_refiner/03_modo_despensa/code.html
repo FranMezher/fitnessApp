@@ -1,0 +1,271 @@
+<!DOCTYPE html><html class="dark" lang="es"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>FITCORE - Modo Despensa</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<style>
+        body {
+            background-color: #080808;
+            color: #e5e2e1;
+            font-family: 'Space Grotesk', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.09);
+        }
+        .ingredient-selected {
+            border-color: #CCFF00 !important;
+            background: rgba(204, 255, 0, 0.08) !important;
+            box-shadow: 0 0 12px rgba(204, 255, 0, 0.2);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                "text-primary": "#F2F2F2",
+                "on-error": "#690005",
+                "text-muted": "#888888",
+                "glass-border": "rgba(255, 255, 255, 0.09)",
+                "brand-glass-border": "rgba(204, 255, 0, 0.35)",
+                "accent-glass-fill": "rgba(255, 107, 53, 0.1)",
+                "on-surface-variant": "#c4c9ac",
+                "brand-glass-fill": "rgba(204, 255, 0, 0.08)",
+                "primary-container": "#c3f400",
+                "surface-container": "#201f1f",
+                "primary-fixed": "#c3f400",
+                "primary-fixed-dim": "#abd600",
+                "surface-container-lowest": "#0e0e0e",
+                "background": "#131313",
+                "on-background": "#e5e2e1",
+                "on-surface": "#e5e2e1"
+              },
+              "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+              },
+              "spacing": {
+                "base": "4px",
+                "md": "16px",
+                "sm": "12px",
+                "margin-mobile": "20px",
+                "lg": "24px",
+                "xs": "8px",
+                "xl": "32px",
+                "gutter": "12px"
+              },
+              "fontFamily": {
+                "hero-md": ["Space Grotesk"],
+                "headline-md": ["Space Grotesk"],
+                "data-mono": ["monospace"],
+                "label-sm": ["Space Grotesk"],
+                "body-md": ["Space Grotesk"]
+              },
+              "fontSize": {
+                "hero-md": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                "headline-md": ["18px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                "data-mono": ["14px", {"lineHeight": "1", "fontWeight": "500"}],
+                "label-sm": ["10px", {"lineHeight": "1", "letterSpacing": "2px", "fontWeight": "500"}],
+                "body-md": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}]
+              }
+            }
+          }
+        }
+    </script>
+</head>
+<body class="bg-background text-on-background min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-glass-fill backdrop-blur-[25px] border-b border-glass-border h-16 flex justify-between items-center px-margin-mobile">
+<div class="flex items-center gap-4">
+<button class="text-primary-fixed active:scale-95 transition-transform">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+<h1 class="font-hero-md text-hero-md text-primary-fixed tracking-tighter">FITCORE</h1>
+</div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary-fixed" data-icon="notifications">notifications</span>
+</div>
+</header>
+<main class="pt-24 px-margin-mobile">
+<!-- Search Section -->
+<section class="mb-lg">
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary-fixed transition-colors" data-icon="search">search</span>
+<input class="w-full bg-glass-fill border border-glass-border focus:border-primary-fixed focus:ring-0 rounded-xl py-4 pl-12 pr-4 text-body-md font-body-md text-on-surface transition-all placeholder:text-text-muted" placeholder="Buscar ingredientes..." type="text">
+</div>
+<div class="flex gap-2 mt-4 overflow-x-auto pb-2 custom-scrollbar">
+<span class="bg-brand-glass-fill text-primary-fixed border border-brand-glass-border px-3 py-1 rounded-full font-label-sm text-label-sm uppercase whitespace-nowrap">Proteínas</span>
+<span class="bg-glass-fill text-on-surface-variant border border-glass-border px-3 py-1 rounded-full font-label-sm text-label-sm uppercase whitespace-nowrap">Verduras</span>
+<span class="bg-glass-fill text-on-surface-variant border border-glass-border px-3 py-1 rounded-full font-label-sm text-label-sm uppercase whitespace-nowrap">Carbohidratos</span>
+<span class="bg-glass-fill text-on-surface-variant border border-glass-border px-3 py-1 rounded-full font-label-sm text-label-sm uppercase whitespace-nowrap">Lácteos</span>
+</div>
+</section>
+<!-- Pantry Grid -->
+<section>
+<div class="flex justify-between items-end mb-md">
+<h2 class="font-headline-md text-headline-md">Tu Despensa</h2>
+<span class="font-data-mono text-data-mono text-primary-fixed" id="selected-count">0 seleccionados</span>
+</div>
+<div class="grid grid-cols-2 xs:grid-cols-3 gap-gutter" id="ingredient-grid">
+<!-- Ingredient Cards -->
+<button class="glass-card p-md rounded-xl flex flex-col items-center justify-center gap-xs transition-all duration-200 active:scale-95 group border-glass-border" onclick="toggleSelect(this)">
+<span class="material-symbols-outlined text-3xl text-on-surface-variant group-hover:text-primary-fixed" data-icon="egg">egg</span>
+<span class="font-label-sm text-label-sm uppercase">Huevos</span>
+</button>
+<button class="glass-card p-md rounded-xl flex flex-col items-center justify-center gap-xs transition-all duration-200 active:scale-95 group border-glass-border" onclick="toggleSelect(this)">
+<span class="material-symbols-outlined text-3xl text-on-surface-variant group-hover:text-primary-fixed" data-icon="lunch_dining">lunch_dining</span>
+<span class="font-label-sm text-label-sm uppercase">Pollo</span>
+</button>
+<button class="glass-card p-md rounded-xl flex flex-col items-center justify-center gap-xs transition-all duration-200 active:scale-95 group border-glass-border" onclick="toggleSelect(this)">
+<span class="material-symbols-outlined text-3xl text-on-surface-variant group-hover:text-primary-fixed" data-icon="eco">eco</span>
+<span class="font-label-sm text-label-sm uppercase">Espinaca</span>
+</button>
+<button class="glass-card p-md rounded-xl flex flex-col items-center justify-center gap-xs transition-all duration-200 active:scale-95 group border-glass-border" onclick="toggleSelect(this)">
+<span class="material-symbols-outlined text-3xl text-on-surface-variant group-hover:text-primary-fixed" data-icon="grain">grain</span>
+<span class="font-label-sm text-label-sm uppercase">Arroz</span>
+</button>
+<button class="glass-card p-md rounded-xl flex flex-col items-center justify-center gap-xs transition-all duration-200 active:scale-95 group border-glass-border" onclick="toggleSelect(this)">
+<span class="material-symbols-outlined text-3xl text-on-surface-variant group-hover:text-primary-fixed" data-icon="set_meal">set_meal</span>
+<span class="font-label-sm text-label-sm uppercase">Salmón</span>
+</button>
+<button class="glass-card p-md rounded-xl flex flex-col items-center justify-center gap-xs transition-all duration-200 active:scale-95 group border-glass-border" onclick="toggleSelect(this)">
+<span class="material-symbols-outlined text-3xl text-on-surface-variant group-hover:text-primary-fixed" data-icon="cheese">chess</span>
+<span class="font-label-sm text-label-sm uppercase">Queso</span>
+</button>
+<button class="glass-card p-md rounded-xl flex flex-col items-center justify-center gap-xs transition-all duration-200 active:scale-95 group border-glass-border" onclick="toggleSelect(this)">
+<span class="material-symbols-outlined text-3xl text-on-surface-variant group-hover:text-primary-fixed" data-icon="nutrition">nutrition</span>
+<span class="font-label-sm text-label-sm uppercase">Brócoli</span>
+</button>
+<button class="glass-card p-md rounded-xl flex flex-col items-center justify-center gap-xs transition-all duration-200 active:scale-95 group border-glass-border" onclick="toggleSelect(this)">
+<span class="material-symbols-outlined text-3xl text-on-surface-variant group-hover:text-primary-fixed" data-icon="opacity">opacity</span>
+<span class="font-label-sm text-label-sm uppercase">Aceite</span>
+</button>
+<button class="glass-card p-md rounded-xl flex flex-col items-center justify-center gap-xs transition-all duration-200 active:scale-95 group border-glass-border" onclick="toggleSelect(this)">
+<span class="material-symbols-outlined text-3xl text-on-surface-variant group-hover:text-primary-fixed" data-icon="skillet">skillet</span>
+<span class="font-label-sm text-label-sm uppercase">Avena</span>
+</button>
+</div>
+</section>
+<!-- AI Banner -->
+<section class="mt-xl">
+<div class="glass-card rounded-2xl overflow-hidden relative border-brand-glass-border">
+<img alt="AI Cooking" class="w-full h-32 object-cover opacity-40" data-alt="A futuristic kitchen setting with a soft ambient glow of neon green and warm orange. A high-tech digital tablet rests on a dark marble countertop showing complex nutritional data and recipe wireframes. The lighting is moody and cinematic, highlighting the steam from a cooked healthy meal in the background. The overall aesthetic is professional, minimalist, and ultra-modern fitness lifestyle." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCua2fq635o05DC6q8_j7PtYY7DxovHFpKVMo0L8Fq9S07IWH7z977hmNC15mw61Z1-5XQrbkvULW5OKvQiZdOWxhNGQYtHrOT3OZxcCa0nXB8nNOhrsoByzQ4VBy59MHaFmEDWVgtJCMIY7Bw6PG7-x89NFmBEWABXhIc4l6WNXxF3QQnKyHPrR2U11GoZvUNl-5dWB-WXCPxtxpin72kx0I2NC-UDGyPFKab60e440iRH5AwBUMKtpKh9Ugu3vPiY2z3N8VKe_lw">
+<div class="absolute inset-0 bg-gradient-to-t from-background to-transparent flex flex-col justify-end p-md">
+<p class="font-label-sm text-label-sm text-primary-fixed uppercase tracking-[2px]">Potenciado por FitCore AI</p>
+<h3 class="font-headline-md text-headline-md">¿Sin ideas para hoy?</h3>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Actions -->
+<div class="fixed bottom-20 left-0 w-full px-margin-mobile z-40">
+<button class="w-full bg-primary-fixed text-on-primary-fixed font-headline-md text-headline-md py-4 rounded-xl flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(204,255,0,0.3)] transition-transform active:scale-95 disabled:opacity-50 disabled:grayscale" disabled="" id="ai-generate-btn">
+<span class="material-symbols-outlined" data-icon="bolt" style="font-variation-settings: 'FILL' 1;">bolt</span>
+            Generar Sugerencias con IA
+        </button>
+</div>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-gutter py-xs bg-surface-container backdrop-blur-[25px] border-t border-glass-border rounded-t-xl shadow-lg"><div class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary-fixed-dim transition-all active:scale-90 duration-150">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-label-sm text-label-sm uppercase tracking-[2px]">Inicio</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary-fixed-dim transition-all active:scale-90 duration-150">
+<span class="material-symbols-outlined" data-icon="fitness_center">fitness_center</span>
+<span class="font-label-sm text-label-sm uppercase tracking-[2px]">Entreno</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-brand-glass-fill text-primary-fixed rounded-xl px-3 py-1 active:scale-90 duration-150">
+<span class="material-symbols-outlined" data-icon="restaurant" style="font-variation-settings: 'FILL' 1;">restaurant</span>
+<span class="font-label-sm text-label-sm uppercase tracking-[2px]">Nutrición</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary-fixed-dim transition-all active:scale-90 duration-150">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-label-sm text-label-sm uppercase tracking-[2px]">Social</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary-fixed-dim transition-all active:scale-90 duration-150">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-sm text-label-sm uppercase tracking-[2px]">Perfil</span>
+</div></nav>
+<script>
+        let selectedCount = 0;
+        const countDisplay = document.getElementById('selected-count');
+        const aiBtn = document.getElementById('ai-generate-btn');
+
+        function toggleSelect(el) {
+            el.classList.toggle('ingredient-selected');
+            const icon = el.querySelector('.material-symbols-outlined');
+            
+            if (el.classList.contains('ingredient-selected')) {
+                selectedCount++;
+                icon.style.fontVariationSettings = "'FILL' 1";
+                icon.classList.replace('text-on-surface-variant', 'text-primary-fixed');
+            } else {
+                selectedCount--;
+                icon.style.fontVariationSettings = "'FILL' 0";
+                icon.classList.replace('text-primary-fixed', 'text-on-surface-variant');
+            }
+            
+            countDisplay.innerText = `${selectedCount} seleccionados`;
+            aiBtn.disabled = selectedCount === 0;
+
+            // Trigger haptic-like feedback animation
+            el.style.transform = 'scale(0.9)';
+            setTimeout(() => {
+                el.style.transform = 'scale(1)';
+            }, 100);
+        }
+
+        // Search highlight mock
+        const searchInput = document.querySelector('input[type="text"]');
+        searchInput.addEventListener('input', (e) => {
+            const val = e.target.value.toLowerCase();
+            const cards = document.querySelectorAll('#ingredient-grid button');
+            cards.forEach(card => {
+                const text = card.querySelector('span:last-child').innerText.toLowerCase();
+                if (text.includes(val)) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+
+        // AI Button interaction
+        aiBtn.addEventListener('click', () => {
+            aiBtn.innerHTML = `
+                <span class="animate-spin material-symbols-outlined" data-icon="sync">sync</span>
+                Analizando Despensa...
+            `;
+            setTimeout(() => {
+                alert('IA: He encontrado 3 recetas altas en proteína con tus ingredientes seleccionados.');
+                aiBtn.innerHTML = `
+                    <span class="material-symbols-outlined" data-icon="bolt" style="font-variation-settings: 'FILL' 1;">bolt</span>
+                    Generar Sugerencias con IA
+                `;
+            }, 1500);
+        });
+    </script>
+
+
+</body></html>

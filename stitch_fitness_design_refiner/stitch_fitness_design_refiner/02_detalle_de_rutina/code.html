@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>FITCORE | HIIT Performance</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            background-color: #080808;
+            color: #e5e2e1;
+            font-family: 'Space Grotesk', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.09);
+        }
+        .neon-glow {
+            box-shadow: 0px 0px 15px rgba(204, 255, 0, 0.3);
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "accent-glass-border": "rgba(255, 107, 53, 0.4)",
+                      "brand-glass-fill": "rgba(204, 255, 0, 0.08)",
+                      "on-surface": "#e5e2e1",
+                      "on-primary-container": "#556d00",
+                      "primary-fixed-dim": "#abd600",
+                      "inverse-surface": "#e5e2e1",
+                      "error-container": "#93000a",
+                      "text-primary": "#F2F2F2",
+                      "surface-container": "#201f1f",
+                      "on-secondary-fixed-variant": "#832600",
+                      "surface-tint": "#abd600",
+                      "surface-container-high": "#2a2a2a",
+                      "on-primary": "#283500",
+                      "inverse-primary": "#506600",
+                      "on-tertiary-fixed": "#1c1b1b",
+                      "surface-bright": "#3a3939",
+                      "inverse-on-surface": "#313030",
+                      "surface-variant": "#353534",
+                      "accent-glass-fill": "rgba(255, 107, 53, 0.1)",
+                      "on-error-container": "#ffdad6",
+                      "secondary-container": "#b83900",
+                      "surface-container-highest": "#353534",
+                      "secondary-fixed": "#ffdbd0",
+                      "tertiary": "#ffffff",
+                      "primary": "#ffffff",
+                      "primary-fixed": "#c3f400",
+                      "on-secondary": "#5d1900",
+                      "surface-container-low": "#1c1b1b",
+                      "secondary": "#ffb59d",
+                      "surface-container-lowest": "#0e0e0e",
+                      "error": "#ffb4ab",
+                      "tertiary-container": "#e5e2e1",
+                      "outline": "#8e9379",
+                      "glass-fill": "rgba(255, 255, 255, 0.04)",
+                      "on-primary-fixed-variant": "#3c4d00",
+                      "on-tertiary": "#313030",
+                      "on-error": "#690005",
+                      "outline-variant": "#444933",
+                      "on-tertiary-container": "#656464",
+                      "text-muted": "#888888",
+                      "surface-dim": "#131313",
+                      "primary-container": "#c3f400",
+                      "on-primary-fixed": "#161e00",
+                      "on-tertiary-fixed-variant": "#474646",
+                      "on-secondary-fixed": "#390c00",
+                      "secondary-fixed-dim": "#ffb59d",
+                      "on-background": "#e5e2e1",
+                      "glass-border": "rgba(255, 255, 255, 0.09)",
+                      "tertiary-fixed-dim": "#c9c6c5",
+                      "background": "#131313",
+                      "surface": "#131313",
+                      "tertiary-fixed": "#e5e2e1",
+                      "on-surface-variant": "#c4c9ac",
+                      "on-secondary-container": "#ffddd2",
+                      "brand-glass-border": "rgba(204, 255, 0, 0.35)"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "lg": "24px",
+                      "sm": "12px",
+                      "md": "16px",
+                      "base": "4px",
+                      "margin-mobile": "20px",
+                      "xs": "8px",
+                      "xl": "32px",
+                      "gutter": "12px"
+              },
+              "fontFamily": {
+                      "body-lg": ["Space Grotesk"],
+                      "label-caps": ["Space Grotesk"],
+                      "hero-md": ["Space Grotesk"],
+                      "data-mono": ["monospace"],
+                      "hero-lg": ["Space Grotesk"],
+                      "label-sm": ["Space Grotesk"],
+                      "body-md": ["Space Grotesk"],
+                      "headline-md": ["Space Grotesk"],
+                      "headline-lg": ["Space Grotesk"]
+              },
+              "fontSize": {
+                      "body-lg": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                      "label-caps": ["12px", {"lineHeight": "1", "letterSpacing": "4px", "fontWeight": "700"}],
+                      "hero-md": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                      "data-mono": ["14px", {"lineHeight": "1", "fontWeight": "500"}],
+                      "hero-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "label-sm": ["10px", {"lineHeight": "1", "letterSpacing": "2px", "fontWeight": "500"}],
+                      "body-md": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                      "headline-md": ["18px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                      "headline-lg": ["24px", {"lineHeight": "1.3", "fontWeight": "700"}]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface-dim selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- Top AppBar (Injected from Shared Components) -->
+<header class="fixed top-0 w-full z-50 bg-glass-fill backdrop-blur-[25px] border-b border-glass-border flex justify-between items-center px-margin-mobile h-16">
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer">arrow_back</span>
+</div>
+<h1 class="font-hero-md text-[20px] text-primary-fixed tracking-tighter">FITCORE</h1>
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-primary-fixed">share</span>
+</div>
+</header>
+<main class="pb-32">
+<!-- Hero Section -->
+<section class="relative h-[397px] w-full overflow-hidden">
+<img class="w-full h-full object-cover grayscale-[30%] contrast-[110%]" data-alt="A high-intensity fitness athlete performing explosive box jumps in a dimly lit, industrial obsidian-themed gym. The scene is illuminated by sharp neon green LED strips that highlight muscle definition and motion. The atmosphere is energetic and high-performance, featuring a cinematic, technical HUD aesthetic with deep blacks and vibrant primary neon accents. The lighting is dramatic, high-contrast, and focused on the athlete's peak exertion." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBlSshWUpBVzS78PwBGTgM2cLec9uhDnzY6ZKqyt_igcCuTbTPteQ75z5LK3QEeBcAgrk_2MDuLY2YCnLVd77PG33OJRcAAptCpgkI-8uUwiioX09R5pabf4ShePnECF9y072BCGUyZmb6y6EiK4rR1CStrZ3hSn41QlayIsa8F6hGqfrifvz7cbfpFdGqtuAvMOI2SJ6cV2IqE_RafAyMzOwbyoKsDjFwWNLN1hQAgLXZUwRLlxzVVQup20oAP7oGjLUvRYIfQri8"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-dim via-surface-dim/40 to-transparent"></div>
+<div class="absolute bottom-0 left-0 w-full px-margin-mobile pb-lg">
+<div class="flex flex-col gap-xs">
+<span class="inline-block w-fit px-xs py-1 rounded-full bg-secondary-container/30 border border-accent-glass-border text-secondary font-label-sm text-label-sm uppercase">Advanced</span>
+<h2 class="font-hero-lg text-hero-lg text-primary uppercase tracking-tight leading-none">HIIT Performance</h2>
+<div class="flex items-center gap-md mt-base">
+<div class="flex items-center gap-xs text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]">schedule</span>
+<span class="font-data-mono text-data-mono">45 MIN</span>
+</div>
+<div class="flex items-center gap-xs text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]">local_fire_department</span>
+<span class="font-data-mono text-data-mono">520 KCAL</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Summary Stats Bento -->
+<section class="px-margin-mobile -mt-xs relative z-10">
+<div class="grid grid-cols-2 gap-gutter">
+<div class="glass-card rounded-xl p-md flex flex-col gap-xs">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Expected BPM</span>
+<div class="flex items-baseline gap-xs">
+<span class="font-hero-md text-hero-md text-primary-fixed">165</span>
+<span class="font-data-mono text-data-mono text-muted">MAX</span>
+</div>
+<div class="w-full h-1 bg-surface-variant rounded-full mt-base overflow-hidden">
+<div class="h-full bg-gradient-to-r from-primary-fixed to-secondary w-[85%]"></div>
+</div>
+</div>
+<div class="glass-card rounded-xl p-md flex flex-col justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Equipment</span>
+<div class="flex flex-wrap gap-xs mt-xs">
+<span class="font-body-md text-body-md text-primary">Kettlebell</span>
+<span class="font-body-md text-body-md text-primary">Box</span>
+</div>
+<span class="material-symbols-outlined text-primary-fixed self-end text-[20px]">fitness_center</span>
+</div>
+</div>
+</section>
+<!-- Exercise List -->
+<section class="px-margin-mobile mt-xl">
+<div class="flex justify-between items-center mb-md">
+<h3 class="font-headline-md text-headline-md text-primary">Technical Protocol</h3>
+<span class="font-data-mono text-data-mono text-primary-fixed">12 ROUNDS</span>
+</div>
+<div class="flex flex-col gap-sm">
+<!-- Exercise Item 1 -->
+<div class="glass-card rounded-lg p-sm flex items-center gap-md group hover:bg-brand-glass-fill transition-all duration-300">
+<div class="w-16 h-16 rounded-md overflow-hidden flex-shrink-0 border border-glass-border">
+<img class="w-full h-full object-cover" data-alt="Close-up of a high-performance athlete's legs during an explosive movement, featuring high-speed motion blur. The aesthetic is technical and scientific, using deep obsidian tones and neon accents. Soft glowing borders and a clinical fitness environment create a professional bio-hacking mood." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC0o9hFF3ZVCtzp9tWNrD3gKoGxEa5Y2eVv2Zely16aMz2cyQD2QE5X-OhWhi5YGC2KRrL3ob0Jrdsb0DH3zpaoTKl9BVw6BBeQMDzvXDG6AQViPSqlTq_AxSTzf57-eB_lBemhdMZr5e_h0Uf9b0QyhVLA0z_EHfo-uSO_4aluvFyvfc1zqgA554FUrqGoqr7_JlxzO00hrOV_RPRr9vjMTVAMeLN_JE3lEWRkN9LWXYhUrgu4vvTUcSEHexElo9hoJjVs0EuwmcA"/>
+</div>
+<div class="flex-grow">
+<h4 class="font-headline-md text-headline-md text-primary leading-tight">Jumping Jacks</h4>
+<div class="flex items-center gap-sm mt-1">
+<span class="font-data-mono text-data-mono text-muted">4 SETS</span>
+<span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+<span class="font-data-mono text-data-mono text-primary-fixed">60 SEC</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary-fixed">play_circle</span>
+</div>
+<!-- Exercise Item 2 -->
+<div class="glass-card rounded-lg p-sm flex items-center gap-md group hover:bg-brand-glass-fill transition-all duration-300">
+<div class="w-16 h-16 rounded-md overflow-hidden flex-shrink-0 border border-glass-border">
+<img class="w-full h-full object-cover" data-alt="Athlete performing a burpee in an high-tech obsidian gym space with floor-to-ceiling glass and neon lighting. The camera angle is low to emphasize power. Dark aesthetic with sharp contrast and futuristic performance tracking elements integrated into the atmosphere." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAKWYhtzmXQcc-AKOM6pKWfVKwvRXawxKq9GvGm9JpAQ0leIPLTvYLeT3rhAkdl2JNLWv3hEx3hQM1oRIMmRnCXR_my67__sbWtS3z_fBzFRFizJ23udkwZM5h3mmDYsVZXYS-TeTcibXrWTBfCRTeevEGV_X3Qkarq9fUM91RqWo72uEiskVlIGL7Ix944MHfGgeY88W5UVKxDS86X5lDsLKI44OXjh8VzQR_DXt7x3ccE6vSg8ngydyJ9dycq9R5CvmOcBtPguWM"/>
+</div>
+<div class="flex-grow">
+<h4 class="font-headline-md text-headline-md text-primary leading-tight">Burpees</h4>
+<div class="flex items-center gap-sm mt-1">
+<span class="font-data-mono text-data-mono text-muted">4 SETS</span>
+<span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+<span class="font-data-mono text-data-mono text-primary-fixed">15 REPS</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary-fixed">play_circle</span>
+</div>
+<!-- Exercise Item 3 -->
+<div class="glass-card rounded-lg p-sm flex items-center gap-md group hover:bg-brand-glass-fill transition-all duration-300">
+<div class="w-16 h-16 rounded-md overflow-hidden flex-shrink-0 border border-glass-border">
+<img class="w-full h-full object-cover" data-alt="Heavy kettlebell swing demonstration by a muscular athlete in a dark performance studio. Neon orange and lime green highlights reflect off the equipment. High-speed shutter captures the tension. Clinical, dark, and energetic visual style consistent with high-performance sports science." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC7u7rMvGPtfXPfehV1nxRtScY6_Xh5sBBrp1AR9YakvImicK1Kjrtovmf-nfeKtjHKT0-G9fwGdwHmxflJwNsThWle8H1qgrPPvVcaomiQsPYWLkc9U13AunqsBZmWVfFHb9yzXgIeGYNKc9Oq3WgW1GqTKk2YwqLKmtFhl1KLKLXI9P2QUZFQuEMe0NR_0gnVAdzyqZtZ2ELoJYKuiPIBvLQBmaq0h7kK0xI5R6H1iqgS9iU6c4o7_T6IwDUtl75UZ0s_7aazn-c"/>
+</div>
+<div class="flex-grow">
+<h4 class="font-headline-md text-headline-md text-primary leading-tight">Kettlebell Swings</h4>
+<div class="flex items-center gap-sm mt-1">
+<span class="font-data-mono text-data-mono text-muted">4 SETS</span>
+<span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+<span class="font-data-mono text-data-mono text-primary-fixed">20 REPS</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary-fixed">play_circle</span>
+</div>
+</div>
+</section>
+<!-- Performance Graph (Hybrid Component) -->
+<section class="px-margin-mobile mt-xl mb-lg">
+<div class="glass-card rounded-xl p-md">
+<div class="flex justify-between items-center mb-md">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-[2px]">Intensity Forecast</span>
+<span class="font-data-mono text-data-mono text-secondary">ZONE 4/5</span>
+</div>
+<div class="flex items-end gap-xs h-24 mb-base">
+<div class="flex-1 bg-surface-variant rounded-t-sm h-[40%]"></div>
+<div class="flex-1 bg-brand-glass-border rounded-t-sm h-[60%]"></div>
+<div class="flex-1 bg-primary-fixed rounded-t-sm h-[90%]"></div>
+<div class="flex-1 bg-primary-fixed rounded-t-sm h-[95%]"></div>
+<div class="flex-1 bg-secondary rounded-t-sm h-[100%] neon-glow"></div>
+<div class="flex-1 bg-primary-fixed rounded-t-sm h-[80%]"></div>
+<div class="flex-1 bg-brand-glass-border rounded-t-sm h-[50%]"></div>
+<div class="flex-1 bg-surface-variant rounded-t-sm h-[30%]"></div>
+</div>
+<div class="flex justify-between font-label-sm text-[8px] text-muted">
+<span>0m</span>
+<span>15m</span>
+<span>30m</span>
+<span>45m</span>
+</div>
+</div>
+</section>
+</main>
+<!-- Fixed Bottom Action -->
+<div class="fixed bottom-0 left-0 w-full p-margin-mobile bg-gradient-to-t from-surface-dim via-surface-dim to-transparent z-[60]">
+<button class="w-full bg-primary-fixed text-on-primary-fixed font-headline-md text-headline-md py-md rounded-xl flex items-center justify-center gap-sm active:scale-95 transition-all neon-glow uppercase tracking-widest">
+<span>START WORKOUT</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</button>
+</div>
+<!-- Hidden Bottom Nav Mock (For Shell logic adherence) -->
+<!-- Suppressed on detailed task focused screen per instructions -->
+<script>
+        // Simple Interaction logic
+        document.querySelectorAll('.glass-card').forEach(card => {
+            card.addEventListener('touchstart', () => {
+                card.style.transform = 'scale(0.98)';
+                card.style.borderColor = 'rgba(204, 255, 0, 0.35)';
+            });
+            card.addEventListener('touchend', () => {
+                card.style.transform = 'scale(1)';
+                card.style.borderColor = 'rgba(255, 255, 255, 0.09)';
+            });
+        });
+
+        // Intensity Bar Animation on load
+        window.addEventListener('load', () => {
+            const bars = document.querySelectorAll('.flex-1');
+            bars.forEach((bar, index) => {
+                const height = bar.style.height;
+                bar.style.height = '0';
+                setTimeout(() => {
+                    bar.style.transition = 'height 1s cubic-bezier(0.17, 0.67, 0.83, 0.67)';
+                    bar.style.height = height;
+                }, 100 * index);
+            });
+        });
+    </script>
+</body></html>

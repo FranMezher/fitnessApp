@@ -1,0 +1,368 @@
+<!DOCTYPE html><html class="dark" lang="es"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>FITCORE - Historial Nutricional</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "text-primary": "#F2F2F2",
+                    "on-error": "#690005",
+                    "text-muted": "#888888",
+                    "glass-border": "rgba(255, 255, 255, 0.09)",
+                    "brand-glass-border": "rgba(204, 255, 0, 0.35)",
+                    "on-error-container": "#ffdad6",
+                    "on-tertiary": "#313030",
+                    "accent-glass-fill": "rgba(255, 107, 53, 0.1)",
+                    "tertiary-fixed": "#e5e2e1",
+                    "inverse-on-surface": "#313030",
+                    "on-surface-variant": "#c4c9ac",
+                    "error-container": "#93000a",
+                    "outline": "#8e9379",
+                    "accent-glass-border": "rgba(255, 107, 53, 0.4)",
+                    "primary-fixed-dim": "#abd600",
+                    "on-tertiary-container": "#656464",
+                    "brand-glass-fill": "rgba(204, 255, 0, 0.08)",
+                    "surface-bright": "#3a3939",
+                    "on-tertiary-fixed": "#1c1b1b",
+                    "secondary-container": "#b83900",
+                    "surface-variant": "#353534",
+                    "on-tertiary-fixed-variant": "#474646",
+                    "on-secondary-container": "#ffddd2",
+                    "surface-container-low": "#1c1b1b",
+                    "primary": "#ffffff",
+                    "tertiary-container": "#e5e2e1",
+                    "glass-fill": "rgba(255, 255, 255, 0.04)",
+                    "surface-container-high": "#2a2a2a",
+                    "primary-container": "#c3f400",
+                    "surface-container": "#201f1f",
+                    "inverse-primary": "#506600",
+                    "inverse-surface": "#e5e2e1",
+                    "on-primary-fixed": "#161e00",
+                    "tertiary-fixed-dim": "#c9c6c5",
+                    "on-primary": "#283500",
+                    "on-secondary": "#5d1900",
+                    "primary-fixed": "#c3f400",
+                    "outline-variant": "#444933",
+                    "tertiary": "#ffffff",
+                    "surface-container-lowest": "#0e0e0e",
+                    "secondary": "#ffb59d",
+                    "background": "#131313",
+                    "secondary-fixed-dim": "#ffb59d",
+                    "surface-container-highest": "#353534",
+                    "on-surface": "#e5e2e1",
+                    "surface": "#131313",
+                    "on-secondary-fixed": "#390c00",
+                    "secondary-fixed": "#ffdbd0",
+                    "surface-dim": "#131313",
+                    "on-primary-container": "#556d00",
+                    "error": "#ffb4ab",
+                    "surface-tint": "#abd600",
+                    "on-primary-fixed-variant": "#3c4d00",
+                    "on-background": "#e5e2e1",
+                    "on-secondary-fixed-variant": "#832600"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "base": "4px",
+                    "md": "16px",
+                    "sm": "12px",
+                    "margin-mobile": "20px",
+                    "lg": "24px",
+                    "xs": "8px",
+                    "xl": "32px",
+                    "gutter": "12px"
+            },
+            "fontFamily": {
+                    "hero-md": ["Space Grotesk"],
+                    "headline-lg": ["Space Grotesk"],
+                    "label-caps": ["Space Grotesk"],
+                    "data-mono": ["monospace"],
+                    "headline-md": ["Space Grotesk"],
+                    "hero-lg": ["Space Grotesk"],
+                    "body-lg": ["Space Grotesk"],
+                    "label-sm": ["Space Grotesk"],
+                    "body-md": ["Space Grotesk"]
+            },
+            "fontSize": {
+                    "hero-md": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "headline-lg": ["24px", {"lineHeight": "1.3", "fontWeight": "700"}],
+                    "label-caps": ["12px", {"lineHeight": "1", "letterSpacing": "4px", "fontWeight": "700"}],
+                    "data-mono": ["14px", {"lineHeight": "1", "fontWeight": "500"}],
+                    "headline-md": ["18px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                    "hero-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-lg": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "label-sm": ["10px", {"lineHeight": "1", "letterSpacing": "2px", "fontWeight": "500"}],
+                    "body-md": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #080808;
+            color: #F2F2F2;
+            font-family: 'Space Grotesk', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.09);
+        }
+        .active-day-border {
+            border: 1px solid rgba(204, 255, 0, 0.35);
+            background: rgba(204, 255, 0, 0.08);
+        }
+        .bar-gradient {
+            background: linear-gradient(180deg, #CCFF00 0%, #abd600 100%);
+        }
+        .bar-gradient-overflow {
+            background: linear-gradient(180deg, #FF6B35 0%, #ffb59d 100%);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        @keyframes growUp {
+            from { height: 0; }
+            to { height: var(--final-height); }
+        }
+        .animate-bar {
+            animation: growUp 1s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="pb-24">
+<!-- Top Navigation Bar -->
+<header class="fixed top-0 w-full z-50 bg-glass-fill dark:bg-glass-fill backdrop-blur-[25px] border-b border-glass-border flex justify-between items-center px-margin-mobile h-16">
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-primary-fixed">menu</span>
+<h1 class="font-hero-md text-hero-md text-primary-fixed tracking-tighter">FITCORE</h1>
+</div>
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-primary-fixed">notifications</span>
+</div>
+</header>
+<main class="mt-20 px-margin-mobile">
+<!-- Header Section -->
+<section class="mb-lg">
+<h2 class="font-headline-lg text-headline-lg mb-xs">Historial Nutricional</h2>
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-primary-fixed-dim" style="font-size: 18px;">calendar_today</span>
+<p class="font-body-md text-body-md text-text-muted">Últimos 7 días: 12 Oct - 18 Oct</p>
+</div>
+</section>
+<!-- Bar Chart Container -->
+<section class="glass-card rounded-xl p-md mb-lg">
+<div class="flex justify-between items-end h-48 gap-xs mb-md">
+<!-- Sunday -->
+<div class="flex-1 flex flex-col items-center gap-xs h-full justify-end">
+<div class="w-full bar-gradient rounded-t-sm animate-bar" data-day="Dom" style="--final-height: 85%;"></div>
+<span class="font-label-sm text-label-sm text-text-muted">D</span>
+</div>
+<!-- Monday -->
+<div class="flex-1 flex flex-col items-center gap-xs h-full justify-end">
+<div class="w-full bar-gradient rounded-t-sm animate-bar" data-day="Lun" style="--final-height: 92%;"></div>
+<span class="font-label-sm text-label-sm text-text-muted">L</span>
+</div>
+<!-- Tuesday -->
+<div class="flex-1 flex flex-col items-center gap-xs h-full justify-end">
+<div class="w-full bar-gradient-overflow rounded-t-sm animate-bar" data-day="Mar" style="--final-height: 100%;"></div>
+<span class="font-label-sm text-label-sm text-text-muted">M</span>
+</div>
+<!-- Wednesday -->
+<div class="flex-1 flex flex-col items-center gap-xs h-full justify-end">
+<div class="w-full bar-gradient rounded-t-sm animate-bar" data-day="Mié" style="--final-height: 78%;"></div>
+<span class="font-label-sm text-label-sm text-text-muted">X</span>
+</div>
+<!-- Thursday -->
+<div class="flex-1 flex flex-col items-center gap-xs h-full justify-end">
+<div class="w-full bar-gradient rounded-t-sm animate-bar" data-day="Jue" style="--final-height: 82%;"></div>
+<span class="font-label-sm text-label-sm text-text-muted">J</span>
+</div>
+<!-- Friday -->
+<div class="flex-1 flex flex-col items-center gap-xs h-full justify-end">
+<div class="w-full bar-gradient rounded-t-sm animate-bar" data-day="Vie" style="--final-height: 95%;"></div>
+<span class="font-label-sm text-label-sm text-text-muted">V</span>
+</div>
+<!-- Saturday (Current/Active) -->
+<div class="flex-1 flex flex-col items-center gap-xs h-full justify-end">
+<div class="w-full bg-primary-fixed rounded-t-sm animate-bar ring-2 ring-primary-fixed ring-offset-2 ring-offset-background" data-day="Sáb" style="--final-height: 60%;"></div>
+<span class="font-label-sm text-label-sm text-primary-fixed-dim font-bold">S</span>
+</div>
+</div>
+<div class="flex justify-between items-center pt-sm border-t border-glass-border">
+<div>
+<p class="font-label-sm text-label-sm text-text-muted uppercase tracking-wider">Promedio Diario</p>
+<p class="font-headline-md text-headline-md text-primary-fixed">2,140 <span class="text-body-md font-normal">kcal</span></p>
+</div>
+<div class="text-right">
+<p class="font-label-sm text-label-sm text-text-muted uppercase tracking-wider">Meta</p>
+<p class="font-headline-md text-headline-md">2,200 <span class="text-body-md font-normal">kcal</span></p>
+</div>
+</div>
+</section>
+<!-- Weekly Summary List -->
+<section class="space-y-sm mb-xl">
+<h3 class="font-label-caps text-label-caps text-text-muted mb-sm">RESUMEN SEMANAL</h3>
+<!-- Day Card: Saturday (Active) -->
+<div class="glass-card active-day-border rounded-xl p-md flex items-center justify-between cursor-pointer transition-all duration-200" onclick="selectDay(this)">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center">
+<span class="font-data-mono text-on-primary-fixed text-lg font-bold">18</span>
+</div>
+<div>
+<p class="font-headline-md text-headline-md text-primary-fixed">Sábado</p>
+<p class="font-data-mono text-data-mono text-text-muted">1,320 / 2,200 kcal</p>
+</div>
+</div>
+<div class="flex items-center gap-xs">
+<div class="px-2 py-1 rounded bg-brand-glass-fill border border-brand-glass-border">
+<span class="font-label-sm text-label-sm text-primary-fixed-dim">EN PROGRESO</span>
+</div>
+<span class="material-symbols-outlined text-text-muted">chevron_right</span>
+</div>
+</div>
+<!-- Day Card: Friday -->
+<div class="glass-card rounded-xl p-md flex items-center justify-between cursor-pointer hover:bg-glass-fill transition-all duration-200" onclick="selectDay(this)">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full border border-glass-border flex items-center justify-center">
+<span class="font-data-mono text-text-primary text-lg">17</span>
+</div>
+<div>
+<p class="font-headline-md text-headline-md">Viernes</p>
+<p class="font-data-mono text-data-mono text-text-muted">2,090 / 2,200 kcal</p>
+</div>
+</div>
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-primary-fixed" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="material-symbols-outlined text-text-muted">chevron_right</span>
+</div>
+</div>
+<!-- Day Card: Thursday -->
+<div class="glass-card rounded-xl p-md flex items-center justify-between cursor-pointer hover:bg-glass-fill transition-all duration-200" onclick="selectDay(this)">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full border border-glass-border flex items-center justify-center">
+<span class="font-data-mono text-text-primary text-lg">16</span>
+</div>
+<div>
+<p class="font-headline-md text-headline-md">Jueves</p>
+<p class="font-data-mono text-data-mono text-text-muted">1,810 / 2,200 kcal</p>
+</div>
+</div>
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-primary-fixed" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="material-symbols-outlined text-text-muted">chevron_right</span>
+</div>
+</div>
+<!-- Day Card: Tuesday (Exceeded) -->
+<div class="glass-card rounded-xl p-md flex items-center justify-between cursor-pointer hover:bg-glass-fill transition-all duration-200" onclick="selectDay(this)">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full border border-accent-glass-border flex items-center justify-center">
+<span class="font-data-mono text-secondary text-lg">14</span>
+</div>
+<div>
+<p class="font-headline-md text-headline-md">Martes</p>
+<p class="font-data-mono text-data-mono text-secondary">+240 kcal excedido</p>
+</div>
+</div>
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">error</span>
+<span class="material-symbols-outlined text-text-muted">chevron_right</span>
+</div>
+</div>
+</section>
+<!-- Dynamic Breakdown Section (Revealed on Select) -->
+<section class="animate-in fade-in slide-in-from-bottom-4 duration-500" id="breakdown-panel">
+<h3 class="font-label-caps text-label-caps text-text-muted mb-sm">DESGLOSE DE MACRONUTRIENTES</h3>
+<div class="glass-card rounded-xl p-md">
+<div class="grid grid-cols-3 gap-md text-center">
+<div>
+<p class="font-label-sm text-label-sm text-text-muted mb-xs uppercase">Proteína</p>
+<div class="h-1 bg-glass-fill rounded-full mb-xs">
+<div class="h-full bg-primary-fixed rounded-full" style="width: 75%"></div>
+</div>
+<p class="font-data-mono text-data-mono">152g</p>
+</div>
+<div>
+<p class="font-label-sm text-label-sm text-text-muted mb-xs uppercase">Carbs</p>
+<div class="h-1 bg-glass-fill rounded-full mb-xs">
+<div class="h-full bg-primary-fixed-dim rounded-full" style="width: 60%"></div>
+</div>
+<p class="font-data-mono text-data-mono">210g</p>
+</div>
+<div>
+<p class="font-label-sm text-label-sm text-text-muted mb-xs uppercase">Grasas</p>
+<div class="h-1 bg-glass-fill rounded-full mb-xs">
+<div class="h-full bg-secondary rounded-full" style="width: 45%"></div>
+</div>
+<p class="font-data-mono text-data-mono-65g">65g</p>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-gutter py-xs bg-surface-container dark:bg-surface-container backdrop-blur-[25px] border-t border-glass-border shadow-lg rounded-t-xl"><a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary-fixed-dim transition-all active:scale-90 duration-150" href="#"><span class="material-symbols-outlined">home</span><span class="font-label-sm text-label-sm uppercase tracking-[2px] mt-1">Inicio</span></a><a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary-fixed-dim transition-all active:scale-90 duration-150" href="#"><span class="material-symbols-outlined">fitness_center</span><span class="font-label-sm text-label-sm uppercase tracking-[2px] mt-1">Entreno</span></a><a class="flex flex-col items-center justify-center bg-brand-glass-fill text-primary-fixed rounded-xl px-3 py-1 active:scale-90 duration-150" href="#"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">restaurant</span><span class="font-label-sm text-label-sm uppercase tracking-[2px] mt-1">Nutrición</span></a><a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary-fixed-dim transition-all active:scale-90 duration-150" href="#"><span class="material-symbols-outlined">group</span><span class="font-label-sm text-label-sm uppercase tracking-[2px] mt-1">Social</span></a><a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary-fixed-dim transition-all active:scale-90 duration-150" href="#"><span class="material-symbols-outlined">person</span><span class="font-label-sm text-label-sm uppercase tracking-[2px] mt-1">Perfil</span></a></nav>
+<script>
+        function selectDay(element) {
+            // Remove active style from all cards
+            document.querySelectorAll('.glass-card').forEach(card => {
+                card.classList.remove('active-day-border');
+                const label = card.querySelector('.font-headline-md');
+                if (label) label.classList.remove('text-primary-fixed');
+            });
+
+            // Add active style to selected card
+            element.classList.add('active-day-border');
+            const headline = element.querySelector('.font-headline-md');
+            if (headline) headline.classList.add('text-primary-fixed');
+
+            // Show breakdown panel
+            const panel = document.getElementById('breakdown-panel');
+            panel.classList.remove('hidden');
+            
+            // Interaction feedback
+            element.classList.add('scale-[0.98]');
+            setTimeout(() => {
+                element.classList.remove('scale-[0.98]');
+            }, 100);
+
+            // Scroll to breakdown
+            panel.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        }
+
+        // Initialize view
+        document.addEventListener('DOMContentLoaded', () => {
+            // Simulated reveal of the "Saturday" breakdown automatically
+            setTimeout(() => {
+                const saturdayCard = document.querySelector('.active-day-border');
+                if (saturdayCard) {
+                    const panel = document.getElementById('breakdown-panel');
+                    panel.classList.remove('hidden');
+                }
+            }, 800);
+        });
+    </script>
+
+
+</body></html>

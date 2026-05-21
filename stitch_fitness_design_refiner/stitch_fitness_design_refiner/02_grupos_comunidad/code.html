@@ -1,0 +1,236 @@
+<!DOCTYPE html><html class="dark" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>FITCORE Social Hub</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<style>
+        body {
+            background-color: #080808;
+            color: #e5e2e1;
+            font-family: 'Space Grotesk', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.09);
+        }
+        .podium-gradient {
+            background: linear-gradient(180deg, rgba(204, 255, 0, 0.15) 0%, rgba(204, 255, 0, 0) 100%);
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="bg-background min-h-screen pb-24">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-glass-fill dark:bg-glass-fill backdrop-blur-[25px] border-b border-glass-border flex justify-between items-center px-margin-mobile h-16 w-full">
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-primary-fixed cursor-pointer" data-icon="menu">menu</span>
+</div>
+<h1 class="font-hero-md text-hero-md text-primary-fixed tracking-tighter">FITCORE</h1>
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-primary-fixed cursor-pointer" data-icon="notifications">notifications</span>
+</div>
+</header>
+<main class="pt-20 px-margin-mobile">
+<!-- Challenge Podium Section -->
+<section class="mb-xl">
+<div class="flex justify-between items-end mb-md">
+<div>
+<span class="font-label-sm text-label-sm uppercase tracking-[2px] text-primary-fixed">Active Challenges</span>
+<h2 class="font-headline-lg text-headline-lg mt-base">Weekly Podium</h2>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Ends in 2d 14h</span>
+</div>
+<div class="glass-card rounded-xl p-md podium-gradient relative overflow-hidden border-brand-glass-border">
+<div class="flex justify-between items-end gap-sm relative z-10 h-48">
+<!-- Rank 2 -->
+<div class="flex flex-col items-center w-1/3">
+<div class="relative mb-xs">
+<img alt="User" class="w-12 h-12 rounded-full border-2 border-glass-border" data-alt="A professional studio portrait of a female athlete with a focused expression, wearing technical athletic gear. The lighting is high-contrast cinematic style with cool blue and sharp neon yellow highlights, reflecting a high-performance fitness app aesthetic. The background is a dark, textured obsidian surface with subtle light leaks." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBTV104i14capvHXUrRnEDzhnmoOwffaopmRu1JGqhmjf_-JTXGCELyYQLd2eOHPRSW_JnjWPnSSe7oEGKKSW9yk_A2ez6OPTg02IPLjGtN-roOCzrjOnIVRHsjFkcV-ehabvWzDHHsU28DQY5SB-L5hbEWkTS_GEW7pjPX6jKHDVBjYFkM_od3DWLA74ix5A_8Yb0thGrrFPswDiSsm-hsN9haZLjPRPYQTct0gGwsnYQAcCHHxbVQ30bJaU07-4R_wmH5qyGGHrc">
+<div class="absolute -bottom-1 -right-1 bg-surface-container rounded-full w-5 h-5 flex items-center justify-center border border-glass-border">
+<span class="font-data-mono text-[10px]">2</span>
+</div>
+</div>
+<div class="w-full bg-glass-fill border-t border-x border-glass-border rounded-t-lg h-20 flex flex-col items-center justify-center">
+<span class="font-label-sm text-label-sm">SARAH</span>
+<span class="font-data-mono text-primary-fixed">12.4k</span>
+</div>
+</div>
+<!-- Rank 1 -->
+<div class="flex flex-col items-center w-1/3">
+<div class="relative mb-xs">
+<span class="material-symbols-outlined absolute -top-6 left-1/2 -translate-x-1/2 text-primary-fixed scale-125" data-icon="workspace_premium" style="font-variation-settings: 'FILL' 1;">workspace_premium</span>
+<img alt="User" class="w-16 h-16 rounded-full border-2 border-primary-fixed" data-alt="A close-up portrait of a determined male crossfit athlete sweating after a workout, illuminated by a vibrant neon green light from the side. The environment is a dark, high-tech gym with minimalist glass elements and digital displays blurred in the background. The mood is intense, energetic, and elite, following an obsidian and neon color scheme." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA9czXIx9JNjl7eDLg4d2x5ybXU1Frqdv350rf75UpVSMpDVgdCqHt-86LrRAhsaETrrAN6yGborBBFGAoqoNLU27eOoeOXBXgq3YosAVqUZYkrIuhw-rZtJ1eYUWhAhklrOMpLoJrRywwhOwpy2ltqocZ-OQoJ9OLYlXfDaKfILjARGstkN6svFKicBWYf5FOd2CsLYXvngc6Gr0foF30FVo_J6ZpyaYFc26mozO09FJmsU4u34WZkugqNJhnVXiImTOvfLFZnBBY">
+</div>
+<div class="w-full bg-brand-glass-fill border-t border-x border-brand-glass-border rounded-t-lg h-32 flex flex-col items-center justify-center">
+<span class="font-label-sm text-label-sm text-primary-fixed">MARCUS</span>
+<span class="font-data-mono text-primary-fixed text-lg">15.8k</span>
+</div>
+</div>
+<!-- Rank 3 -->
+<div class="flex flex-col items-center w-1/3">
+<div class="relative mb-xs">
+<img alt="User" class="w-12 h-12 rounded-full border-2 border-glass-border" data-alt="A profile shot of a young woman with an athletic build, looking ahead with determination. The lighting features soft volumetric glows in orange and neon green against a deep black background. The overall style is futuristic and athletic, designed for a premium performance tracking interface with glassmorphic textures." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCfin3ZepKNZ7e7SAk4EGIrHJjfwp2r2zNnCEoKEnofdthTPsYgGtOyYjI2tP47thZ4nKDK7uXh65C-SXypi82sdZW9DPoTu3yxflVuFTnoqt_CUvNkrKZaXKUq27wFRFtrtsk6CEwSfl6XeIBXhxyb43UWMzIqCfrcpqQdsZIU95RBTPRmgBfOzhIOau7VtX57ElYo8cnqdjylM-KRICi7MLolOakjy-fMLMiXokYDqkYgLA62Sy8UoxFUpEc-BeX2hCTFjiDft_w">
+<div class="absolute -bottom-1 -right-1 bg-surface-container rounded-full w-5 h-5 flex items-center justify-center border border-glass-border">
+<span class="font-data-mono text-[10px]">3</span>
+</div>
+</div>
+<div class="w-full bg-glass-fill border-t border-x border-glass-border rounded-t-lg h-16 flex flex-col items-center justify-center">
+<span class="font-label-sm text-label-sm">ELENA</span>
+<span class="font-data-mono text-primary-fixed">10.1k</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- CTA Section -->
+<section class="mb-xl">
+<button class="w-full bg-primary-container text-on-primary-fixed font-headline-md text-headline-md py-md rounded-xl flex items-center justify-center gap-sm active:scale-95 transition-transform">
+<span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
+                CREATE OR JOIN A GROUP
+            </button>
+</section>
+<!-- Bento Grid Stats & Groups -->
+<section class="grid grid-cols-2 gap-md mb-xl">
+<div class="glass-card rounded-xl p-md col-span-2 flex justify-between items-center">
+<div>
+<h3 class="font-headline-md text-headline-md">Titan Squad</h3>
+<div class="flex -space-x-2 mt-xs">
+<img class="w-6 h-6 rounded-full border border-surface" data-alt="Small avatar of a male user in a high-tech gym setting, dark mode aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDJPWCAXnqWUdS4MWljc5akFg0kt6ucfEGQu4tYEGwM3-xnlOsGXRdjxKXRh3l-TNVCNev4VUJ5tWJI_4r8m5YY8Zygi-iN-HYU2--eZ3tg4h9GdnpDToiZ1Wn-WNI0D_CrA3rDg1GTJm6cyx3z7MAtGwkue46Z0QtPlFejhnC6Ve1CDOznWGerOw1YhaD97b-CkBzxJS_itiEy8sC0cbb9YVTSps8ozvrEe5jJIydOlNqPau2dYfkrlC3qRzYzzYAohJXqYpdfiAw">
+<img class="w-6 h-6 rounded-full border border-surface" data-alt="Small avatar of a female user in a high-tech gym setting, dark mode aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDF0SzszhhypKnjHPFYN_-lOl-MW7JRvvF3UutDvi5zEZLQUPevJS-xBkg9mAWk4513o8ywHMc0Jy-bkTN4sdMl-XOj9C7OoCudb32QXcNNE0o8hcJNPC6nxKP2pz3AdiczivGQr04sQdEvaxtTD0oG6qhMDhuCOHzdNaRAEoDdqd2HDCRPAKSXnIeHWFoCeUsWF57F8xyi1Djf6eRlbqtYPR9zg03yu37INkgPudXxuqbD-NPVPdvsWh_IE7gSopQiuIzo3D47fqk">
+<img class="w-6 h-6 rounded-full border border-surface" data-alt="Small avatar of a male user in a high-tech gym setting, dark mode aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCJXbnw8GuwfCm8Z_E86L0xI9qDc8_4WcaNUUPnJzbyceGwco3ix5ThBiLDIuJC6IpkU0Xt9X4JW5VyM5TueNnUUwVOCnzF-TX50XnZNfqh_uD_iHnT59NpR9-Ret7WGrdvrk_qhskjlbDal6TtoKhDhVg1Gse1eu0piOHbSabFexelGhAZr-X7Kh2Q44PxK7zyulpNYA_DWO3m1uJYL5ZzCwdYuiB6FdL52jcMbK4Pz8p6hj9kzG41AVKEFvyyFXi5Iy8BbL44CFg">
+<div class="w-6 h-6 rounded-full bg-surface-container-highest border border-surface flex items-center justify-center text-[8px] font-bold">+12</div>
+</div>
+</div>
+<div class="text-right">
+<span class="font-label-sm text-label-sm block text-on-surface-variant">STREAK</span>
+<span class="font-data-mono text-primary-fixed text-lg">14 DAYS</span>
+</div>
+</div>
+<div class="glass-card rounded-xl p-md flex flex-col items-center justify-center aspect-square">
+<span class="material-symbols-outlined text-secondary text-3xl mb-xs" data-icon="local_fire_department" style="font-variation-settings: 'FILL' 1;">local_fire_department</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">GROUP HEAT</span>
+<span class="font-data-mono text-headline-lg">98%</span>
+</div>
+<div class="glass-card rounded-xl p-md flex flex-col items-center justify-center aspect-square">
+<span class="material-symbols-outlined text-primary-fixed text-3xl mb-xs" data-icon="groups">groups</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">ACTIVE NOW</span>
+<span class="font-data-mono text-headline-lg">04</span>
+</div>
+</section>
+<!-- Community Feed -->
+<section class="mb-xl">
+<h2 class="font-headline-md text-headline-md mb-md">Community Feed</h2>
+<div class="space-y-md">
+<!-- Feed Item 1 -->
+<div class="glass-card rounded-xl p-md flex gap-md items-start">
+<img alt="Juan" class="w-10 h-10 rounded-full border border-glass-border" data-alt="A portrait of a Hispanic male athlete with a light beard, smiling slightly, set against a blurred background of a modern, neon-lit fitness studio. The lighting is dominated by deep obsidian tones and sharp emerald green accents. The aesthetic is tech-forward and energetic, capturing a moment of achievement in a premium digital fitness environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBLFAsB2vOxIDwtysyIvnc7qhO7j3lczyFL30RsRaVnIAec-hFXbYXztdHLerDkmdV82HRfHPdhzbBZ4eOiLUVDLs-yXDZzdzDNQ_2l3dss3BSn1fydB1SuYN5sD0OHK_sRMTqneroOWb2ilWLAP8eRy3RB4WU6fmvrvcw8PnIzUD1m1O8GMA4VIDgnSd7I5cHiKwmjXuSIsvgtR0_ELfhcuStrwfOiOciO9WDvk3fduoonbsB22LvEqk4nXRp0lHBPAiD3XQ9deq8">
+<div class="flex-1">
+<p class="font-body-md text-body-md leading-tight">
+<span class="font-bold text-primary-fixed">Juan</span> completed <span class="text-secondary font-bold">Core Explosive</span>
+</p>
+<div class="flex gap-xs mt-xs">
+<span class="bg-brand-glass-fill text-primary-fixed px-xs py-0.5 rounded text-[10px] font-bold tracking-widest uppercase border border-brand-glass-border">High Intensity</span>
+<span class="bg-glass-fill text-on-surface-variant px-xs py-0.5 rounded text-[10px] font-bold tracking-widest uppercase border border-glass-border">340 kcal</span>
+</div>
+<div class="flex items-center gap-md mt-sm">
+<button class="flex items-center gap-1 text-on-surface-variant hover:text-primary-fixed transition-colors">
+<span class="material-symbols-outlined text-lg" data-icon="favorite">favorite</span>
+<span class="font-data-mono text-xs">24</span>
+</button>
+<button class="flex items-center gap-1 text-on-surface-variant hover:text-primary-fixed transition-colors">
+<span class="material-symbols-outlined text-lg" data-icon="chat_bubble">chat_bubble</span>
+<span class="font-data-mono text-xs">3</span>
+</button>
+</div>
+</div>
+<span class="font-data-mono text-[10px] text-on-surface-variant">12m</span>
+</div>
+<!-- Feed Item 2 -->
+<div class="glass-card rounded-xl p-md flex gap-md items-start">
+<img alt="Sarah" class="w-10 h-10 rounded-full border border-glass-border" data-alt="Profile of a young woman with a ponytail, looking focused and athletic. She is wearing a modern black sports top with thin neon orange stripes. The background is a minimalist gym with high-tech sensors and blurred glass panels. The mood is professional and data-driven, with a color palette of deep blacks and vibrant high-performance accents." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC3nYsNSkZEp7JUUJsgm9kWFhsQhmrSR4B1VgaYoN0y0IpNaABbka2h82k-xOBaUTsmU8TMKNLuu011EQwLzQ6fHKmsEhuLudLU4v2cLg7pTzJbZXqnIK-PdEA34gF0Qc86kfkA2r64MEau0Dbi4n5Mr8xqWtbg34xZRDAt21b71N_X3RaAf8KVbbX1STGNdeeR8NTikKmtbHaid6a2npKXduRm3iPZiQoqen8MrA2AJ-9wd_6DGGtUCx51R1qKsOtV8xRkJA83PxA">
+<div class="flex-1">
+<p class="font-body-md text-body-md leading-tight">
+<span class="font-bold text-primary-fixed">Sarah</span> shared a new <span class="text-primary font-bold">Nutrition Plan</span>
+</p>
+<div class="mt-sm glass-card rounded-lg p-xs flex items-center gap-sm bg-brand-glass-fill border-brand-glass-border">
+<span class="material-symbols-outlined text-primary-fixed" data-icon="restaurant">restaurant</span>
+<span class="font-label-sm text-label-sm text-primary-fixed">KETO ELITE DASH</span>
+</div>
+<div class="flex items-center gap-md mt-sm">
+<button class="flex items-center gap-1 text-on-surface-variant hover:text-primary-fixed transition-colors">
+<span class="material-symbols-outlined text-lg" data-icon="favorite">favorite</span>
+<span class="font-data-mono text-xs">12</span>
+</button>
+<button class="flex items-center gap-1 text-on-surface-variant hover:text-primary-fixed transition-colors">
+<span class="material-symbols-outlined text-lg" data-icon="chat_bubble">chat_bubble</span>
+<span class="font-data-mono text-xs">0</span>
+</button>
+</div>
+</div>
+<span class="font-data-mono text-[10px] text-on-surface-variant">1h</span>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-gutter py-xs bg-surface-container dark:bg-surface-container backdrop-blur-[25px] border-t border-glass-border shadow-lg rounded-t-xl"><a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary-fixed-dim transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-label-sm text-label-sm uppercase tracking-[2px] mt-1">Inicio</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary-fixed-dim transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="fitness_center">fitness_center</span>
+<span class="font-label-sm text-label-sm uppercase tracking-[2px] mt-1">Entreno</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary-fixed-dim transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="restaurant">restaurant</span>
+<span class="font-label-sm text-label-sm uppercase tracking-[2px] mt-1">Nutrición</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-brand-glass-fill text-primary-fixed rounded-xl px-3 py-1 scale-90 duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="group" style="font-variation-settings: 'FILL' 1;">group</span>
+<span class="font-label-sm text-label-sm uppercase tracking-[2px] mt-1">Social</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary-fixed-dim transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-sm text-label-sm uppercase tracking-[2px] mt-1">Perfil</span>
+</a></nav>
+<script>
+        // Simple micro-interaction for buttons
+        document.querySelectorAll('button, a').forEach(elem => {
+            elem.addEventListener('click', () => {
+                elem.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    elem.style.transform = '';
+                }, 100);
+            });
+        });
+
+        // Atmospheric effect: subtle glow following mouse on large screens
+        if (window.innerWidth > 1024) {
+            const glow = document.createElement('div');
+            glow.className = 'fixed w-[400px] h-[400px] pointer-events-none z-[-1] opacity-20';
+            glow.style.background = 'radial-gradient(circle, rgba(204, 255, 0, 0.15) 0%, rgba(204, 255, 0, 0) 70%)';
+            document.body.appendChild(glow);
+
+            document.addEventListener('mousemove', (e) => {
+                glow.style.left = (e.clientX - 200) + 'px';
+                glow.style.top = (e.clientY - 200) + 'px';
+            });
+        }
+    </script>
+
+
+</body></html>

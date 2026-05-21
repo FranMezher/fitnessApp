@@ -1,0 +1,341 @@
+<!DOCTYPE html><html class="dark" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<style>
+        body {
+            background-color: #080808;
+            color: #e5e2e1;
+            font-family: 'Space Grotesk', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.09);
+        }
+        .neon-glow-primary {
+            box-shadow: 0 0 15px rgba(204, 255, 0, 0.2);
+        }
+        .neon-border-primary {
+            border: 1px solid rgba(204, 255, 0, 0.35);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        @keyframes pulse-slow {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        .animate-pulse-slow {
+            animation: pulse-slow 3s infinite ease-in-out;
+        }
+    </style>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-tertiary": "#313030",
+                    "tertiary-container": "#e5e2e1",
+                    "on-surface": "#e5e2e1",
+                    "outline": "#8e9379",
+                    "outline-variant": "#444933",
+                    "surface-dim": "#131313",
+                    "on-primary-fixed": "#161e00",
+                    "primary": "#ffffff",
+                    "surface-container-highest": "#353534",
+                    "surface-bright": "#3a3939",
+                    "secondary": "#ffb59d",
+                    "glass-border": "rgba(255, 255, 255, 0.09)",
+                    "on-error": "#690005",
+                    "brand-glass-fill": "rgba(204, 255, 0, 0.08)",
+                    "surface-tint": "#abd600",
+                    "primary-fixed-dim": "#abd600",
+                    "brand-glass-border": "rgba(204, 255, 0, 0.35)",
+                    "inverse-primary": "#506600",
+                    "tertiary-fixed": "#e5e2e1",
+                    "on-surface-variant": "#c4c9ac",
+                    "secondary-fixed-dim": "#ffb59d",
+                    "on-tertiary-fixed-variant": "#474646",
+                    "on-secondary-fixed-variant": "#832600",
+                    "accent-glass-border": "rgba(255, 107, 53, 0.4)",
+                    "surface-container-low": "#1c1b1b",
+                    "on-error-container": "#ffdad6",
+                    "surface-container-high": "#2a2a2a",
+                    "primary-fixed": "#c3f400",
+                    "background": "#131313",
+                    "tertiary": "#ffffff",
+                    "on-background": "#e5e2e1",
+                    "surface-container": "#201f1f",
+                    "on-tertiary-container": "#656464",
+                    "on-primary-container": "#556d00",
+                    "surface-variant": "#353534",
+                    "inverse-on-surface": "#313030",
+                    "surface": "#131313",
+                    "on-secondary-container": "#ffddd2",
+                    "text-muted": "#888888",
+                    "secondary-fixed": "#ffdbd0",
+                    "primary-container": "#c3f400",
+                    "on-secondary": "#5d1900",
+                    "secondary-container": "#b83900",
+                    "glass-fill": "rgba(255, 255, 255, 0.04)",
+                    "error": "#ffb4ab",
+                    "text-primary": "#F2F2F2",
+                    "on-primary-fixed-variant": "#3c4d00",
+                    "inverse-surface": "#e5e2e1",
+                    "on-primary": "#283500",
+                    "tertiary-fixed-dim": "#c9c6c5",
+                    "surface-container-lowest": "#0e0e0e",
+                    "on-secondary-fixed": "#390c00",
+                    "error-container": "#93000a",
+                    "accent-glass-fill": "rgba(255, 107, 53, 0.1)",
+                    "on-tertiary-fixed": "#1c1b1b"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "margin-mobile": "20px",
+                    "lg": "24px",
+                    "xs": "8px",
+                    "sm": "12px",
+                    "gutter": "12px",
+                    "base": "4px",
+                    "xl": "32px",
+                    "md": "16px"
+            },
+            "fontFamily": {
+                    "hero-md": ["Space Grotesk"],
+                    "headline-lg": ["Space Grotesk"],
+                    "data-mono": ["monospace"],
+                    "hero-lg": ["Space Grotesk"],
+                    "body-md": ["Space Grotesk"],
+                    "label-caps": ["Space Grotesk"],
+                    "body-lg": ["Space Grotesk"],
+                    "headline-md": ["Space Grotesk"],
+                    "label-sm": ["Space Grotesk"]
+            },
+            "fontSize": {
+                    "hero-md": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "headline-lg": ["24px", {"lineHeight": "1.3", "fontWeight": "700"}],
+                    "data-mono": ["14px", {"lineHeight": "1", "fontWeight": "500"}],
+                    "hero-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-md": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                    "label-caps": ["12px", {"lineHeight": "1", "letterSpacing": "4px", "fontWeight": "700"}],
+                    "body-lg": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "headline-md": ["18px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                    "label-sm": ["10px", {"lineHeight": "1", "letterSpacing": "2px", "fontWeight": "500"}]
+            }
+          },
+        },
+      }
+    </script>
+</head>
+<body class="bg-surface-container-lowest min-h-screen pb-32">
+<!-- Top App Bar -->
+<header class="fixed top-0 w-full z-50 bg-glass-fill dark:bg-glass-fill backdrop-blur-[25px] border-b border-glass-border flex justify-between items-center px-margin-mobile h-16">
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-primary-fixed">menu</span>
+</div>
+<h1 class="font-hero-md text-hero-md text-primary-fixed tracking-tighter">FITCORE</h1>
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-primary-fixed">notifications</span>
+</div>
+</header>
+<main class="pt-24 px-margin-mobile space-y-xl">
+<!-- League Header Section -->
+<section class="relative overflow-hidden glass-card rounded-xl p-md neon-border-primary">
+<div class="absolute -right-12 -top-12 w-48 h-48 bg-primary-fixed opacity-10 blur-[80px] rounded-full"></div>
+<div class="relative z-10 flex flex-col items-center text-center">
+<span class="font-label-caps text-label-caps text-primary-fixed mb-xs">CURRENT SEASON</span>
+<h2 class="font-hero-md text-hero-md text-primary-fixed">TITANIUM LEAGUE</h2>
+<div class="mt-md flex items-center gap-sm bg-brand-glass-fill px-md py-xs rounded-full border border-brand-glass-border">
+<span class="material-symbols-outlined text-primary-fixed" style="font-variation-settings: 'FILL' 1;">timer</span>
+<span class="font-data-mono text-data-mono text-primary-fixed" id="countdown">02D : 14H : 35M : 00S</span>
+</div>
+<p class="mt-sm font-body-md text-body-md text-on-surface-variant max-w-[280px]">Top 5 athletes promote to Obsidian Rank at the end of the week.</p>
+</div>
+</section>
+<!-- Leaderboard Section -->
+<section class="space-y-md">
+<div class="flex justify-between items-end">
+<h3 class="font-headline-lg text-headline-lg text-primary">Leaderboard</h3>
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-[2px]">WEEK 42</span>
+</div>
+<div class="space-y-sm">
+<!-- Top 1 - User or Leader -->
+<div class="glass-card rounded-xl p-md flex items-center justify-between border-l-4 border-primary-fixed neon-glow-primary">
+<div class="flex items-center gap-md">
+<span class="font-hero-md text-hero-md text-primary-fixed w-8">1</span>
+<div class="relative">
+<img alt="Leader" class="w-12 h-12 rounded-full border-2 border-primary-fixed" data-alt="A high-contrast studio portrait of a muscular athlete with intense focus, captured in dramatic low-key lighting that emphasizes muscle definition. The image has a clean, high-performance aesthetic with deep obsidian blacks and sharp highlights, perfectly matching a premium fitness brand identity. Soft glows of neon lime green illuminate the contours of the face." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDSulBCpTV5xYSiPRUNKyUvF56Ud8YIAARBOlpmrpTa4QZk0xBbtS3Xp-E7NsRs7MQuckkSzPCN1bWLG6OFPUxHSTRKzGq57n22oEhi2YgJ4TUToesQvloXo8VQJdfMoaltgU-B7kCpXDlCkc4OxyIMjuJOOWERMOMAlcxqhQomNLSpSEKe2iBBshCTv7stWxNIE3WIyLPdG47yUnpQaUS8KyveYKXvJ9XusNyXzfRlL1zP8ZRIVI5XHtaZHhrpVIReLtF_9m_kumI">
+<div class="absolute -top-1 -right-1 bg-primary-fixed text-on-primary-fixed rounded-full p-[2px]">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">workspace_premium</span>
+</div>
+</div>
+<div>
+<p class="font-headline-md text-headline-md text-primary">Alex Rivera</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">ELITE PERFORMANCE</p>
+</div>
+</div>
+<div class="text-right">
+<p class="font-data-mono text-data-mono text-primary-fixed">14,250</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">PTS</p>
+</div>
+</div>
+<!-- Top 2 -->
+<div class="glass-card rounded-xl p-md flex items-center justify-between border-l-4 border-secondary/50">
+<div class="flex items-center gap-md">
+<span class="font-hero-md text-hero-md text-secondary w-8">2</span>
+<img alt="Competitor" class="w-12 h-12 rounded-full border border-glass-border" data-alt="A professional headshot of a person with a determined expression, lit by cool-toned studio lights that create a modern, technical atmosphere. The background is a dark, out-of-focus high-tech gym environment with subtle orange and blue light leaks. The style is sharp, energetic, and highly detailed, consistent with a premium athletic performance interface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCfEerYEvspNCeW8eHsHdSP1t2DCNGnJrbsIOzf5dhgJzXFAi0bK1rSUjP99zfubw3ITiTKJWNBsFL7dPsOfEn7ZIgBaIpQC4l3B2iX093L7yRu-u2O_ROimZJ7CKIzfMTRGoqpqMO06kJk_pxAaLtyhvzEf6QYDs-_GxSSeSwpWiMfltmeEdlfbW5dYM609DYDlEAfcxdCz4Pi8Us48OebZPklsff_DqoPqLYFlmTPvZMxIGO-pQmgXqWvl9vFHCJ5foWh1LNy4cg">
+<div>
+<p class="font-headline-md text-headline-md text-primary">Sarah Chen</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">STRENGTH BUILDER</p>
+</div>
+</div>
+<div class="text-right">
+<p class="font-data-mono text-data-mono text-secondary">13,810</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">PTS</p>
+</div>
+</div>
+<!-- User Row (Highlighted) -->
+<div class="glass-card rounded-xl p-md flex items-center justify-between bg-brand-glass-fill border-brand-glass-border border">
+<div class="flex items-center gap-md">
+<span class="font-headline-md text-headline-md text-on-surface w-8">7</span>
+<div class="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center border border-primary-fixed/30">
+<span class="material-symbols-outlined text-primary-fixed">person</span>
+</div>
+<div>
+<p class="font-headline-md text-headline-md text-primary">You (M. Tyson)</p>
+<p class="font-label-sm text-label-sm text-primary-fixed animate-pulse-slow">CLIMBING +2 POS</p>
+</div>
+</div>
+<div class="text-right">
+<p class="font-data-mono text-data-mono text-primary-fixed">9,420</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">PTS</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Achievements Grid -->
+<section class="space-y-md">
+<div class="flex justify-between items-center">
+<h3 class="font-headline-lg text-headline-lg text-primary">Logros</h3>
+<button class="font-label-sm text-label-sm text-primary-fixed flex items-center gap-xs uppercase">
+                    View All <span class="material-symbols-outlined text-sm">arrow_forward_ios</span>
+</button>
+</div>
+<div class="grid grid-cols-2 gap-md">
+<!-- Unlocked Achievement -->
+<div class="glass-card rounded-xl p-md flex flex-col items-center text-center space-y-sm border-b-2 border-primary-fixed bg-brand-glass-fill">
+<div class="w-14 h-14 rounded-full bg-primary-fixed/20 flex items-center justify-center border border-primary-fixed/40">
+<span class="material-symbols-outlined text-primary-fixed text-3xl" style="font-variation-settings: 'FILL' 1;">bolt</span>
+</div>
+<div>
+<p class="font-headline-md text-headline-md text-primary">Iron Lung</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">30 MIN HI-INTENSITY</p>
+</div>
+</div>
+<!-- Unlocked Achievement -->
+<div class="glass-card rounded-xl p-md flex flex-col items-center text-center space-y-sm border-b-2 border-primary-fixed bg-brand-glass-fill">
+<div class="w-14 h-14 rounded-full bg-primary-fixed/20 flex items-center justify-center border border-primary-fixed/40">
+<span class="material-symbols-outlined text-primary-fixed text-3xl" style="font-variation-settings: 'FILL' 1;">calendar_today</span>
+</div>
+<div>
+<p class="font-headline-md text-headline-md text-primary">Streak King</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">14 DAY ACTIVE STREAK</p>
+</div>
+</div>
+<!-- Locked Achievement -->
+<div class="glass-card rounded-xl p-md flex flex-col items-center text-center space-y-sm opacity-50 grayscale">
+<div class="w-14 h-14 rounded-full bg-surface-container flex items-center justify-center border border-glass-border">
+<span class="material-symbols-outlined text-on-surface-variant text-3xl">lock</span>
+</div>
+<div>
+<p class="font-headline-md text-headline-md text-on-surface-variant">Century Club</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">100 TOTAL WORKOUTS</p>
+</div>
+</div>
+<!-- Locked Achievement -->
+<div class="glass-card rounded-xl p-md flex flex-col items-center text-center space-y-sm opacity-50 grayscale">
+<div class="w-14 h-14 rounded-full bg-surface-container flex items-center justify-center border border-glass-border">
+<span class="material-symbols-outlined text-on-surface-variant text-3xl">fitness_center</span>
+</div>
+<div>
+<p class="font-headline-md text-headline-md text-on-surface-variant">Titan Lift</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">2.5X BODYWEIGHT DL</p>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 bg-surface-container dark:bg-surface-container backdrop-blur-[25px] border-t border-glass-border flex justify-around items-center px-gutter py-xs rounded-t-xl shadow-lg">
+<div class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary-fixed-dim transition-all active:scale-90 duration-150">
+    <span class="material-symbols-outlined">home</span>
+    <span class="font-label-sm text-label-sm uppercase tracking-[2px] mt-1">Inicio</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary-fixed-dim transition-all active:scale-90 duration-150">
+    <span class="material-symbols-outlined">fitness_center</span>
+    <span class="font-label-sm text-label-sm uppercase tracking-[2px] mt-1">Entreno</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary-fixed-dim transition-all active:scale-90 duration-150">
+    <span class="material-symbols-outlined">restaurant</span>
+    <span class="font-label-sm text-label-sm uppercase tracking-[2px] mt-1">Nutrición</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-brand-glass-fill text-primary-fixed rounded-xl px-3 py-1 active:scale-90 duration-150">
+    <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">group</span>
+    <span class="font-label-sm text-label-sm uppercase tracking-[2px] mt-1">Social</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary-fixed-dim transition-all active:scale-90 duration-150">
+    <span class="material-symbols-outlined">person</span>
+    <span class="font-label-sm text-label-sm uppercase tracking-[2px] mt-1">Perfil</span>
+</div>
+</nav>
+<script>
+        // Simple interactive countdown
+        let seconds = 35;
+        let minutes = 35;
+        let hours = 14;
+        let days = 2;
+
+        function updateCountdown() {
+            seconds--;
+            if (seconds < 0) {
+                seconds = 59;
+                minutes--;
+                if (minutes < 0) {
+                    minutes = 59;
+                    hours--;
+                    if (hours < 0) {
+                        hours = 23;
+                        days--;
+                    }
+                }
+            }
+            
+            const format = (num) => num.toString().padStart(2, '0');
+            document.getElementById('countdown').textContent = 
+                `${format(days)}D : ${format(hours)}H : ${format(minutes)}M : ${format(seconds)}S`;
+        }
+
+        setInterval(updateCountdown, 1000);
+    </script>
+
+
+</body></html>

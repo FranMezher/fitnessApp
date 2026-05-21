@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>FITCORE - Tu Despensa</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-secondary-fixed": "#390c00",
+                    "on-primary": "#283500",
+                    "surface": "#131313",
+                    "on-error": "#690005",
+                    "accent-glass-border": "rgba(255, 107, 53, 0.4)",
+                    "text-muted": "#888888",
+                    "primary-fixed": "#c3f400",
+                    "on-tertiary": "#313030",
+                    "glass-border": "rgba(255, 255, 255, 0.09)",
+                    "brand-glass-fill": "rgba(204, 255, 0, 0.08)",
+                    "secondary-fixed": "#ffdbd0",
+                    "secondary": "#ffb59d",
+                    "on-background": "#e5e2e1",
+                    "brand-glass-border": "rgba(204, 255, 0, 0.35)",
+                    "surface-bright": "#3a3939",
+                    "outline-variant": "#444933",
+                    "text-primary": "#F2F2F2",
+                    "on-surface-variant": "#c4c9ac",
+                    "inverse-surface": "#e5e2e1",
+                    "primary-fixed-dim": "#abd600",
+                    "on-tertiary-container": "#656464",
+                    "tertiary-fixed": "#e5e2e1",
+                    "secondary-container": "#b83900",
+                    "on-surface": "#e5e2e1",
+                    "secondary-fixed-dim": "#ffb59d",
+                    "surface-container-high": "#2a2a2a",
+                    "error-container": "#93000a",
+                    "on-tertiary-fixed-variant": "#474646",
+                    "surface-dim": "#131313",
+                    "surface-container-highest": "#353534",
+                    "accent-glass-fill": "rgba(255, 107, 53, 0.1)",
+                    "background": "#131313",
+                    "inverse-on-surface": "#313030",
+                    "on-primary-fixed": "#161e00",
+                    "on-tertiary-fixed": "#1c1b1b",
+                    "on-error-container": "#ffdad6",
+                    "error": "#ffb4ab",
+                    "tertiary": "#ffffff",
+                    "inverse-primary": "#506600",
+                    "primary": "#ffffff",
+                    "surface-container-lowest": "#0e0e0e",
+                    "surface-container": "#201f1f",
+                    "on-secondary-container": "#ffddd2",
+                    "on-primary-fixed-variant": "#3c4d00",
+                    "tertiary-fixed-dim": "#c9c6c5",
+                    "on-secondary-fixed-variant": "#832600",
+                    "outline": "#8e9379",
+                    "on-primary-container": "#556d00",
+                    "on-secondary": "#5d1900",
+                    "surface-tint": "#abd600",
+                    "glass-fill": "rgba(255, 255, 255, 0.04)",
+                    "tertiary-container": "#e5e2e1",
+                    "surface-variant": "#353534",
+                    "surface-container-low": "#1c1b1b",
+                    "primary-container": "#c3f400"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "xl": "32px",
+                    "sm": "12px",
+                    "margin-mobile": "20px",
+                    "xs": "8px",
+                    "md": "16px",
+                    "base": "4px",
+                    "gutter": "12px",
+                    "lg": "24px"
+            },
+            "fontFamily": {
+                    "data-mono": ["monospace"],
+                    "headline-lg": ["Space Grotesk"],
+                    "headline-md": ["Space Grotesk"],
+                    "hero-lg": ["Space Grotesk"],
+                    "body-md": ["Space Grotesk"],
+                    "label-sm": ["Space Grotesk"],
+                    "label-caps": ["Space Grotesk"],
+                    "body-lg": ["Space Grotesk"],
+                    "hero-md": ["Space Grotesk"]
+            },
+            "fontSize": {
+                    "data-mono": ["14px", {"lineHeight": "1", "fontWeight": "500"}],
+                    "headline-lg": ["24px", {"lineHeight": "1.3", "fontWeight": "700"}],
+                    "headline-md": ["18px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                    "hero-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-md": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                    "label-sm": ["10px", {"lineHeight": "1", "letterSpacing": "2px", "fontWeight": "500"}],
+                    "label-caps": ["12px", {"lineHeight": "1", "letterSpacing": "4px", "fontWeight": "700"}],
+                    "body-lg": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "hero-md": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #080808;
+            color: #e5e2e1;
+            font-family: 'Space Grotesk', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.09);
+        }
+        .progress-gradient {
+            background: linear-gradient(90deg, #abd600 0%, #ff6b35 100%);
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .selected-item {
+            background: rgba(204, 255, 0, 0.08);
+            border-color: rgba(204, 255, 0, 0.35);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="min-h-screen flex flex-col items-center">
+<!-- Top AppBar (from JSON Guidance) -->
+<header class="bg-surface/80 dark:bg-surface/80 backdrop-blur-xl docked full-width top-0 z-50 border-b border-glass-border flex justify-between items-center w-full px-margin-mobile h-16 sticky">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary dark:text-primary-fixed cursor-pointer hover:bg-brand-glass-fill transition-colors p-2 rounded-full active:scale-95">arrow_back</span>
+<span class="font-headline-lg text-headline-lg tracking-tighter italic text-primary-container">FITCORE</span>
+</div>
+<div class="flex items-center">
+<span class="material-symbols-outlined text-primary dark:text-primary-fixed cursor-pointer hover:bg-brand-glass-fill transition-colors p-2 rounded-full active:scale-95">close</span>
+</div>
+</header>
+<main class="w-full max-w-md px-margin-mobile flex-1 flex flex-col gap-lg pb-32">
+<!-- Progress Indicator -->
+<div class="mt-lg">
+<div class="flex justify-between items-end mb-base">
+<span class="font-label-caps text-label-caps text-primary-fixed-dim uppercase">Pantry Selection</span>
+<span class="font-data-mono text-data-mono text-primary-fixed">80%</span>
+</div>
+<div class="w-full h-[4px] bg-surface-container rounded-full overflow-hidden">
+<div class="h-full progress-gradient transition-all duration-1000" style="width: 80%;"></div>
+</div>
+</div>
+<!-- Headline -->
+<section>
+<h1 class="font-hero-md text-hero-md text-on-surface leading-tight">Tu despensa</h1>
+<p class="font-body-md text-body-md text-text-muted mt-base">Selecciona los ingredientes que sueles tener disponibles para personalizar tus planes.</p>
+</section>
+<!-- Search Bar -->
+<div class="relative">
+<span class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-text-muted">search</span>
+<input class="w-full bg-surface-container-low border border-glass-border rounded-xl py-4 pl-12 pr-md font-body-md text-on-surface focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container/30 transition-all" placeholder="Buscar ingredientes..." type="text"/>
+</div>
+<!-- Food Categories -->
+<div class="flex flex-col gap-xl overflow-y-auto hide-scrollbar">
+<!-- Proteins -->
+<section class="flex flex-col gap-md">
+<div class="flex items-center justify-between border-b border-glass-border pb-base">
+<h2 class="font-label-caps text-label-caps text-text-muted">PROTEÍNAS</h2>
+<span class="font-label-sm text-label-sm text-primary-fixed-dim">MULTISELECCIÓN</span>
+</div>
+<div class="grid grid-cols-2 gap-sm">
+<!-- Item -->
+<button class="glass-card p-md rounded-xl flex flex-col items-center gap-sm transition-all hover:bg-brand-glass-fill active:scale-95 group" onclick="toggleSelect(this)">
+<span class="material-symbols-outlined text-primary-container text-[32px]">egg</span>
+<span class="font-body-md text-body-md text-on-surface">Huevos</span>
+</button>
+<!-- Item Selected -->
+<button class="glass-card selected-item p-md rounded-xl flex flex-col items-center gap-sm transition-all hover:bg-brand-glass-fill active:scale-95 group" onclick="toggleSelect(this)">
+<span class="material-symbols-outlined text-primary-container text-[32px]" style="font-variation-settings: 'FILL' 1;">restaurant</span>
+<span class="font-body-md text-body-md text-on-surface">Pechuga</span>
+</button>
+<button class="glass-card p-md rounded-xl flex flex-col items-center gap-sm transition-all hover:bg-brand-glass-fill active:scale-95 group" onclick="toggleSelect(this)">
+<span class="material-symbols-outlined text-primary-container text-[32px]">set_meal</span>
+<span class="font-body-md text-body-md text-on-surface">Salmón</span>
+</button>
+<button class="glass-card p-md rounded-xl flex flex-col items-center gap-sm transition-all hover:bg-brand-glass-fill active:scale-95 group" onclick="toggleSelect(this)">
+<span class="material-symbols-outlined text-primary-container text-[32px]">nutrition</span>
+<span class="font-body-md text-body-md text-on-surface">Tofu</span>
+</button>
+</div>
+</section>
+<!-- Carbs -->
+<section class="flex flex-col gap-md">
+<div class="flex items-center justify-between border-b border-glass-border pb-base">
+<h2 class="font-label-caps text-label-caps text-text-muted">CARBOHIDRATOS</h2>
+</div>
+<div class="grid grid-cols-2 gap-sm">
+<button class="glass-card p-md rounded-xl flex flex-col items-center gap-sm transition-all hover:bg-brand-glass-fill active:scale-95 group" onclick="toggleSelect(this)">
+<span class="material-symbols-outlined text-secondary text-[32px]">bakery_dining</span>
+<span class="font-body-md text-body-md text-on-surface">Avena</span>
+</button>
+<button class="glass-card selected-item p-md rounded-xl flex flex-col items-center gap-sm transition-all hover:bg-brand-glass-fill active:scale-95 group" onclick="toggleSelect(this)">
+<span class="material-symbols-outlined text-secondary text-[32px]" style="font-variation-settings: 'FILL' 1;">rice_bowl</span>
+<span class="font-body-md text-body-md text-on-surface">Arroz</span>
+</button>
+</div>
+</section>
+<!-- Fats -->
+<section class="flex flex-col gap-md">
+<div class="flex items-center justify-between border-b border-glass-border pb-base">
+<h2 class="font-label-caps text-label-caps text-text-muted">GRASAS</h2>
+</div>
+<div class="grid grid-cols-2 gap-sm">
+<button class="glass-card p-md rounded-xl flex flex-col items-center gap-sm transition-all hover:bg-brand-glass-fill active:scale-95 group" onclick="toggleSelect(this)">
+<span class="material-symbols-outlined text-primary-fixed-dim text-[32px]">eco</span>
+<span class="font-body-md text-body-md text-on-surface">Aguacate</span>
+</button>
+<button class="glass-card p-md rounded-xl flex flex-col items-center gap-sm transition-all hover:bg-brand-glass-fill active:scale-95 group" onclick="toggleSelect(this)">
+<span class="material-symbols-outlined text-primary-fixed-dim text-[32px]">opacity</span>
+<span class="font-body-md text-body-md text-on-surface">Oliva</span>
+</button>
+</div>
+</section>
+</div>
+</main>
+<!-- Bottom Action Area -->
+<div class="fixed bottom-0 left-0 w-full p-margin-mobile bg-gradient-to-t from-background via-background/95 to-transparent z-40">
+<div class="max-w-md mx-auto">
+<button class="w-full bg-primary-container text-on-primary-container font-headline-md text-headline-md py-4 rounded-xl shadow-[0_0_20px_rgba(204,255,0,0.2)] active:scale-[0.98] transition-all hover:brightness-110">
+                CONTINUAR
+            </button>
+</div>
+</div>
+<!-- Hidden Bottom Nav for top-level context (Required by JSON but suppressed on onboarding) -->
+<!-- Suppressed based on "The Destination Rule" - Onboarding is Linear/Transactional -->
+<script>
+        function toggleSelect(el) {
+            el.classList.toggle('selected-item');
+            const icon = el.querySelector('.material-symbols-outlined');
+            if (el.classList.contains('selected-item')) {
+                icon.style.fontVariationSettings = "'FILL' 1";
+            } else {
+                icon.style.fontVariationSettings = "'FILL' 0";
+            }
+        }
+
+        // Search highlight mock interaction
+        const searchInput = document.querySelector('input[type="text"]');
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            const cards = document.querySelectorAll('button.glass-card');
+            cards.forEach(card => {
+                const text = card.textContent.toLowerCase();
+                if (text.includes(query)) {
+                    card.style.opacity = "1";
+                    card.style.display = "flex";
+                } else {
+                    card.style.opacity = "0.3";
+                    // keep layout grid intact
+                }
+            });
+        });
+    </script>
+</body></html>

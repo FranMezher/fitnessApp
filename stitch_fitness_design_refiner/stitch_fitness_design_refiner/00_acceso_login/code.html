@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="pt-br"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>FITCORE - Login</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #080808;
+            font-family: 'Space Grotesk', sans-serif;
+            overflow: hidden;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.09);
+        }
+        .neon-glow:focus-within {
+            box-shadow: 0px 0px 12px rgba(204, 255, 0, 0.25);
+            border-color: #CCFF00;
+        }
+        .bg-mesh {
+            background-image: radial-gradient(at 0% 0%, rgba(204, 255, 0, 0.05) 0px, transparent 50%),
+                              radial-gradient(at 100% 100%, rgba(255, 107, 53, 0.05) 0px, transparent 50%);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-secondary-fixed": "#390c00",
+                      "on-primary": "#283500",
+                      "surface": "#131313",
+                      "on-error": "#690005",
+                      "accent-glass-border": "rgba(255, 107, 53, 0.4)",
+                      "text-muted": "#888888",
+                      "primary-fixed": "#c3f400",
+                      "on-tertiary": "#313030",
+                      "glass-border": "rgba(255, 255, 255, 0.09)",
+                      "brand-glass-fill": "rgba(204, 255, 0, 0.08)",
+                      "secondary-fixed": "#ffdbd0",
+                      "secondary": "#ffb59d",
+                      "on-background": "#e5e2e1",
+                      "brand-glass-border": "rgba(204, 255, 0, 0.35)",
+                      "surface-bright": "#3a3939",
+                      "outline-variant": "#444933",
+                      "text-primary": "#F2F2F2",
+                      "on-surface-variant": "#c4c9ac",
+                      "inverse-surface": "#e5e2e1",
+                      "primary-fixed-dim": "#abd600",
+                      "on-tertiary-container": "#656464",
+                      "tertiary-fixed": "#e5e2e1",
+                      "secondary-container": "#b83900",
+                      "on-surface": "#e5e2e1",
+                      "secondary-fixed-dim": "#ffb59d",
+                      "surface-container-high": "#2a2a2a",
+                      "error-container": "#93000a",
+                      "on-tertiary-fixed-variant": "#474646",
+                      "surface-dim": "#131313",
+                      "surface-container-highest": "#353534",
+                      "accent-glass-fill": "rgba(255, 107, 53, 0.1)",
+                      "background": "#131313",
+                      "inverse-on-surface": "#313030",
+                      "on-primary-fixed": "#161e00",
+                      "on-tertiary-fixed": "#1c1b1b",
+                      "on-error-container": "#ffdad6",
+                      "error": "#ffb4ab",
+                      "tertiary": "#ffffff",
+                      "inverse-primary": "#506600",
+                      "primary": "#ffffff",
+                      "surface-container-lowest": "#0e0e0e",
+                      "surface-container": "#201f1f",
+                      "on-secondary-container": "#ffddd2",
+                      "on-primary-fixed-variant": "#3c4d00",
+                      "tertiary-fixed-dim": "#c9c6c5",
+                      "on-secondary-fixed-variant": "#832600",
+                      "outline": "#8e9379",
+                      "on-primary-container": "#556d00",
+                      "on-secondary": "#5d1900",
+                      "surface-tint": "#abd600",
+                      "glass-fill": "rgba(255, 255, 255, 0.04)",
+                      "tertiary-container": "#e5e2e1",
+                      "surface-variant": "#353534",
+                      "surface-container-low": "#1c1b1b",
+                      "primary-container": "#c3f400"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "xl": "32px",
+                      "sm": "12px",
+                      "margin-mobile": "20px",
+                      "xs": "8px",
+                      "md": "16px",
+                      "base": "4px",
+                      "gutter": "12px",
+                      "lg": "24px"
+              },
+              "fontFamily": {
+                      "data-mono": ["monospace"],
+                      "headline-lg": ["Space Grotesk"],
+                      "headline-md": ["Space Grotesk"],
+                      "hero-lg": ["Space Grotesk"],
+                      "body-md": ["Space Grotesk"],
+                      "label-sm": ["Space Grotesk"],
+                      "label-caps": ["Space Grotesk"],
+                      "body-lg": ["Space Grotesk"],
+                      "hero-md": ["Space Grotesk"]
+              },
+              "fontSize": {
+                      "data-mono": ["14px", {"lineHeight": "1", "fontWeight": "500"}],
+                      "headline-lg": ["24px", {"lineHeight": "1.3", "fontWeight": "700"}],
+                      "headline-md": ["18px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                      "hero-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "body-md": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                      "label-sm": ["10px", {"lineHeight": "1", "letterSpacing": "2px", "fontWeight": "500"}],
+                      "label-caps": ["12px", {"lineHeight": "1", "letterSpacing": "4px", "fontWeight": "700"}],
+                      "body-lg": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                      "hero-md": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "700"}]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="flex items-center justify-center min-h-screen p-margin-mobile relative bg-mesh overflow-hidden">
+<!-- Background Atmospheric Image -->
+<div class="absolute inset-0 z-0">
+<div class="absolute inset-0 bg-gradient-to-b from-transparent via-background/80 to-background z-10"></div>
+<img class="w-full h-full object-cover opacity-30" data-alt="A cinematic, low-key wide shot of a high-performance training facility at night. The atmosphere is dense and technical, with dark steel textures, industrial lighting, and subtle neon green highlights reflecting off carbon-fiber equipment. The mood is focused and elite, utilizing a sophisticated obsidian and deep gray palette to create a premium, high-tech fitness environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBg8CxTz_nTVx1F-A-mTr8h8cLlctMetuiKJ88C1Yt6GmuwvShyrWQmBwReBPQuEjP5mAeJ_B_7NsMIUEekHiBQt3vJRwExuHQ7g6bXC9-epHtjbWsNawRJSAEEkiMoGbTwjX-kO0yfdKEG2wsEeG4l3jhGD54IRzJdFtFsTmDLaNTcojkuESVCJEz8VGUAj4tCCAK2qbspRmfYJgRdBLdFrgwb7zX_oXSPLcEDdPGmR97YlKeOo2XG_qrT3SKSXYiA7Z2aH2zpfZA"/>
+</div>
+<!-- Main Content Canvas -->
+<main class="relative z-20 w-full max-w-md flex flex-col gap-xl">
+<!-- Hero Section -->
+<header class="flex flex-col items-center text-center">
+<h1 class="font-hero-lg text-hero-lg text-primary tracking-tighter italic">
+                FIT<span class="text-primary-container">CORE</span>
+</h1>
+<p class="font-body-md text-body-md text-on-surface-variant mt-base">
+                UNLOCK ELITE PERFORMANCE
+            </p>
+</header>
+<!-- Login Form Card -->
+<div class="glass-card rounded-xl p-lg flex flex-col gap-lg">
+<form class="flex flex-col gap-md">
+<!-- Email Field -->
+<div class="flex flex-col gap-xs group">
+<label class="font-label-sm text-label-sm text-on-surface-variant uppercase">E-mail</label>
+<div class="glass-card neon-glow rounded-lg flex items-center px-md py-sm transition-all duration-300">
+<span class="material-symbols-outlined text-on-surface-variant mr-sm">mail</span>
+<input class="bg-transparent border-none text-text-primary focus:ring-0 w-full font-body-md p-0 placeholder:text-text-muted" placeholder="nome@performance.com" type="email"/>
+</div>
+</div>
+<!-- Password Field -->
+<div class="flex flex-col gap-xs group">
+<label class="font-label-sm text-label-sm text-on-surface-variant uppercase">Senha</label>
+<div class="glass-card neon-glow rounded-lg flex items-center px-md py-sm transition-all duration-300">
+<span class="material-symbols-outlined text-on-surface-variant mr-sm">lock</span>
+<input class="bg-transparent border-none text-text-primary focus:ring-0 w-full font-body-md p-0 placeholder:text-text-muted" placeholder="••••••••" type="password"/>
+<button class="text-on-surface-variant hover:text-primary-container" type="button">
+<span class="material-symbols-outlined">visibility</span>
+</button>
+</div>
+<div class="flex justify-end mt-base">
+<a class="font-label-sm text-label-sm text-primary-container hover:opacity-80 transition-opacity" href="#">ESQUECEU A SENHA?</a>
+</div>
+</div>
+<!-- Primary Action -->
+<button class="bg-primary-container text-on-primary font-headline-md text-headline-md h-14 rounded-lg mt-md hover:scale-[0.98] active:scale-95 transition-all shadow-[0px_0px_20px_rgba(204,255,0,0.15)]" type="submit">
+                    ENTRAR
+                </button>
+</form>
+<!-- Divider -->
+<div class="flex items-center gap-md">
+<div class="h-[1px] flex-1 bg-glass-border"></div>
+<span class="font-label-sm text-label-sm text-text-muted">OU ACESSE COM</span>
+<div class="h-[1px] flex-1 bg-glass-border"></div>
+</div>
+<!-- Social Login -->
+<div class="grid grid-cols-2 gap-md">
+<button class="glass-card rounded-lg py-sm flex items-center justify-center hover:bg-white/5 transition-colors border-glass-border">
+<img alt="Google" class="w-5 h-5 mr-sm" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD7F34y877GllcCB3iJXX8IoQZ7t9xQIPvZhkFSTFZt4M4noHF8VYP94e7tdnTVfHhCNd4UN6zGdpuDWLhiNCuIeAxmpK2TteZ3LQs7WDBuXlUaOW2w-3RwGPEUkuP3rnPlWqpn4dmEWrRFE9KZcIP4QpIHHwK8Su0fzNG0Upn_M6Di9ADROqfLEYao-KGrYyWJI2-VuZoOn1zQSt37GaJY1GgJV7dPz8mZYmEQDkpv6wd-EDIJYb4kCj_rLVNT4r4yioszQ9Mhhfk"/>
+<span class="font-label-caps text-label-caps text-text-primary">GOOGLE</span>
+</button>
+<button class="glass-card rounded-lg py-sm flex items-center justify-center hover:bg-white/5 transition-colors border-glass-border">
+<span class="material-symbols-outlined text-text-primary mr-sm" style="font-variation-settings: 'FILL' 1;">ios</span>
+<span class="font-label-caps text-label-caps text-text-primary">APPLE</span>
+</button>
+</div>
+</div>
+<!-- Footer -->
+<footer class="flex flex-col items-center gap-md">
+<p class="font-body-md text-body-md text-on-surface-variant">
+                Não tem uma conta? <a class="text-primary-container font-bold hover:underline" href="#">Cadastre-se</a>
+</p>
+<div class="flex gap-lg">
+<a class="font-label-sm text-label-sm text-text-muted hover:text-on-surface-variant" href="#">TERMOS</a>
+<a class="font-label-sm text-label-sm text-text-muted hover:text-on-surface-variant" href="#">PRIVACIDADE</a>
+</div>
+</footer>
+</main>
+<!-- Interactive Background Particles (Vanilla JS) -->
+<canvas class="absolute inset-0 pointer-events-none z-10" id="particles"></canvas>
+<script>
+        const canvas = document.getElementById('particles');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function init() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            for (let i = 0; i < 30; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    size: Math.random() * 2 + 1,
+                    speedY: Math.random() * 0.5 + 0.2,
+                    opacity: Math.random() * 0.5
+                });
+            }
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.y -= p.speedY;
+                if (p.y < 0) p.y = canvas.height;
+                ctx.fillStyle = `rgba(204, 255, 0, ${p.opacity})`;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            requestAnimationFrame(animate);
+        }
+
+        window.addEventListener('resize', init);
+        init();
+        animate();
+    </script>
+</body></html>

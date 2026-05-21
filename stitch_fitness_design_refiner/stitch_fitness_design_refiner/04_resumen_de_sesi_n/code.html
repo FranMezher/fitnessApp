@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>FITCORE - Session Complete</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "accent-glass-border": "rgba(255, 107, 53, 0.4)",
+                        "brand-glass-fill": "rgba(204, 255, 0, 0.08)",
+                        "on-surface": "#e5e2e1",
+                        "on-primary-container": "#556d00",
+                        "primary-fixed-dim": "#abd600",
+                        "inverse-surface": "#e5e2e1",
+                        "error-container": "#93000a",
+                        "text-primary": "#F2F2F2",
+                        "surface-container": "#201f1f",
+                        "on-secondary-fixed-variant": "#832600",
+                        "surface-tint": "#abd600",
+                        "surface-container-high": "#2a2a2a",
+                        "on-primary": "#283500",
+                        "inverse-primary": "#506600",
+                        "on-tertiary-fixed": "#1c1b1b",
+                        "surface-bright": "#3a3939",
+                        "inverse-on-surface": "#313030",
+                        "surface-variant": "#353534",
+                        "accent-glass-fill": "rgba(255, 107, 53, 0.1)",
+                        "on-error-container": "#ffdad6",
+                        "secondary-container": "#b83900",
+                        "surface-container-highest": "#353534",
+                        "secondary-fixed": "#ffdbd0",
+                        "tertiary": "#ffffff",
+                        "primary": "#ffffff",
+                        "primary-fixed": "#c3f400",
+                        "on-secondary": "#5d1900",
+                        "surface-container-low": "#1c1b1b",
+                        "secondary": "#ffb59d",
+                        "surface-container-lowest": "#0e0e0e",
+                        "error": "#ffb4ab",
+                        "tertiary-container": "#e5e2e1",
+                        "outline": "#8e9379",
+                        "glass-fill": "rgba(255, 255, 255, 0.04)",
+                        "on-primary-fixed-variant": "#3c4d00",
+                        "on-tertiary": "#313030",
+                        "on-error": "#690005",
+                        "outline-variant": "#444933",
+                        "on-tertiary-container": "#656464",
+                        "text-muted": "#888888",
+                        "surface-dim": "#131313",
+                        "primary-container": "#c3f400",
+                        "on-primary-fixed": "#161e00",
+                        "on-tertiary-fixed-variant": "#474646",
+                        "on-secondary-fixed": "#390c00",
+                        "secondary-fixed-dim": "#ffb59d",
+                        "on-background": "#e5e2e1",
+                        "glass-border": "rgba(255, 255, 255, 0.09)",
+                        "tertiary-fixed-dim": "#c9c6c5",
+                        "background": "#131313",
+                        "surface": "#131313",
+                        "tertiary-fixed": "#e5e2e1",
+                        "on-surface-variant": "#c4c9ac",
+                        "on-secondary-container": "#ffddd2",
+                        "brand-glass-border": "rgba(204, 255, 0, 0.35)"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "lg": "24px",
+                        "sm": "12px",
+                        "md": "16px",
+                        "base": "4px",
+                        "margin-mobile": "20px",
+                        "xs": "8px",
+                        "xl": "32px",
+                        "gutter": "12px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Space Grotesk"],
+                        "label-caps": ["Space Grotesk"],
+                        "hero-md": ["Space Grotesk"],
+                        "data-mono": ["monospace"],
+                        "hero-lg": ["Space Grotesk"],
+                        "label-sm": ["Space Grotesk"],
+                        "body-md": ["Space Grotesk"],
+                        "headline-md": ["Space Grotesk"],
+                        "headline-lg": ["Space Grotesk"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "label-caps": ["12px", {"lineHeight": "1", "letterSpacing": "4px", "fontWeight": "700"}],
+                        "hero-md": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "data-mono": ["14px", {"lineHeight": "1", "fontWeight": "500"}],
+                        "hero-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "label-sm": ["10px", {"lineHeight": "1", "letterSpacing": "2px", "fontWeight": "500"}],
+                        "body-md": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "headline-md": ["18px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                        "headline-lg": ["24px", {"lineHeight": "1.3", "fontWeight": "700"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .glass-card {
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.09);
+        }
+        .neon-glow {
+            text-shadow: 0 0 15px rgba(204, 255, 0, 0.4);
+        }
+        .ring-gradient {
+            stroke: url(#ringGradient);
+        }
+        @keyframes fadeInScale {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .animate-entrance {
+            animation: fadeInScale 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface-dim text-on-surface font-body-md overflow-x-hidden selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- Background Atmospheric Elements -->
+<div class="fixed inset-0 pointer-events-none z-0">
+<div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary-fixed/5 blur-[120px] rounded-full"></div>
+<div class="absolute bottom-[-5%] right-[-5%] w-[30%] h-[30%] bg-secondary-container/10 blur-[100px] rounded-full"></div>
+<div class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(20,20,20,0)_0%,rgba(8,8,8,1)_100%)]"></div>
+</div>
+<!-- Top App Bar -->
+<header class="fixed top-0 w-full z-50 bg-glass-fill backdrop-blur-[25px] border-b border-glass-border flex justify-between items-center px-margin-mobile h-16">
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-primary-fixed">menu</span>
+</div>
+<h1 class="font-hero-md text-hero-md text-primary-fixed tracking-tighter uppercase">FITCORE</h1>
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-on-surface-variant">notifications</span>
+</div>
+</header>
+<main class="relative z-10 pt-24 pb-32 px-margin-mobile max-w-md mx-auto animate-entrance">
+<!-- Header Section -->
+<section class="text-center mb-xl">
+<span class="font-label-caps text-label-caps text-primary-fixed-dim mb-xs block">WORKOUT COMPLETE</span>
+<h2 class="font-hero-lg text-hero-lg text-primary-fixed neon-glow leading-none">SESSION COMPLETE</h2>
+</section>
+<!-- Goal Achievement Ring -->
+<section class="flex justify-center mb-xl">
+<div class="relative w-64 h-64 flex items-center justify-center">
+<svg class="w-full h-full transform -rotate-90">
+<defs>
+<lineargradient id="ringGradient" x1="0%" x2="100%" y1="0%" y2="0%">
+<stop offset="0%" style="stop-color:#CCFF00; stop-opacity:1"></stop>
+<stop offset="100%" style="stop-color:#FF6B35; stop-opacity:1"></stop>
+</lineargradient>
+</defs>
+<!-- Background Ring -->
+<circle cx="128" cy="128" fill="none" r="110" stroke="rgba(255,255,255,0.05)" stroke-width="8"></circle>
+<!-- Progress Ring -->
+<circle class="transition-all duration-1000 ease-out" cx="128" cy="128" fill="none" r="110" stroke="url(#ringGradient)" stroke-dasharray="691" stroke-dashoffset="103.65" stroke-linecap="round" stroke-width="8"></circle>
+</svg>
+<div class="absolute flex flex-col items-center">
+<span class="font-hero-lg text-hero-lg text-white">85<span class="text-primary-fixed">%</span></span>
+<span class="font-label-sm text-label-sm text-text-muted">GOAL REACHED</span>
+</div>
+<!-- Mini Pulsing Accent -->
+<div class="absolute bottom-4 right-12 w-3 h-3 bg-primary-fixed rounded-full animate-pulse shadow-[0_0_10px_#CCFF00]"></div>
+</div>
+</section>
+<!-- Metrics Bento Grid -->
+<section class="grid grid-cols-2 gap-md mb-xl">
+<!-- Total Time -->
+<div class="glass-card p-md rounded-xl flex flex-col gap-xs group hover:bg-brand-glass-fill transition-all">
+<div class="flex justify-between items-start">
+<span class="material-symbols-outlined text-primary-fixed text-[20px]">timer</span>
+<span class="font-label-sm text-label-sm text-primary-fixed-dim">TIME</span>
+</div>
+<div>
+<span class="font-headline-lg text-headline-lg font-data-mono">52:14</span>
+<p class="text-text-muted font-label-sm text-[9px] mt-1">+12% VS LAST SESSION</p>
+</div>
+</div>
+<!-- Active Calories -->
+<div class="glass-card p-md rounded-xl flex flex-col gap-xs group hover:bg-accent-glass-fill transition-all">
+<div class="flex justify-between items-start">
+<span class="material-symbols-outlined text-secondary text-[20px]">local_fire_department</span>
+<span class="font-label-sm text-label-sm text-secondary">KCAL</span>
+</div>
+<div>
+<span class="font-headline-lg text-headline-lg font-data-mono">482</span>
+<p class="text-text-muted font-label-sm text-[9px] mt-1">PEAK INTENSITY REACHED</p>
+</div>
+</div>
+<!-- Avg Heart Rate -->
+<div class="glass-card p-md rounded-xl flex flex-col gap-xs group hover:bg-brand-glass-fill transition-all">
+<div class="flex justify-between items-start">
+<span class="material-symbols-outlined text-primary-fixed text-[20px]">favorite</span>
+<span class="font-label-sm text-label-sm text-primary-fixed-dim">AVG BPM</span>
+</div>
+<div>
+<span class="font-headline-lg text-headline-lg font-data-mono">146</span>
+<div class="w-full h-1 bg-white/10 rounded-full mt-2 overflow-hidden">
+<div class="h-full bg-primary-fixed w-[70%]"></div>
+</div>
+</div>
+</div>
+<!-- Intensity Score -->
+<div class="glass-card p-md rounded-xl flex flex-col gap-xs group hover:bg-accent-glass-fill transition-all">
+<div class="flex justify-between items-start">
+<span class="material-symbols-outlined text-secondary text-[20px]">bolt</span>
+<span class="font-label-sm text-label-sm text-secondary">SCORE</span>
+</div>
+<div>
+<span class="font-headline-lg text-headline-lg font-data-mono">9.2</span>
+<p class="text-text-muted font-label-sm text-[9px] mt-1">ELITE PERFORMANCE</p>
+</div>
+</div>
+</section>
+<!-- Action Section -->
+<section class="flex flex-col gap-md">
+<button class="w-full bg-glass-fill border border-accent-glass-border py-md rounded-xl flex items-center justify-center gap-sm group hover:bg-accent-glass-fill transition-all">
+<span class="material-symbols-outlined text-secondary">self_improvement</span>
+<span class="font-headline-md text-headline-md text-secondary">Guided Stretch</span>
+</button>
+<button class="w-full bg-primary-fixed py-md rounded-xl flex items-center justify-center gap-sm active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-on-primary-fixed" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="font-headline-md text-headline-md text-on-primary-fixed">Finish &amp; Log</span>
+</button>
+</section>
+<!-- Insight Card -->
+<section class="mt-xl">
+<div class="glass-card p-md rounded-xl border-l-4 border-l-primary-fixed flex gap-md items-center">
+<img alt="Fitness Performance" class="w-16 h-16 rounded-lg object-cover grayscale brightness-75 contrast-125" data-alt="A cinematic, high-contrast close-up of a professional athlete in a dark, high-tech gym environment. Sweat glimmers under sharp, directional neon lime lighting. The aesthetic is gritty and high-performance, with deep obsidian shadows and vibrant green light trails suggesting movement and energy. The athlete's intense focus and the technical, data-driven atmosphere evoke a sense of elite bio-hacking and maximum physical exertion." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAOrtjyvq7f4xTQvHonlQkEtVGObT38wcNAlxrx1pIoIpJ5n2B6955SqmE1ajIj0oUIa0tm0vkLezSCjpdbvdNrvh2F93vzzzZefW7PhPDVSXJJ7tN3PmsHnnTA3XzDblZitCTHq4Lje1mGE5dS1YKOxJAB7wfZMXTa5tMNDhuVH0a5eTVVU9zDjRZBgVPVKXZTe4cvjPIZSaKaY-_kZOApk-9jqnGAQYUIEFP1gEVy2bymr_Q96D8ElLtUfx5oIgpSOCUIGfzkl1Q"/>
+<div>
+<h4 class="font-headline-md text-headline-md text-white">Elite Recovery</h4>
+<p class="text-body-md text-text-muted leading-tight">Your HRV suggests high readiness for tomorrow's strength session.</p>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Nav Bar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 bg-surface-container backdrop-blur-[25px] border-t border-glass-border flex justify-around items-center px-gutter py-xs rounded-t-xl shadow-lg">
+<div class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary-fixed-dim transition-all">
+<span class="material-symbols-outlined">fitness_center</span>
+<span class="font-label-sm text-label-sm uppercase tracking-[2px]">Training</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary-fixed-dim transition-all">
+<span class="material-symbols-outlined">restaurant</span>
+<span class="font-label-sm text-label-sm uppercase tracking-[2px]">Nutrition</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary-fixed-dim transition-all">
+<span class="material-symbols-outlined">group</span>
+<span class="font-label-sm text-label-sm uppercase tracking-[2px]">Social</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-brand-glass-fill text-primary-fixed rounded-xl px-3 py-1 scale-90">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">person</span>
+<span class="font-label-sm text-label-sm uppercase tracking-[2px]">Profile</span>
+</div>
+</nav>
+<script>
+        // Simple micro-interaction for cards
+        document.querySelectorAll('.glass-card').forEach(card => {
+            card.addEventListener('mousedown', () => {
+                card.style.transform = 'scale(0.98)';
+            });
+            card.addEventListener('mouseup', () => {
+                card.style.transform = 'scale(1)';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'scale(1)';
+            });
+        });
+    </script>
+</body></html>

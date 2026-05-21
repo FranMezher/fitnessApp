@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            background-color: #080808;
+            color: #e5e2e1;
+            font-family: 'Space Grotesk', sans-serif;
+            overflow-x: hidden;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.09);
+        }
+        .neon-glow {
+            text-shadow: 0 0 15px rgba(204, 255, 0, 0.4);
+        }
+        .progress-gradient {
+            background: linear-gradient(90deg, #CCFF00 0%, #FF6B35 100%);
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); opacity: 0.5; }
+            50% { transform: scale(1); opacity: 0.3; }
+            100% { transform: scale(0.95); opacity: 0.5; }
+        }
+        .pulse-animation {
+            animation: pulse-ring 2s infinite ease-in-out;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "accent-glass-border": "rgba(255, 107, 53, 0.4)",
+                      "brand-glass-fill": "rgba(204, 255, 0, 0.08)",
+                      "on-surface": "#e5e2e1",
+                      "on-primary-container": "#556d00",
+                      "primary-fixed-dim": "#abd600",
+                      "inverse-surface": "#e5e2e1",
+                      "error-container": "#93000a",
+                      "text-primary": "#F2F2F2",
+                      "surface-container": "#201f1f",
+                      "on-secondary-fixed-variant": "#832600",
+                      "surface-tint": "#abd600",
+                      "surface-bright": "#3a3939",
+                      "inverse-on-surface": "#313030",
+                      "surface-variant": "#353534",
+                      "accent-glass-fill": "rgba(255, 107, 53, 0.1)",
+                      "on-error-container": "#ffdad6",
+                      "secondary-container": "#b83900",
+                      "surface-container-highest": "#353534",
+                      "secondary-fixed": "#ffdbd0",
+                      "tertiary": "#ffffff",
+                      "primary": "#ffffff",
+                      "primary-fixed": "#c3f400",
+                      "on-secondary": "#5d1900",
+                      "surface-container-low": "#1c1b1b",
+                      "secondary": "#ffb59d",
+                      "surface-container-lowest": "#0e0e0e",
+                      "error": "#ffb4ab",
+                      "tertiary-container": "#e5e2e1",
+                      "outline": "#8e9379",
+                      "glass-fill": "rgba(255, 255, 255, 0.04)",
+                      "on-primary-fixed-variant": "#3c4d00",
+                      "on-tertiary": "#313030",
+                      "on-error": "#690005",
+                      "outline-variant": "#444933",
+                      "on-tertiary-container": "#656464",
+                      "text-muted": "#888888",
+                      "surface-dim": "#131313",
+                      "primary-container": "#c3f400",
+                      "on-primary-fixed": "#161e00",
+                      "on-tertiary-fixed-variant": "#474646",
+                      "on-secondary-fixed": "#390c00",
+                      "secondary-fixed-dim": "#ffb59d",
+                      "on-background": "#e5e2e1",
+                      "glass-border": "rgba(255, 255, 255, 0.09)",
+                      "tertiary-fixed-dim": "#c9c6c5",
+                      "background": "#131313",
+                      "surface": "#131313",
+                      "tertiary-fixed": "#e5e2e1",
+                      "on-surface-variant": "#c4c9ac",
+                      "on-secondary-container": "#ffddd2",
+                      "brand-glass-border": "rgba(204, 255, 0, 0.35)"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "lg": "24px",
+                      "sm": "12px",
+                      "md": "16px",
+                      "base": "4px",
+                      "margin-mobile": "20px",
+                      "xs": "8px",
+                      "xl": "32px",
+                      "gutter": "12px"
+              },
+              "fontFamily": {
+                      "body-lg": ["Space Grotesk"],
+                      "label-caps": ["Space Grotesk"],
+                      "hero-md": ["Space Grotesk"],
+                      "data-mono": ["monospace"],
+                      "hero-lg": ["Space Grotesk"],
+                      "label-sm": ["Space Grotesk"],
+                      "body-md": ["Space Grotesk"],
+                      "headline-md": ["Space Grotesk"],
+                      "headline-lg": ["Space Grotesk"]
+              },
+              "fontSize": {
+                      "body-lg": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                      "label-caps": ["12px", {"lineHeight": "1", "letterSpacing": "4px", "fontWeight": "700"}],
+                      "hero-md": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                      "data-mono": ["14px", {"lineHeight": "1", "fontWeight": "500"}],
+                      "hero-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "label-sm": ["10px", {"lineHeight": "1", "letterSpacing": "2px", "fontWeight": "500"}],
+                      "body-md": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                      "headline-md": ["18px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                      "headline-lg": ["24px", {"lineHeight": "1.3", "fontWeight": "700"}]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface-dim">
+<!-- Top Navigation Header -->
+<header class="fixed top-0 w-full z-50 bg-glass-fill backdrop-blur-[25px] border-b border-glass-border flex justify-between items-center px-margin-mobile h-16">
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-primary-fixed" data-icon="fitness_center">fitness_center</span>
+<span class="font-hero-md text-[20px] text-primary-fixed tracking-tighter">FITCORE</span>
+</div>
+<div class="flex items-center gap-md">
+<div class="flex flex-col items-end">
+<span class="font-label-sm text-label-sm text-text-muted uppercase tracking-[1px]">Workout</span>
+<span class="font-headline-md text-headline-md text-on-surface">HIIT AMRAP</span>
+</div>
+<button class="w-10 h-10 rounded-full glass-panel flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface text-[20px]" data-icon="close">close</span>
+</button>
+</div>
+</header>
+<!-- Main Workout Canvas -->
+<main class="pt-16 pb-32 min-h-screen flex flex-col">
+<!-- Progress Bar -->
+<div class="px-margin-mobile pt-lg">
+<div class="flex justify-between items-end mb-xs">
+<span class="font-label-sm text-label-sm text-primary-fixed uppercase tracking-[2px]">Exercise 3 of 12</span>
+<span class="font-data-mono text-data-mono text-text-muted">25% Complete</span>
+</div>
+<div class="h-1 w-full bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full w-1/4 progress-gradient"></div>
+</div>
+</div>
+<!-- Timer & Exercise Info -->
+<div class="px-margin-mobile mt-lg flex flex-col items-center text-center">
+<div class="font-hero-lg text-[84px] leading-none text-primary-fixed font-bold neon-glow mb-xs" id="timer">
+                00:42
+            </div>
+<h1 class="font-hero-lg text-hero-lg text-white mb-base">Burpees</h1>
+<div class="flex gap-sm">
+<span class="glass-panel px-md py-1 rounded-full font-label-sm text-label-sm text-secondary-fixed tracking-[1px] border-accent-glass-border">Next: Mountain Climbers</span>
+</div>
+</div>
+<!-- Visual Form Area -->
+<div class="flex-grow flex items-center justify-center relative px-margin-mobile py-lg">
+<!-- Form Video/Image Placeholder -->
+<div class="w-full aspect-[4/5] rounded-xl overflow-hidden glass-panel border-2 border-glass-border relative">
+<img alt="Athlete performing a burpee" class="w-full h-full object-cover opacity-80" data-alt="A muscular professional athlete performing an explosive burpee exercise in a high-tech dark gym environment. The lighting is cinematic with sharp neon green and orange highlights reflecting off the sweat and floor. The style is hyper-realistic and energetic, emphasizing the peak performance and technical focus of the training session. Dark obsidian background with subtle industrial textures." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBRjuLU9RVuVK_SnIcgXW1l3-9im-v1rWBRoB5GpNQoK8oSHHVphZrN9RT4jvwLIvsHCKvBzCYz6OdQvfiJ4yXIAhaNXWeWMqmzieLJYaaG2EnMsMXjAy-qoG2RF2RUr2MnwavzXEQ0OnXEw64owb6gYpXGStws89wl7xUw9gRfDmGy92Y2_kiyvY2gNl653XifqO6y6Yp7cNUBTjvpRqlQCgK3sr8U9IqXcWFeWzdK39VWBH5uXcRQjqoAP_rP1DCI-bCzNxubhBg"/>
+<!-- Form Hints -->
+<div class="absolute bottom-md left-md right-md flex flex-col gap-xs">
+<div class="flex items-center gap-xs glass-panel p-sm rounded-lg backdrop-blur-md">
+<span class="material-symbols-outlined text-primary-fixed text-sm" data-icon="check_circle">check_circle</span>
+<p class="font-body-md text-body-md text-white text-[12px]">Keep chest up during descent</p>
+</div>
+</div>
+<!-- Heart Rate Mini-Card -->
+<div class="absolute top-md right-md glass-panel p-md rounded-xl border-accent-glass-border flex flex-col items-center">
+<div class="flex items-center gap-xs text-secondary mb-xs">
+<span class="material-symbols-outlined pulse-animation" data-icon="favorite" style="font-variation-settings: 'FILL' 1;">favorite</span>
+<span class="font-data-mono text-[20px] font-bold">164</span>
+</div>
+<span class="font-label-sm text-label-sm text-text-muted uppercase">BPM</span>
+</div>
+<!-- Rep Counter Overlay -->
+<div class="absolute top-md left-md glass-panel px-md py-xs rounded-xl flex flex-col">
+<span class="font-label-sm text-label-sm text-text-muted uppercase">Reps</span>
+<span class="font-hero-md text-hero-md text-white">12</span>
+</div>
+</div>
+</div>
+</main>
+<!-- Workout Controls (Persistent Bottom) -->
+<div class="fixed bottom-0 left-0 w-full z-50 px-margin-mobile pb-lg pointer-events-none">
+<div class="glass-panel w-full p-md rounded-xl border-glass-border shadow-lg flex justify-between items-center pointer-events-auto">
+<!-- Prev -->
+<button class="w-12 h-12 flex items-center justify-center text-on-surface-variant hover:text-white transition-all active:scale-90 duration-150">
+<span class="material-symbols-outlined text-[32px]" data-icon="skip_previous">skip_previous</span>
+</button>
+<!-- Play/Pause -->
+<button class="w-16 h-16 bg-primary-fixed rounded-full flex items-center justify-center text-on-primary-fixed shadow-[0_0_20px_rgba(204,255,0,0.4)] active:scale-95 duration-200" id="toggleWorkout">
+<span class="material-symbols-outlined text-[40px]" data-icon="pause" id="playIcon">pause</span>
+</button>
+<!-- Next -->
+<button class="w-12 h-12 flex items-center justify-center text-on-surface-variant hover:text-white transition-all active:scale-90 duration-150">
+<span class="material-symbols-outlined text-[32px]" data-icon="skip_next">skip_next</span>
+</button>
+</div>
+</div>
+<!-- Global Floating Stats (Bottom Desktop / Top Mobile Shift) -->
+<div class="fixed bottom-32 left-margin-mobile right-margin-mobile flex justify-between gap-md">
+<div class="flex-1 glass-panel p-md rounded-xl flex flex-col items-center">
+<span class="font-label-sm text-label-sm text-text-muted uppercase mb-base">Calories</span>
+<span class="font-data-mono text-headline-md text-white">342</span>
+</div>
+<div class="flex-1 glass-panel p-md rounded-xl flex flex-col items-center">
+<span class="font-label-sm text-label-sm text-text-muted uppercase mb-base">Intensity</span>
+<span class="font-data-mono text-headline-md text-secondary">Peak</span>
+</div>
+</div>
+<script>
+        // Simple micro-interaction for play/pause
+        const toggleBtn = document.getElementById('toggleWorkout');
+        const playIcon = document.getElementById('playIcon');
+        let isPaused = false;
+
+        toggleBtn.addEventListener('click', () => {
+            isPaused = !isPaused;
+            playIcon.innerText = isPaused ? 'play_arrow' : 'pause';
+            toggleBtn.style.backgroundColor = isPaused ? 'rgba(255, 255, 255, 0.1)' : '';
+            toggleBtn.style.color = isPaused ? '#ffffff' : '';
+            toggleBtn.style.border = isPaused ? '1px solid rgba(255,255,255,0.2)' : 'none';
+        });
+
+        // Simple timer simulation
+        let seconds = 42;
+        const timerEl = document.getElementById('timer');
+        setInterval(() => {
+            if (!isPaused && seconds > 0) {
+                seconds--;
+                const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+                const s = (seconds % 60).toString().padStart(2, '0');
+                timerEl.innerText = `${m}:${s}`;
+            }
+        }, 1000);
+
+        // Random heart rate flicker for atmosphere
+        const hrValue = document.querySelector('.font-data-mono.text-[20px]');
+        setInterval(() => {
+            if (!isPaused) {
+                const current = parseInt(hrValue.innerText);
+                const shift = Math.floor(Math.random() * 3) - 1;
+                hrValue.innerText = current + shift;
+            }
+        }, 3000);
+    </script>
+</body></html>

@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-secondary-fixed": "#390c00",
+                      "on-primary": "#283500",
+                      "surface": "#131313",
+                      "on-error": "#690005",
+                      "accent-glass-border": "rgba(255, 107, 53, 0.4)",
+                      "text-muted": "#888888",
+                      "primary-fixed": "#c3f400",
+                      "on-tertiary": "#313030",
+                      "glass-border": "rgba(255, 255, 255, 0.09)",
+                      "brand-glass-fill": "rgba(204, 255, 0, 0.08)",
+                      "secondary-fixed": "#ffdbd0",
+                      "secondary": "#ffb59d",
+                      "on-background": "#e5e2e1",
+                      "brand-glass-border": "rgba(204, 255, 0, 0.35)",
+                      "surface-bright": "#3a3939",
+                      "outline-variant": "#444933",
+                      "text-primary": "#F2F2F2",
+                      "on-surface-variant": "#c4c9ac",
+                      "inverse-surface": "#e5e2e1",
+                      "primary-fixed-dim": "#abd600",
+                      "on-tertiary-container": "#656464",
+                      "tertiary-fixed": "#e5e2e1",
+                      "secondary-container": "#b83900",
+                      "on-surface": "#e5e2e1",
+                      "secondary-fixed-dim": "#ffb59d",
+                      "surface-container-high": "#2a2a2a",
+                      "error-container": "#93000a",
+                      "on-tertiary-fixed-variant": "#474646",
+                      "surface-dim": "#131313",
+                      "surface-container-highest": "#353534",
+                      "accent-glass-fill": "rgba(255, 107, 53, 0.1)",
+                      "background": "#131313",
+                      "inverse-on-surface": "#313030",
+                      "on-primary-fixed": "#161e00",
+                      "on-tertiary-fixed": "#1c1b1b",
+                      "on-error-container": "#ffdad6",
+                      "error": "#ffb4ab",
+                      "tertiary": "#ffffff",
+                      "inverse-primary": "#506600",
+                      "primary": "#ffffff",
+                      "surface-container-lowest": "#0e0e0e",
+                      "surface-container": "#201f1f",
+                      "on-secondary-container": "#ffddd2",
+                      "on-primary-fixed-variant": "#3c4d00",
+                      "tertiary-fixed-dim": "#c9c6c5",
+                      "on-secondary-fixed-variant": "#832600",
+                      "outline": "#8e9379",
+                      "on-primary-container": "#556d00",
+                      "on-secondary": "#5d1900",
+                      "surface-tint": "#abd600",
+                      "glass-fill": "rgba(255, 255, 255, 0.04)",
+                      "tertiary-container": "#e5e2e1",
+                      "surface-variant": "#353534",
+                      "surface-container-low": "#1c1b1b",
+                      "primary-container": "#c3f400"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "xl": "32px",
+                      "sm": "12px",
+                      "margin-mobile": "20px",
+                      "xs": "8px",
+                      "md": "16px",
+                      "base": "4px",
+                      "gutter": "12px",
+                      "lg": "24px"
+              },
+              "fontFamily": {
+                      "data-mono": ["monospace"],
+                      "headline-lg": ["Space Grotesk"],
+                      "headline-md": ["Space Grotesk"],
+                      "hero-lg": ["Space Grotesk"],
+                      "body-md": ["Space Grotesk"],
+                      "label-sm": ["Space Grotesk"],
+                      "label-caps": ["Space Grotesk"],
+                      "body-lg": ["Space Grotesk"],
+                      "hero-md": ["Space Grotesk"]
+              },
+              "fontSize": {
+                      "data-mono": ["14px", {"lineHeight": "1", "fontWeight": "500"}],
+                      "headline-lg": ["24px", {"lineHeight": "1.3", "fontWeight": "700"}],
+                      "headline-md": ["18px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                      "hero-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "body-md": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                      "label-sm": ["10px", {"lineHeight": "1", "letterSpacing": "2px", "fontWeight": "500"}],
+                      "label-caps": ["12px", {"lineHeight": "1", "letterSpacing": "4px", "fontWeight": "700"}],
+                      "body-lg": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                      "hero-md": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "700"}]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            backdrop-filter: blur(16px);
+        }
+        .progress-glow {
+            box-shadow: 0 0 12px rgba(204, 255, 0, 0.4);
+        }
+        .selection-glow {
+            box-shadow: inset 0 0 8px rgba(204, 255, 0, 0.2);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface font-body-md selection:bg-primary-container selection:text-on-primary-container overflow-hidden">
+<!-- Top Navigation Anchor (Suppressed Shell logic applied: This is a linear onboarding page, so standard Nav bars are excluded per instructions, but we use the TopAppBar structure for the progress indicator as a custom header) -->
+<header class="fixed top-0 left-0 w-full z-50 bg-surface/80 backdrop-blur-xl border-b border-glass-border h-16 flex items-center px-margin-mobile">
+<div class="flex justify-between items-center w-full">
+<button class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-glass-fill transition-all active:scale-95 text-on-surface">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<div class="flex flex-col items-center flex-1 mx-4">
+<span class="font-headline-lg text-headline-lg tracking-tighter italic text-primary-container leading-none">FITCORE</span>
+<span class="font-label-sm text-label-sm uppercase tracking-widest text-text-muted mt-1">Onboarding 07/10</span>
+</div>
+<button class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-glass-fill transition-all active:scale-95 text-on-surface">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+</header>
+<!-- Progress Indicator Strip -->
+<div class="fixed top-16 left-0 w-full h-[2px] bg-surface-container z-50">
+<div class="h-full bg-primary-container progress-glow transition-all duration-1000 ease-out" style="width: 70%;"></div>
+</div>
+<!-- Main Canvas -->
+<main class="relative pt-24 pb-32 px-margin-mobile h-screen overflow-y-auto flex flex-col max-w-md mx-auto">
+<header class="mb-xl">
+<h1 class="font-hero-md text-hero-md text-on-surface mb-xs tracking-tight">Variedad y Dieta</h1>
+<p class="font-body-md text-body-md text-text-muted">Optimiza tu rendimiento seleccionando tu enfoque nutricional actual. Esto ajustará tus macros y sugerencias.</p>
+</header>
+<!-- Dietary Preferences Grid -->
+<div class="grid grid-cols-2 gap-gutter mb-xl" id="diet-grid">
+<!-- Preference Item: Omnívoro -->
+<button class="glass-card flex flex-col items-start p-md bg-glass-fill border border-glass-border rounded-xl transition-all duration-300 group hover:border-brand-glass-border" onclick="selectDiet(this)">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center mb-sm group-hover:bg-brand-glass-fill">
+<span class="material-symbols-outlined text-primary-container" style="font-variation-settings: 'FILL' 1;">restaurant</span>
+</div>
+<span class="font-headline-md text-headline-md text-on-surface mb-base">Omnívoro</span>
+<span class="font-label-sm text-label-sm text-text-muted uppercase text-left leading-tight">Sin restricciones específicas</span>
+<div class="mt-4 opacity-0 transition-opacity check-mark">
+<span class="material-symbols-outlined text-primary-container">check_circle</span>
+</div>
+</button>
+<!-- Preference Item: Vegano -->
+<button class="glass-card flex flex-col items-start p-md bg-glass-fill border border-glass-border rounded-xl transition-all duration-300 group hover:border-brand-glass-border" onclick="selectDiet(this)">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center mb-sm group-hover:bg-brand-glass-fill">
+<span class="material-symbols-outlined text-primary-container" style="font-variation-settings: 'FILL' 1;">eco</span>
+</div>
+<span class="font-headline-md text-headline-md text-on-surface mb-base">Vegano</span>
+<span class="font-label-sm text-label-sm text-text-muted uppercase text-left leading-tight">100% origen vegetal</span>
+<div class="mt-4 opacity-0 transition-opacity check-mark">
+<span class="material-symbols-outlined text-primary-container">check_circle</span>
+</div>
+</button>
+<!-- Preference Item: Keto -->
+<button class="glass-card flex flex-col items-start p-md bg-glass-fill border border-glass-border rounded-xl transition-all duration-300 group hover:border-brand-glass-border" onclick="selectDiet(this)">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center mb-sm group-hover:bg-brand-glass-fill">
+<span class="material-symbols-outlined text-primary-container" style="font-variation-settings: 'FILL' 1;">egg</span>
+</div>
+<span class="font-headline-md text-headline-md text-on-surface mb-base">Keto</span>
+<span class="font-label-sm text-label-sm text-text-muted uppercase text-left leading-tight">Alta grasa, bajo carbo</span>
+<div class="mt-4 opacity-0 transition-opacity check-mark">
+<span class="material-symbols-outlined text-primary-container">check_circle</span>
+</div>
+</button>
+<!-- Preference Item: Paleo -->
+<button class="glass-card flex flex-col items-start p-md bg-glass-fill border border-glass-border rounded-xl transition-all duration-300 group hover:border-brand-glass-border" onclick="selectDiet(this)">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center mb-sm group-hover:bg-brand-glass-fill">
+<span class="material-symbols-outlined text-primary-container" style="font-variation-settings: 'FILL' 1;">kebab_dining</span>
+</div>
+<span class="font-headline-md text-headline-md text-on-surface mb-base">Paleo</span>
+<span class="font-label-sm text-label-sm text-text-muted uppercase text-left leading-tight">Enfoque evolutivo</span>
+<div class="mt-4 opacity-0 transition-opacity check-mark">
+<span class="material-symbols-outlined text-primary-container">check_circle</span>
+</div>
+</button>
+<!-- Preference Item: Vegetariano -->
+<button class="glass-card flex flex-col items-start p-md bg-glass-fill border border-glass-border rounded-xl transition-all duration-300 group hover:border-brand-glass-border" onclick="selectDiet(this)">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center mb-sm group-hover:bg-brand-glass-fill">
+<span class="material-symbols-outlined text-primary-container" style="font-variation-settings: 'FILL' 1;">nutrition</span>
+</div>
+<span class="font-headline-md text-headline-md text-on-surface mb-base">Vegetar.</span>
+<span class="font-label-sm text-label-sm text-text-muted uppercase text-left leading-tight">Sin carne animal</span>
+<div class="mt-4 opacity-0 transition-opacity check-mark">
+<span class="material-symbols-outlined text-primary-container">check_circle</span>
+</div>
+</button>
+<!-- Preference Item: Pescetariano -->
+<button class="glass-card flex flex-col items-start p-md bg-glass-fill border border-glass-border rounded-xl transition-all duration-300 group hover:border-brand-glass-border" onclick="selectDiet(this)">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center mb-sm group-hover:bg-brand-glass-fill">
+<span class="material-symbols-outlined text-primary-container" style="font-variation-settings: 'FILL' 1;">set_meal</span>
+</div>
+<span class="font-headline-md text-headline-md text-on-surface mb-base">Pesce.</span>
+<span class="font-label-sm text-label-sm text-text-muted uppercase text-left leading-tight">Pescado y vegetales</span>
+<div class="mt-4 opacity-0 transition-opacity check-mark">
+<span class="material-symbols-outlined text-primary-container">check_circle</span>
+</div>
+</button>
+</div>
+<!-- Bio-hack Tip Card -->
+<div class="glass-card p-md bg-brand-glass-fill border border-brand-glass-border rounded-xl mb-xl">
+<div class="flex items-start gap-sm">
+<span class="material-symbols-outlined text-primary-container shrink-0">info</span>
+<div>
+<span class="block font-headline-md text-headline-md text-primary-container mb-xs">Ajuste Metabólico</span>
+<p class="font-body-md text-body-md text-on-surface-variant">Tu elección determinará el ratio de micronutrientes necesarios para maximizar tu recuperación muscular.</p>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Action Anchor -->
+<footer class="fixed bottom-0 left-0 w-full p-margin-mobile bg-surface/90 backdrop-blur-2xl border-t border-glass-border z-50">
+<button class="w-full h-14 bg-primary-container text-on-primary font-headline-md text-headline-md rounded-xl flex items-center justify-center gap-sm transition-all active:scale-95 disabled:opacity-30 disabled:grayscale" disabled="" id="continue-btn">
+            CONTINUAR
+            <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</footer>
+<!-- Atmosphere Effects -->
+<div class="fixed top-[-10%] right-[-10%] w-[50%] h-[50%] bg-primary-container/10 blur-[120px] rounded-full -z-10"></div>
+<div class="fixed bottom-[-5%] left-[-5%] w-[40%] h-[40%] bg-secondary-container/5 blur-[100px] rounded-full -z-10"></div>
+<script>
+        function selectDiet(element) {
+            // Remove selection from others
+            const allItems = document.querySelectorAll('#diet-grid button');
+            allItems.forEach(item => {
+                item.classList.remove('bg-brand-glass-fill', 'border-brand-glass-border', 'selection-glow');
+                item.classList.add('bg-glass-fill', 'border-glass-border');
+                item.querySelector('.check-mark').classList.add('opacity-0');
+            });
+
+            // Set selection to current
+            element.classList.remove('bg-glass-fill', 'border-glass-border');
+            element.classList.add('bg-brand-glass-fill', 'border-brand-glass-border', 'selection-glow');
+            element.querySelector('.check-mark').classList.remove('opacity-0');
+
+            // Enable continue button
+            const continueBtn = document.getElementById('continue-btn');
+            continueBtn.disabled = false;
+
+            // Trigger haptic-like effect
+            if (window.navigator.vibrate) {
+                window.navigator.vibrate(10);
+            }
+        }
+    </script>
+</body></html>

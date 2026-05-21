@@ -1,0 +1,293 @@
+<!DOCTYPE html><html class="dark" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>FITCORE | Elite Profile</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-tertiary": "#313030",
+                    "tertiary-container": "#e5e2e1",
+                    "on-surface": "#e5e2e1",
+                    "outline": "#8e9379",
+                    "outline-variant": "#444933",
+                    "surface-dim": "#131313",
+                    "on-primary-fixed": "#161e00",
+                    "primary": "#ffffff",
+                    "surface-container-highest": "#353534",
+                    "surface-bright": "#3a3939",
+                    "secondary": "#ffb59d",
+                    "glass-border": "rgba(255, 255, 255, 0.09)",
+                    "on-error": "#690005",
+                    "brand-glass-fill": "rgba(204, 255, 0, 0.08)",
+                    "surface-tint": "#abd600",
+                    "primary-fixed-dim": "#abd600",
+                    "brand-glass-border": "rgba(204, 255, 0, 0.35)",
+                    "inverse-primary": "#506600",
+                    "tertiary-fixed": "#e5e2e1",
+                    "on-surface-variant": "#c4c9ac",
+                    "secondary-fixed-dim": "#ffb59d",
+                    "on-tertiary-fixed-variant": "#474646",
+                    "on-secondary-fixed-variant": "#832600",
+                    "accent-glass-border": "rgba(255, 107, 53, 0.4)",
+                    "surface-container-low": "#1c1b1b",
+                    "on-error-container": "#ffdad6",
+                    "surface-container-high": "#2a2a2a",
+                    "primary-fixed": "#c3f400",
+                    "background": "#131313",
+                    "tertiary": "#ffffff",
+                    "on-background": "#e5e2e1",
+                    "surface-container": "#201f1f",
+                    "on-tertiary-container": "#656464",
+                    "on-primary-container": "#556d00",
+                    "surface-variant": "#353534",
+                    "inverse-on-surface": "#313030",
+                    "surface": "#131313",
+                    "on-secondary-container": "#ffddd2",
+                    "text-muted": "#888888",
+                    "secondary-fixed": "#ffdbd0",
+                    "primary-container": "#c3f400",
+                    "on-secondary": "#5d1900",
+                    "secondary-container": "#b83900",
+                    "glass-fill": "rgba(255, 255, 255, 0.04)",
+                    "error": "#ffb4ab",
+                    "text-primary": "#F2F2F2",
+                    "on-primary-fixed-variant": "#3c4d00",
+                    "inverse-surface": "#e5e2e1",
+                    "on-primary": "#283500",
+                    "tertiary-fixed-dim": "#c9c6c5",
+                    "surface-container-lowest": "#0e0e0e",
+                    "on-secondary-fixed": "#390c00",
+                    "error-container": "#93000a",
+                    "accent-glass-fill": "rgba(255, 107, 53, 0.1)",
+                    "on-tertiary-fixed": "#1c1b1b"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "margin-mobile": "20px",
+                    "lg": "24px",
+                    "xs": "8px",
+                    "sm": "12px",
+                    "gutter": "12px",
+                    "base": "4px",
+                    "xl": "32px",
+                    "md": "16px"
+            },
+            "fontFamily": {
+                    "hero-md": ["Space Grotesk"],
+                    "headline-lg": ["Space Grotesk"],
+                    "data-mono": ["monospace"],
+                    "hero-lg": ["Space Grotesk"],
+                    "body-md": ["Space Grotesk"],
+                    "label-caps": ["Space Grotesk"],
+                    "body-lg": ["Space Grotesk"],
+                    "headline-md": ["Space Grotesk"],
+                    "label-sm": ["Space Grotesk"]
+            },
+            "fontSize": {
+                    "hero-md": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "headline-lg": ["24px", {"lineHeight": "1.3", "fontWeight": "700"}],
+                    "data-mono": ["14px", {"lineHeight": "1", "fontWeight": "500"}],
+                    "hero-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-md": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                    "label-caps": ["12px", {"lineHeight": "1", "letterSpacing": "4px", "fontWeight": "700"}],
+                    "body-lg": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "headline-md": ["18px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                    "label-sm": ["10px", {"lineHeight": "1", "letterSpacing": "2px", "fontWeight": "500"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { background-color: #080808; color: #e5e2e1; }
+        .glass-card { background: rgba(255, 255, 255, 0.04); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.09); }
+        .accent-glow { box-shadow: 0px 0px 20px rgba(204, 255, 0, 0.15); }
+        .chart-bar { transition: height 1s cubic-bezier(0.4, 0, 0.2, 1); }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: #131313; }
+        ::-webkit-scrollbar-thumb { background: #353534; border-radius: 10px; }
+    </style>
+</head>
+<body class="font-body-md text-body-md antialiased overflow-x-hidden pb-24">
+<!-- Top Navigation Bar -->
+<header class="fixed top-0 w-full z-50 bg-glass-fill backdrop-blur-[25px] border-b border-glass-border flex justify-between items-center px-margin-mobile h-16">
+<div class="flex items-center gap-base">
+<span class="material-symbols-outlined text-primary-fixed" data-icon="menu">menu</span>
+</div>
+<h1 class="font-hero-md text-hero-md text-primary-fixed tracking-tighter">FITCORE</h1>
+<div class="flex items-center gap-sm">
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary-fixed transition-colors" data-icon="settings">settings</button>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary-fixed transition-colors" data-icon="notifications">notifications</button>
+</div>
+</header>
+<main class="mt-20 px-margin-mobile max-w-2xl mx-auto space-y-lg">
+<!-- Profile Hero Section -->
+<section class="relative flex flex-col items-center py-xl">
+<div class="relative">
+<div class="w-32 h-32 rounded-full border-2 border-primary-fixed p-1 accent-glow overflow-hidden">
+<img alt="User Avatar" class="w-full h-full object-cover rounded-full" data-alt="A cinematic, high-contrast close-up of a focused elite athlete in a dark, atmospheric performance gym. The lighting is low-key with sharp neon yellow highlights reflecting off the skin, matching a high-tech obsidian aesthetic. The athlete has a determined expression, embodying peak physical performance and technical precision. The background is blurred with hints of digital interfaces and sleek training equipment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC9xbCZ3vkjOkJVN__SD9kK9rMOLR245T-1o5nUH8qSiteDk1Z61sL3H1kuWMgZfXS4toCAeaQbMGQ7IZGGRUOQ-HJ0udfT2TPW5lEwB1lGs2Sm_BG4Fd3ih8yoLK6O2Onv-YYowXSxlp-YLhAdRgxsTXQ020BP-QvOQTodk9IF2Dd3QZiR4zgc6KeE3XlWgBKUOtbWfQ8yi1oq4Og7eNi3VeDOHJBtplmeCIShNWp0pgOW6XIMc3h7kgQzCYLa8j-2xgyiHVDuyVo">
+</div>
+<div class="absolute -bottom-2 right-0 bg-primary-fixed text-on-primary-fixed px-3 py-1 rounded-full font-label-sm text-label-sm uppercase tracking-[2px] shadow-lg">
+                    Elite
+                </div>
+</div>
+<div class="mt-md text-center">
+<h2 class="font-hero-md text-hero-md text-primary tracking-tight">ALEX RIVERA</h2>
+<p class="font-body-md text-on-surface-variant flex items-center justify-center gap-xs">
+<span class="material-symbols-outlined text-[14px]" data-icon="location_on">location_on</span>
+                    Austin, TX • Joined May 2023
+                </p>
+</div>
+</section>
+<!-- Stats Bento Grid -->
+<section class="grid grid-cols-2 gap-gutter">
+<!-- Sessions -->
+<div class="glass-card p-md rounded-xl flex flex-col justify-between h-32 border-brand-glass-border">
+<span class="font-label-sm text-label-sm text-primary-fixed uppercase tracking-[2px]">Sessions Completed</span>
+<div class="flex items-baseline gap-xs">
+<span class="font-hero-md text-hero-md text-primary">142</span>
+<span class="material-symbols-outlined text-primary-fixed-dim text-[18px]" data-icon="trending_up">trending_up</span>
+</div>
+</div>
+<!-- Calories -->
+<div class="glass-card p-md rounded-xl flex flex-col justify-between h-32">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-[2px]">Total Calories</span>
+<div class="flex flex-col">
+<span class="font-hero-md text-hero-md text-primary">84.2K</span>
+<span class="font-data-mono text-data-mono text-secondary">CALORIE BURNED</span>
+</div>
+</div>
+<!-- PRs - Full Width -->
+<div class="col-span-2 glass-card p-md rounded-xl space-y-md">
+<div class="flex justify-between items-center">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-[2px]">Personal Records</span>
+<span class="material-symbols-outlined text-primary-fixed" data-icon="military_tech">military_tech</span>
+</div>
+<div class="flex gap-md overflow-x-auto pb-base no-scrollbar">
+<div class="flex-shrink-0 bg-brand-glass-fill border border-brand-glass-border p-sm rounded-lg w-28">
+<span class="font-data-mono text-data-mono block text-on-surface-variant text-[10px]">DEADLIFT</span>
+<span class="font-headline-md text-headline-md text-primary">405 <small class="text-[12px]">lbs</small></span>
+</div>
+<div class="flex-shrink-0 glass-fill border border-glass-border p-sm rounded-lg w-28">
+<span class="font-data-mono text-data-mono block text-on-surface-variant text-[10px]">BENCH</span>
+<span class="font-headline-md text-headline-md text-primary">275 <small class="text-[12px]">lbs</small></span>
+</div>
+<div class="flex-shrink-0 glass-fill border border-glass-border p-sm rounded-lg w-28">
+<span class="font-data-mono text-data-mono block text-on-surface-variant text-[10px]">SQUAT</span>
+<span class="font-headline-md text-headline-md text-primary">365 <small class="text-[12px]">lbs</small></span>
+</div>
+<div class="flex-shrink-0 glass-fill border border-glass-border p-sm rounded-lg w-28">
+<span class="font-data-mono text-data-mono block text-on-surface-variant text-[10px]">10K RUN</span>
+<span class="font-headline-md text-headline-md text-primary">42:10</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Activity History Chart -->
+<section class="glass-card p-md rounded-xl space-y-lg">
+<div class="flex justify-between items-end">
+<div>
+<h3 class="font-headline-md text-headline-md text-primary">Weekly Intensity</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">LAST 7 DAYS</p>
+</div>
+<div class="text-right">
+<span class="font-data-mono text-data-mono text-primary-fixed">+12% vs last week</span>
+</div>
+</div>
+<div class="flex items-end justify-between h-32 px-xs">
+<div class="flex flex-col items-center gap-xs">
+<div class="w-8 bg-surface-container-highest rounded-t-sm chart-bar" style="height: 60%;"></div>
+<span class="font-data-mono text-[10px] text-on-surface-variant">M</span>
+</div>
+<div class="flex flex-col items-center gap-xs">
+<div class="w-8 bg-primary-fixed rounded-t-sm chart-bar" style="height: 85%;"></div>
+<span class="font-data-mono text-[10px] text-on-surface-variant">T</span>
+</div>
+<div class="flex flex-col items-center gap-xs">
+<div class="w-8 bg-surface-container-highest rounded-t-sm chart-bar" style="height: 40%;"></div>
+<span class="font-data-mono text-[10px] text-on-surface-variant">W</span>
+</div>
+<div class="flex flex-col items-center gap-xs">
+<div class="w-8 bg-primary-fixed rounded-t-sm chart-bar" style="height: 95%;"></div>
+<span class="font-data-mono text-[10px] text-on-surface-variant">T</span>
+</div>
+<div class="flex flex-col items-center gap-xs">
+<div class="w-8 bg-secondary rounded-t-sm chart-bar" style="height: 70%;"></div>
+<span class="font-data-mono text-[10px] text-on-surface-variant">F</span>
+</div>
+<div class="flex flex-col items-center gap-xs">
+<div class="w-8 bg-surface-container-highest rounded-t-sm chart-bar" style="height: 30%;"></div>
+<span class="font-data-mono text-[10px] text-on-surface-variant">S</span>
+</div>
+<div class="flex flex-col items-center gap-xs">
+<div class="w-8 bg-primary-fixed-dim rounded-t-sm chart-bar" style="height: 50%;"></div>
+<span class="font-data-mono text-[10px] text-on-surface-variant">S</span>
+</div>
+</div>
+</section>
+<!-- Settings List (Quick Access) -->
+<section class="space-y-base">
+<div class="glass-card flex items-center justify-between p-md rounded-xl hover:bg-brand-glass-fill transition-all active:scale-[0.98] cursor-pointer">
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-primary-fixed" data-icon="account_circle">account_circle</span>
+<span class="font-body-lg text-body-lg text-primary">Edit Account</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="chevron_right">chevron_right</span>
+</div>
+<div class="glass-card flex items-center justify-between p-md rounded-xl hover:bg-brand-glass-fill transition-all active:scale-[0.98] cursor-pointer">
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-primary-fixed" data-icon="shield">shield</span>
+<span class="font-body-lg text-body-lg text-primary">Privacy &amp; Security</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="chevron_right">chevron_right</span>
+</div>
+<div class="glass-card flex items-center justify-between p-md rounded-xl hover:bg-brand-glass-fill transition-all active:scale-[0.98] cursor-pointer">
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-primary-fixed" data-icon="devices">devices</span>
+<span class="font-body-lg text-body-lg text-primary">Connected Wearables</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="chevron_right">chevron_right</span>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-gutter py-xs bg-surface-container backdrop-blur-[25px] border-t border-glass-border shadow-lg rounded-t-xl"><a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary-fixed-dim transition-all" href="#"><span class="material-symbols-outlined" data-icon="home">home</span><span class="font-label-sm text-label-sm uppercase tracking-[2px]">Inicio</span></a><a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary-fixed-dim transition-all" href="#"><span class="material-symbols-outlined" data-icon="fitness_center">fitness_center</span><span class="font-label-sm text-label-sm uppercase tracking-[2px]">Entreno</span></a><a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary-fixed-dim transition-all" href="#"><span class="material-symbols-outlined" data-icon="restaurant">restaurant</span><span class="font-label-sm text-label-sm uppercase tracking-[2px]">Nutrición</span></a><a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary-fixed-dim transition-all" href="#"><span class="material-symbols-outlined" data-icon="group">group</span><span class="font-label-sm text-label-sm uppercase tracking-[2px]">Social</span></a><a class="flex flex-col items-center justify-center bg-brand-glass-fill text-primary-fixed rounded-xl px-3 py-1 scale-90 duration-150" href="#"><span class="material-symbols-outlined" data-icon="person" style="font-variation-settings: 'FILL' 1;">person</span><span class="font-label-sm text-label-sm uppercase tracking-[2px]">Perfil</span></a></nav>
+<script>
+        // Atmospheric Micro-interaction: Mouse follow glow effect on profile
+        document.addEventListener('mousemove', (e) => {
+            const profile = document.querySelector('.accent-glow');
+            if (profile) {
+                const rect = profile.getBoundingClientRect();
+                const x = e.clientX - rect.left - rect.width / 2;
+                const y = e.clientY - rect.top - rect.height / 2;
+                profile.style.transform = `translate(${x * 0.02}px, ${y * 0.02}px)`;
+            }
+        });
+
+        // Simple Chart Animation on Page Load
+        window.addEventListener('DOMContentLoaded', () => {
+            const bars = document.querySelectorAll('.chart-bar');
+            bars.forEach((bar, index) => {
+                const finalHeight = bar.style.height;
+                bar.style.height = '0px';
+                setTimeout(() => {
+                    bar.style.height = finalHeight;
+                }, 200 + (index * 100));
+            });
+        });
+    </script>
+
+
+</body></html>

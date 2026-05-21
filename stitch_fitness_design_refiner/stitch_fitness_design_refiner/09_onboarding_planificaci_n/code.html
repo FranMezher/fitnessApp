@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-secondary-fixed": "#390c00",
+                    "on-primary": "#283500",
+                    "surface": "#131313",
+                    "on-error": "#690005",
+                    "accent-glass-border": "rgba(255, 107, 53, 0.4)",
+                    "text-muted": "#888888",
+                    "primary-fixed": "#c3f400",
+                    "on-tertiary": "#313030",
+                    "glass-border": "rgba(255, 255, 255, 0.09)",
+                    "brand-glass-fill": "rgba(204, 255, 0, 0.08)",
+                    "secondary-fixed": "#ffdbd0",
+                    "secondary": "#ffb59d",
+                    "on-background": "#e5e2e1",
+                    "brand-glass-border": "rgba(204, 255, 0, 0.35)",
+                    "surface-bright": "#3a3939",
+                    "outline-variant": "#444933",
+                    "text-primary": "#F2F2F2",
+                    "on-surface-variant": "#c4c9ac",
+                    "inverse-surface": "#e5e2e1",
+                    "primary-fixed-dim": "#abd600",
+                    "on-tertiary-container": "#656464",
+                    "tertiary-fixed": "#e5e2e1",
+                    "secondary-container": "#b83900",
+                    "on-surface": "#e5e2e1",
+                    "secondary-fixed-dim": "#ffb59d",
+                    "surface-container-high": "#2a2a2a",
+                    "error-container": "#93000a",
+                    "on-tertiary-fixed-variant": "#474646",
+                    "surface-dim": "#131313",
+                    "surface-container-highest": "#353534",
+                    "accent-glass-fill": "rgba(255, 107, 53, 0.1)",
+                    "background": "#131313",
+                    "inverse-on-surface": "#313030",
+                    "on-primary-fixed": "#161e00",
+                    "on-tertiary-fixed": "#1c1b1b",
+                    "on-error-container": "#ffdad6",
+                    "error": "#ffb4ab",
+                    "tertiary": "#ffffff",
+                    "inverse-primary": "#506600",
+                    "primary": "#ffffff",
+                    "surface-container-lowest": "#0e0e0e",
+                    "surface-container": "#201f1f",
+                    "on-secondary-container": "#ffddd2",
+                    "on-primary-fixed-variant": "#3c4d00",
+                    "tertiary-fixed-dim": "#c9c6c5",
+                    "on-secondary-fixed-variant": "#832600",
+                    "outline": "#8e9379",
+                    "on-primary-container": "#556d00",
+                    "on-secondary": "#5d1900",
+                    "surface-tint": "#abd600",
+                    "glass-fill": "rgba(255, 255, 255, 0.04)",
+                    "tertiary-container": "#e5e2e1",
+                    "surface-variant": "#353534",
+                    "surface-container-low": "#1c1b1b",
+                    "primary-container": "#c3f400"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "xl": "32px",
+                    "sm": "12px",
+                    "margin-mobile": "20px",
+                    "xs": "8px",
+                    "md": "16px",
+                    "base": "4px",
+                    "gutter": "12px",
+                    "lg": "24px"
+            },
+            "fontFamily": {
+                    "data-mono": ["monospace"],
+                    "headline-lg": ["Space Grotesk"],
+                    "headline-md": ["Space Grotesk"],
+                    "hero-lg": ["Space Grotesk"],
+                    "body-md": ["Space Grotesk"],
+                    "label-sm": ["Space Grotesk"],
+                    "label-caps": ["Space Grotesk"],
+                    "body-lg": ["Space Grotesk"],
+                    "hero-md": ["Space Grotesk"]
+            },
+            "fontSize": {
+                    "data-mono": ["14px", {"lineHeight": "1", "fontWeight": "500"}],
+                    "headline-lg": ["24px", {"lineHeight": "1.3", "fontWeight": "700"}],
+                    "headline-md": ["18px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                    "hero-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-md": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                    "label-sm": ["10px", {"lineHeight": "1", "letterSpacing": "2px", "fontWeight": "500"}],
+                    "label-caps": ["12px", {"lineHeight": "1", "letterSpacing": "4px", "fontWeight": "700"}],
+                    "body-lg": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "hero-md": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #080808;
+            color: #F2F2F2;
+            -webkit-font-smoothing: antialiased;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.09);
+        }
+        .active-meal-card {
+            background: rgba(204, 255, 0, 0.08);
+            border: 1px solid rgba(204, 255, 0, 0.35);
+        }
+        .progress-gradient {
+            background: linear-gradient(90deg, #abd600 0%, #ffb59d 100%);
+        }
+        .custom-glow {
+            box-shadow: 0px 0px 12px rgba(204, 255, 0, 0.2);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="flex flex-col min-h-screen">
+<!-- Top AppBar (from Shared Components JSON) -->
+<header class="bg-surface/80 dark:bg-surface/80 backdrop-blur-xl docked full-width top-0 z-50 border-b border-glass-border flex justify-between items-center w-full px-margin-mobile h-16 fixed">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary dark:text-primary-fixed cursor-pointer" data-icon="arrow_back">arrow_back</span>
+<span class="font-headline-lg text-headline-lg tracking-tighter italic text-primary-container">FITCORE</span>
+</div>
+<span class="material-symbols-outlined text-primary dark:text-primary-fixed cursor-pointer" data-icon="close">close</span>
+</header>
+<main class="flex-1 mt-20 px-margin-mobile pb-32 max-w-md mx-auto w-full">
+<!-- Progress Bar Section -->
+<div class="mb-xl">
+<div class="flex justify-between items-end mb-xs">
+<span class="font-label-caps text-label-caps text-on-surface-variant">Paso 09 de 10</span>
+<span class="font-data-mono text-data-mono text-primary-container">90%</span>
+</div>
+<div class="h-1 w-full bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full w-[90%] progress-gradient transition-all duration-700 ease-out"></div>
+</div>
+</div>
+<section class="mb-xl">
+<h1 class="font-hero-md text-hero-md mb-xs">Planificación diaria</h1>
+<p class="font-body-md text-body-md text-text-muted">Personaliza tu estructura metabólica y de preparación.</p>
+</section>
+<!-- Meal Frequency Selection -->
+<section class="mb-xl">
+<h2 class="font-headline-md text-headline-md mb-md">¿Cuántas comidas al día?</h2>
+<div class="grid grid-cols-4 gap-gutter">
+<button class="glass-card h-20 flex flex-col items-center justify-center rounded-xl transition-all hover:bg-brand-glass-fill group active:scale-95" onclick="selectMeals(this)">
+<span class="font-hero-md text-hero-md group-hover:text-primary-container">2</span>
+<span class="font-label-sm text-label-sm text-text-muted group-hover:text-primary-container">FIJAS</span>
+</button>
+<button class="active-meal-card h-20 flex flex-col items-center justify-center rounded-xl transition-all custom-glow scale-105" onclick="selectMeals(this)">
+<span class="font-hero-md text-hero-md text-primary-container">3</span>
+<span class="font-label-sm text-label-sm text-primary-container">FIJAS</span>
+</button>
+<button class="glass-card h-20 flex flex-col items-center justify-center rounded-xl transition-all hover:bg-brand-glass-fill group active:scale-95" onclick="selectMeals(this)">
+<span class="font-hero-md text-hero-md group-hover:text-primary-container">4</span>
+<span class="font-label-sm text-label-sm text-text-muted group-hover:text-primary-container">FIJAS</span>
+</button>
+<button class="glass-card h-20 flex flex-col items-center justify-center rounded-xl transition-all hover:bg-brand-glass-fill group active:scale-95" onclick="selectMeals(this)">
+<span class="font-hero-md text-hero-md group-hover:text-primary-container">5</span>
+<span class="font-label-sm text-label-sm text-text-muted group-hover:text-primary-container">FIJAS</span>
+</button>
+</div>
+</section>
+<!-- Cooking Time Selection -->
+<section class="mb-xl">
+<h2 class="font-headline-md text-headline-md mb-md">Nivel de cocina deseado</h2>
+<div class="space-y-sm">
+<!-- Rapido -->
+<div class="glass-card p-md rounded-xl flex items-center justify-between cursor-pointer border-l-2 border-l-transparent transition-all hover:border-l-primary-container group" onclick="selectLevel(this)">
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 rounded-lg bg-surface-container flex items-center justify-center">
+<span class="material-symbols-outlined text-primary-container" data-icon="timer">timer</span>
+</div>
+<div>
+<p class="font-headline-md text-headline-md">Rápido</p>
+<p class="font-body-md text-body-md text-text-muted">Menos de 15 min. Máxima eficiencia.</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-text-muted group-hover:text-primary-container" data-icon="radio_button_unchecked">radio_button_unchecked</span>
+</div>
+<!-- Cocinero Casero (Active) -->
+<div class="active-meal-card p-md rounded-xl flex items-center justify-between cursor-pointer border-l-2 border-l-primary-container transition-all group shadow-2xl" onclick="selectLevel(this)">
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 rounded-lg bg-primary-container/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary-container" data-icon="soup_kitchen" style="font-variation-settings: 'FILL' 1;">soup_kitchen</span>
+</div>
+<div>
+<p class="font-headline-md text-headline-md text-primary-container">Cocinero casero</p>
+<p class="font-body-md text-body-md text-primary-container/70">30-45 min. Sabor y balance.</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-primary-container" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<!-- Chef -->
+<div class="glass-card p-md rounded-xl flex items-center justify-between cursor-pointer border-l-2 border-l-transparent transition-all hover:border-l-primary-container group" onclick="selectLevel(this)">
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 rounded-lg bg-surface-container flex items-center justify-center">
+<span class="material-symbols-outlined text-primary-container" data-icon="restaurant_menu">restaurant_menu</span>
+</div>
+<div>
+<p class="font-headline-md text-headline-md">Chef</p>
+<p class="font-body-md text-body-md text-text-muted">60+ min. Elaboración gourmet.</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-text-muted group-hover:text-primary-container" data-icon="radio_button_unchecked">radio_button_unchecked</span>
+</div>
+</div>
+</section>
+<!-- Informative Glass Tile -->
+<div class="glass-card p-md rounded-xl border border-accent-glass-border bg-accent-glass-fill flex gap-md items-start">
+<span class="material-symbols-outlined text-secondary" data-icon="info">info</span>
+<p class="font-body-md text-body-md text-on-background">Ajustaremos las porciones calóricas basándonos en tu frecuencia de comidas para asegurar que alcances tus macros.</p>
+</div>
+</main>
+<!-- Bottom Action Bar -->
+<footer class="fixed bottom-0 left-0 w-full p-margin-mobile bg-surface/90 backdrop-blur-2xl z-40 border-t border-glass-border">
+<button class="w-full h-14 bg-primary-container text-on-primary-container font-headline-md text-headline-md rounded-xl shadow-[0px_0px_20px_rgba(204,255,0,0.4)] hover:scale-[1.02] active:scale-95 transition-all">
+            CONTINUAR
+        </button>
+</footer>
+<script>
+        function selectMeals(el) {
+            // Reset all siblings
+            const parent = el.parentElement;
+            Array.from(parent.children).forEach(child => {
+                child.className = 'glass-card h-20 flex flex-col items-center justify-center rounded-xl transition-all hover:bg-brand-glass-fill group active:scale-95';
+                const spans = child.querySelectorAll('span');
+                spans[0].className = 'font-hero-md text-hero-md group-hover:text-primary-container';
+                spans[1].className = 'font-label-sm text-label-sm text-text-muted group-hover:text-primary-container';
+            });
+
+            // Set active
+            el.className = 'active-meal-card h-20 flex flex-col items-center justify-center rounded-xl transition-all custom-glow scale-105';
+            const activeSpans = el.querySelectorAll('span');
+            activeSpans[0].className = 'font-hero-md text-hero-md text-primary-container';
+            activeSpans[1].className = 'font-label-sm text-label-sm text-primary-container';
+        }
+
+        function selectLevel(el) {
+            const parent = el.parentElement;
+            Array.from(parent.children).forEach(child => {
+                child.className = 'glass-card p-md rounded-xl flex items-center justify-between cursor-pointer border-l-2 border-l-transparent transition-all hover:border-l-primary-container group';
+                const iconContainer = child.querySelector('div > div');
+                iconContainer.className = 'w-12 h-12 rounded-lg bg-surface-container flex items-center justify-center';
+                const texts = child.querySelectorAll('p');
+                texts[0].className = 'font-headline-md text-headline-md';
+                texts[1].className = 'font-body-md text-body-md text-text-muted';
+                const statusIcon = child.querySelector('.material-symbols-outlined:last-child');
+                statusIcon.innerHTML = 'radio_button_unchecked';
+                statusIcon.style.fontVariationSettings = "'FILL' 0";
+                statusIcon.className = 'material-symbols-outlined text-text-muted group-hover:text-primary-container';
+            });
+
+            el.className = 'active-meal-card p-md rounded-xl flex items-center justify-between cursor-pointer border-l-2 border-l-primary-container transition-all group shadow-2xl';
+            const iconContainer = el.querySelector('div > div');
+            iconContainer.className = 'w-12 h-12 rounded-lg bg-primary-container/20 flex items-center justify-center';
+            const texts = el.querySelectorAll('p');
+            texts[0].className = 'font-headline-md text-headline-md text-primary-container';
+            texts[1].className = 'font-body-md text-body-md text-primary-container/70';
+            const statusIcon = el.querySelector('.material-symbols-outlined:last-child');
+            statusIcon.innerHTML = 'check_circle';
+            statusIcon.style.fontVariationSettings = "'FILL' 1";
+            statusIcon.className = 'material-symbols-outlined text-primary-container';
+        }
+    </script>
+</body></html>

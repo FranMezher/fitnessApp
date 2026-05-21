@@ -1,0 +1,344 @@
+<!DOCTYPE html><html class="dark" lang="es"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>FITCORE - Nutrición</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "text-primary": "#F2F2F2",
+                      "on-error": "#690005",
+                      "text-muted": "#888888",
+                      "glass-border": "rgba(255, 255, 255, 0.09)",
+                      "brand-glass-border": "rgba(204, 255, 0, 0.35)",
+                      "on-error-container": "#ffdad6",
+                      "on-tertiary": "#313030",
+                      "accent-glass-fill": "rgba(255, 107, 53, 0.1)",
+                      "tertiary-fixed": "#e5e2e1",
+                      "inverse-on-surface": "#313030",
+                      "on-surface-variant": "#c4c9ac",
+                      "error-container": "#93000a",
+                      "outline": "#8e9379",
+                      "accent-glass-border": "rgba(255, 107, 53, 0.4)",
+                      "primary-fixed-dim": "#abd600",
+                      "on-tertiary-container": "#656464",
+                      "brand-glass-fill": "rgba(204, 255, 0, 0.08)",
+                      "surface-bright": "#3a3939",
+                      "on-tertiary-fixed": "#1c1b1b",
+                      "secondary-container": "#b83900",
+                      "surface-variant": "#353534",
+                      "on-tertiary-fixed-variant": "#474646",
+                      "on-secondary-container": "#ffddd2",
+                      "surface-container-low": "#1c1b1b",
+                      "primary": "#ffffff",
+                      "tertiary-container": "#e5e2e1",
+                      "glass-fill": "rgba(255, 255, 255, 0.04)",
+                      "surface-container-high": "#2a2a2a",
+                      "primary-container": "#c3f400",
+                      "surface-container": "#201f1f",
+                      "inverse-primary": "#506600",
+                      "inverse-surface": "#e5e2e1",
+                      "on-primary-fixed": "#161e00",
+                      "tertiary-fixed-dim": "#c9c6c5",
+                      "on-primary": "#283500",
+                      "on-secondary": "#5d1900",
+                      "primary-fixed": "#c3f400",
+                      "outline-variant": "#444933",
+                      "tertiary": "#ffffff",
+                      "surface-container-lowest": "#0e0e0e",
+                      "secondary": "#ffb59d",
+                      "background": "#131313",
+                      "secondary-fixed-dim": "#ffb59d",
+                      "surface-container-highest": "#353534",
+                      "on-surface": "#e5e2e1",
+                      "surface": "#131313",
+                      "on-secondary-fixed": "#390c00",
+                      "secondary-fixed": "#ffdbd0",
+                      "surface-dim": "#131313",
+                      "on-primary-container": "#556d00",
+                      "error": "#ffb4ab",
+                      "surface-tint": "#abd600",
+                      "on-primary-fixed-variant": "#3c4d00",
+                      "on-background": "#e5e2e1",
+                      "on-secondary-fixed-variant": "#832600"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "base": "4px",
+                      "md": "16px",
+                      "sm": "12px",
+                      "margin-mobile": "20px",
+                      "lg": "24px",
+                      "xs": "8px",
+                      "xl": "32px",
+                      "gutter": "12px"
+              },
+              "fontFamily": {
+                      "hero-md": ["Space Grotesk"],
+                      "headline-lg": ["Space Grotesk"],
+                      "label-caps": ["Space Grotesk"],
+                      "data-mono": ["monospace"],
+                      "headline-md": ["Space Grotesk"],
+                      "hero-lg": ["Space Grotesk"],
+                      "body-lg": ["Space Grotesk"],
+                      "label-sm": ["Space Grotesk"],
+                      "body-md": ["Space Grotesk"]
+              },
+              "fontSize": {
+                      "hero-md": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                      "headline-lg": ["24px", {"lineHeight": "1.3", "fontWeight": "700"}],
+                      "label-caps": ["12px", {"lineHeight": "1", "letterSpacing": "4px", "fontWeight": "700"}],
+                      "data-mono": ["14px", {"lineHeight": "1", "fontWeight": "500"}],
+                      "headline-md": ["18px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                      "hero-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "body-lg": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                      "label-sm": ["10px", {"lineHeight": "1", "letterSpacing": "2px", "fontWeight": "500"}],
+                      "body-md": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+        body {
+            background-color: #080808;
+            color: #F2F2F2;
+            font-family: 'Space Grotesk', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.09);
+        }
+        .neon-glow {
+            box-shadow: 0 0 15px rgba(204, 255, 0, 0.4);
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .radial-progress {
+            --value: 0;
+            --size: 5rem;
+            --thickness: 6px;
+            display: grid;
+            place-content: center;
+            width: var(--size);
+            height: var(--size);
+            border-radius: 50%;
+            background: radial-gradient(closest-side, #080808 80%, transparent 0 100%), 
+                        conic-gradient(var(--color) calc(var(--value) * 1%), rgba(255,255,255,0.05) 0);
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-32">
+<!-- Top App Bar -->
+<header class="fixed top-0 w-full z-50 bg-glass-fill dark:bg-glass-fill backdrop-blur-[25px] border-b border-glass-border flex justify-between items-center px-margin-mobile h-16">
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-primary-fixed cursor-pointer">menu</span>
+<h1 class="font-hero-md text-[24px] text-primary-fixed tracking-tighter">FITCORE</h1>
+</div>
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer">history</span>
+<span class="material-symbols-outlined text-primary-fixed cursor-pointer">notifications</span>
+</div>
+</header>
+<main class="mt-20 px-margin-mobile max-w-2xl mx-auto">
+<!-- Date Header -->
+<section class="mb-lg">
+<div class="flex justify-between items-end">
+<div>
+<span class="font-label-sm text-label-sm uppercase tracking-[2px] text-primary-fixed-dim">Hoy</span>
+<h2 class="font-headline-lg text-headline-lg text-text-primary">Resumen Nutricional</h2>
+</div>
+<div class="text-right">
+<span class="font-data-mono text-data-mono text-text-muted">Meta: 2,400 kcal</span>
+</div>
+</div>
+</section>
+<!-- Calories & Macros Bento Grid -->
+<section class="grid grid-cols-4 gap-gutter mb-xl">
+<!-- Main Calorie Card -->
+<div class="col-span-4 glass-card p-md rounded-xl flex flex-col items-center relative overflow-hidden">
+<div class="absolute top-0 left-0 w-1 h-full bg-primary-fixed"></div>
+<div class="radial-progress" style="--value: 72; --color: #c3f400; --size: 140px; --thickness: 12px;">
+<div class="flex flex-col items-center">
+<span class="font-hero-md text-hero-md text-text-primary">1,728</span>
+<span class="font-label-sm text-label-sm text-text-muted">KCAL RESTANTES</span>
+</div>
+</div>
+<div class="mt-md flex gap-xl w-full justify-center">
+<div class="text-center">
+<span class="block font-data-mono text-data-mono text-primary-fixed">672</span>
+<span class="font-label-sm text-label-sm text-text-muted">CONSUMIDAS</span>
+</div>
+<div class="text-center">
+<span class="block font-data-mono text-data-mono text-secondary">310</span>
+<span class="font-label-sm text-label-sm text-text-muted">EJERCICIO</span>
+</div>
+</div>
+</div>
+<!-- Macros Cards -->
+<div class="col-span-4 grid grid-cols-3 gap-xs">
+<div class="glass-card p-sm rounded-xl text-center border-l-2 border-primary-fixed">
+<span class="font-label-sm text-label-sm text-text-muted uppercase block mb-xs">Proteínas</span>
+<span class="font-data-mono text-data-mono text-text-primary block">142/180g</span>
+<div class="w-full bg-glass-border h-1 mt-xs rounded-full overflow-hidden">
+<div class="bg-primary-fixed h-full" style="width: 78%"></div>
+</div>
+</div>
+<div class="glass-card p-sm rounded-xl text-center border-l-2 border-secondary">
+<span class="font-label-sm text-label-sm text-text-muted uppercase block mb-xs">Carbos</span>
+<span class="font-data-mono text-data-mono text-text-primary block">210/300g</span>
+<div class="w-full bg-glass-border h-1 mt-xs rounded-full overflow-hidden">
+<div class="bg-secondary h-full" style="width: 70%"></div>
+</div>
+</div>
+<div class="glass-card p-sm rounded-xl text-center border-l-2 border-tertiary-fixed-dim">
+<span class="font-label-sm text-label-sm text-text-muted uppercase block mb-xs">Grasas</span>
+<span class="font-data-mono text-data-mono text-text-primary block">45/70g</span>
+<div class="w-full bg-glass-border h-1 mt-xs rounded-full overflow-hidden">
+<div class="bg-tertiary-fixed-dim h-full" style="width: 64%"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- Modo Despensa Highlight -->
+<section class="mb-xl">
+<button class="w-full bg-primary-container text-on-primary-fixed h-16 rounded-xl flex items-center justify-between px-md group transition-all active:scale-95 neon-glow">
+<div class="flex items-center gap-md">
+<div class="bg-on-primary-fixed rounded-lg p-xs text-primary-fixed">
+<span class="material-symbols-outlined block">inventory_2</span>
+</div>
+<div class="text-left">
+<h3 class="font-headline-md text-headline-md leading-tight">Modo Despensa</h3>
+<p class="font-label-sm text-[10px] opacity-70">Escanea y gestiona tus suministros</p>
+</div>
+</div>
+<span class="material-symbols-outlined transition-transform group-hover:translate-x-1">chevron_right</span>
+</button>
+</section>
+<!-- Diario de Hoy -->
+<section class="mb-xl">
+<div class="flex items-center justify-between mb-md">
+<h3 class="font-headline-md text-headline-md text-text-primary">Diario de Hoy</h3>
+<span class="material-symbols-outlined text-text-muted">add_circle</span>
+</div>
+<div class="space-y-sm">
+<!-- Breakfast -->
+<div class="glass-card p-md rounded-xl flex items-center gap-md relative overflow-hidden group">
+<img class="w-16 h-16 rounded-lg object-cover grayscale group-hover:grayscale-0 transition-all" data-alt="A professional culinary photograph of a healthy breakfast bowl containing greek yogurt, vibrant fresh blueberries, toasted almond slices, and a drizzle of honey. The lighting is bright and high-contrast, highlighting the textures of the food against a dark obsidian background typical of a premium high-performance fitness application. The mood is energetic and clean, emphasizing fresh fuel for an elite athlete's morning routine." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCJlVU4VFIyJjrjkkyCLRib2fXOgmCf8A7RHqfoUrTzwSjOcv_8xb2gSySRAGsWtx6ilJS688ct0kbkTUzcqB7xmyVOIbjI4PKoX-cfnD69-Ruth3BnM6pUPBlwmRO5XE0gDdSfjwlnkoVr6FlKgDY5c5L4IF7S203kcjelTYStiDWTRpJzRK4F25t8sbLQCsWL_fpdUvEnhnWrCXGZ_PKnL_vPLoO4SMSVG5wPldQ-GTBjh6u30pHuSEXwmSoP1V2to7tADJYvuwQ">
+<div class="flex-grow">
+<div class="flex justify-between items-start">
+<h4 class="font-headline-md text-headline-md">Desayuno</h4>
+<span class="font-data-mono text-data-mono text-primary-fixed">450 kcal</span>
+</div>
+<p class="font-body-md text-body-md text-text-muted">Avena con bayas y proteína</p>
+</div>
+<span class="material-symbols-outlined text-glass-border">navigate_next</span>
+</div>
+<!-- Lunch -->
+<div class="glass-card p-md rounded-xl flex items-center gap-md relative overflow-hidden group">
+<img class="w-16 h-16 rounded-lg object-cover grayscale group-hover:grayscale-0 transition-all" data-alt="A meticulously plated high-protein lunch featuring grilled salmon fillet with perfectly charred skin alongside steamed broccoli and a small portion of quinoa. The presentation is professional and clinical, set within a dark mode HUD aesthetic with soft green neon rim lighting that reflects off the white ceramic plate. The overall visual style is technical, focused on bio-hacking and precision nutrition for peak physical performance." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCOgr1Dy7cX8q0k4o3v4qya0ZZjcMjZpcCO4fQtJhgvgAIRpi7L1fB1uoq2OOMx7YeuCGV_uSkc39gQMRV4c47GNjKO875REqMGm0ggy9Y8YibtUgctaJCuWTo2XaYlMNZzuF0awkte_QEiPW0rz-2JAMl1RQbn1MDnMWHsnTu0H_qsQkezgY9vABgYqTBtMnl6K7YM7TReJiME0QSfr_j8XdOa5G0ohl4H_8s6xOmCTr7CP5Ni3fql-dk61z7CYNY8TxYzdmRk0JA">
+<div class="flex-grow">
+<div class="flex justify-between items-start">
+<h4 class="font-headline-md text-headline-md">Almuerzo</h4>
+<span class="font-data-mono text-data-mono text-primary-fixed">620 kcal</span>
+</div>
+<p class="font-body-md text-body-md text-text-muted">Salmón a la plancha con quinoa</p>
+</div>
+<span class="material-symbols-outlined text-glass-border">navigate_next</span>
+</div>
+<!-- Dinner -->
+<div class="glass-card p-md rounded-xl flex items-center gap-md relative border-dashed border-glass-border">
+<div class="w-16 h-16 rounded-lg bg-glass-fill flex items-center justify-center border border-glass-border">
+<span class="material-symbols-outlined text-text-muted">restaurant</span>
+</div>
+<div class="flex-grow">
+<div class="flex justify-between items-start">
+<h4 class="font-headline-md text-headline-md text-text-muted">Cena</h4>
+<span class="font-data-mono text-data-mono text-text-muted">Pendiente</span>
+</div>
+<p class="font-body-md text-body-md text-text-muted italic">Registra tu última comida</p>
+</div>
+<span class="material-symbols-outlined text-primary-fixed">add</span>
+</div>
+</div>
+</section>
+<!-- Hydration Section (Extra UI polish) -->
+<section class="mb-xl glass-card p-md rounded-xl">
+<div class="flex justify-between items-center mb-md">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-[#00E5FF]">water_drop</span>
+<h3 class="font-headline-md text-headline-md">Hidratación</h3>
+</div>
+<span class="font-data-mono text-data-mono text-[#00E5FF]">1.5 / 3.0 L</span>
+</div>
+<div class="flex gap-xs overflow-x-auto no-scrollbar">
+<div class="flex-shrink-0 w-12 h-16 rounded-lg border border-brand-glass-border bg-brand-glass-fill flex flex-col items-center justify-center cursor-pointer active:scale-95 transition-all">
+<span class="material-symbols-outlined text-primary-fixed text-sm">local_drink</span>
+<span class="text-[10px] font-bold mt-1">250ml</span>
+</div>
+<div class="flex-shrink-0 w-12 h-16 rounded-lg border border-glass-border bg-glass-fill flex flex-col items-center justify-center opacity-50">
+<span class="material-symbols-outlined text-text-muted text-sm">local_drink</span>
+</div>
+<div class="flex-shrink-0 w-12 h-16 rounded-lg border border-glass-border bg-glass-fill flex flex-col items-center justify-center opacity-50">
+<span class="material-symbols-outlined text-text-muted text-sm">local_drink</span>
+</div>
+<div class="flex-shrink-0 w-12 h-16 rounded-lg border border-glass-border bg-glass-fill flex flex-col items-center justify-center opacity-50">
+<span class="material-symbols-outlined text-text-muted text-sm">local_drink</span>
+</div>
+<div class="flex-shrink-0 w-12 h-16 rounded-lg border border-glass-border bg-glass-fill flex flex-col items-center justify-center opacity-50">
+<span class="material-symbols-outlined text-text-muted text-sm">local_drink</span>
+</div>
+<div class="flex-shrink-0 w-12 h-16 rounded-lg border border-glass-border bg-glass-fill flex flex-col items-center justify-center opacity-50">
+<span class="material-symbols-outlined text-text-muted text-sm">local_drink</span>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-gutter py-xs bg-surface-container dark:bg-surface-container backdrop-blur-[25px] border-t border-glass-border shadow-lg rounded-t-xl"><div class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary-fixed-dim transition-all cursor-pointer">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-label-sm text-label-sm uppercase tracking-[2px] mt-1">Inicio</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary-fixed-dim transition-all cursor-pointer">
+<span class="material-symbols-outlined" data-icon="fitness_center">fitness_center</span>
+<span class="font-label-sm text-label-sm uppercase tracking-[2px] mt-1">Entreno</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-brand-glass-fill text-primary-fixed rounded-xl px-3 py-1 scale-90 duration-150 cursor-pointer">
+<span class="material-symbols-outlined" data-icon="restaurant" style="font-variation-settings: 'FILL' 1;">restaurant</span>
+<span class="font-label-sm text-label-sm uppercase tracking-[2px] mt-1">Nutrición</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary-fixed-dim transition-all cursor-pointer">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-label-sm text-label-sm uppercase tracking-[2px] mt-1">Social</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary-fixed-dim transition-all cursor-pointer">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-sm text-label-sm uppercase tracking-[2px] mt-1">Perfil</span>
+</div></nav>
+<script>
+        // Micro-interaction for water tracking
+        const waterButton = document.querySelector('.bg-brand-glass-fill');
+        if(waterButton) {
+            waterButton.addEventListener('click', () => {
+                waterButton.classList.add('scale-90');
+                setTimeout(() => waterButton.classList.remove('scale-90'), 150);
+            });
+        }
+    </script>
+
+
+</body></html>
