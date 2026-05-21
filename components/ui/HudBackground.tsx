@@ -1,13 +1,14 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, ViewStyle } from 'react-native';
 
 interface HudBackgroundProps {
   children: React.ReactNode;
+  style?: ViewStyle;
 }
 
-export function HudBackground({ children }: HudBackgroundProps) {
+export function HudBackground({ children, style }: HudBackgroundProps) {
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, style]}>
       {/* Grid lines overlay */}
       <View style={styles.gridH} pointerEvents="none" />
       <View style={styles.gridV} pointerEvents="none" />

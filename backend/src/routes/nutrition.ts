@@ -116,3 +116,49 @@ nutritionRouter.delete('/pantry/:id', async (c) => {
     .where(and(eq(pantryItems.id, id), eq(pantryItems.userId, user.id)));
   return c.json({ ok: true });
 });
+
+// GET /nutrition/history?days=7
+nutritionRouter.get('/history', async (c) => {
+  const user = c.get('user');
+  const days = Math.min(30, parseInt(c.req.query('days') ?? '7'));
+
+  const dates: string[] = [];
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    dates.push(d.toISOString().slice(0, 10));
+  }
+
+  const startDate = dates[0];
+  const endDate = dates[dates.length - 1];
+
+  const entries = await db
+    .select()
+    .from(foodLog)
+    .where(
+      and(
+        eq(foodLog.userId, user.id),
+        sql`${foodLog.date} >= ${startDate} AND ${foodLog.date} <= ${endDate}`,
+      ),
+    );
+
+  const byDate: Record<string, typeof entries> = {};
+  for (const date of dates) byDate[date] = [];
+  for (const entry of entries) {
+    if (byDate[entry.date]) byDate[entry.date].push(entry);
+  }
+
+  const history = dates.map((date) => {
+    const dayEntries = byDate[date];
+    return {
+      date,
+      totalCalories: Math.round(dayEntries.reduce((s, e) => s + e.calories, 0)),
+      totalProteinG: Math.round(dayEntries.reduce((s, e) => s + e.proteinG, 0) * 10) / 10,
+      totalCarbsG:   Math.round(dayEntries.reduce((s, e) => s + e.carbsG, 0) * 10) / 10,
+      totalFatG:     Math.round(dayEntries.reduce((s, e) => s + e.fatG, 0) * 10) / 10,
+      entryCount:    dayEntries.length,
+    };
+  });
+
+  return c.json({ history });
+});

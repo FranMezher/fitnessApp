@@ -1,8 +1,13 @@
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, TextInput, StyleSheet, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/constants/colors';
+import { text } from '@/constants/typography';
+import { spacing, radius } from '@/constants/spacing';
+import { HudBackground } from '@/components/ui/HudBackground';
+import { OnboardingShell } from '@/components/ui/OnboardingShell';
 import { Btn } from '@/components/ui/Btn';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/useAuthStore';
@@ -11,48 +16,69 @@ import { useOnboardingStore } from '@/stores/useOnboardingStore';
 const TOTAL_STEPS = 10;
 const STEP = 8;
 
-const PAGES: { title: string; note: string; groups: { name: string; items: string[] }[] }[] = [
+type FoodCategory = {
+  name: string;
+  color: string;
+  items: { label: string; icon: string }[];
+};
+
+const CATEGORIES: FoodCategory[] = [
   {
-    title: 'Lácteos y Frutas',
-    note: 'Seleccioná al menos 2 frutas',
-    groups: [
-      {
-        name: 'Bebidas y Lácteos',
-        items: ['🥛 Leche', '🍶 Yogurt', '🧀 Queso blanco', '🧀 Queso amarillo', '🌰 Bebida de almendras', '🥛 Leche descremada'],
-      },
-      {
-        name: 'Frutas',
-        items: ['🍌 Banana', '🍓 Frutillas', '🍎 Manzana', '🫐 Arándanos', '🍍 Ananá', '🍈 Papaya', '🍊 Mandarina', '🍊 Naranja', '🥝 Kiwi', '🥭 Mango', '🍉 Sandía', '🍐 Pera'],
-      },
+    name: 'PROTEÍNAS',
+    color: colors.neon,
+    items: [
+      { label: 'Huevos',    icon: 'egg-outline' },
+      { label: 'Pechuga',   icon: 'restaurant-outline' },
+      { label: 'Salmón',    icon: 'fish-outline' },
+      { label: 'Tofu',      icon: 'leaf-outline' },
+      { label: 'Atún',      icon: 'fish-outline' },
+      { label: 'Pavo',      icon: 'restaurant-outline' },
     ],
   },
   {
-    title: 'Grasas Saludables',
-    note: 'Seleccioná al menos 2',
-    groups: [
-      {
-        name: 'Grasas',
-        items: ['🥑 Palta', '🥜 Maní', '🥜 Manteca de maní', '🌰 Almendras', '🌰 Nueces pecán', '🌰 Castañas de cajú', '🌰 Nueces', '🫒 Aceitunas', '🌱 Chía', '🍫 Chocolate negro'],
-      },
+    name: 'CARBOHIDRATOS',
+    color: colors.orange,
+    items: [
+      { label: 'Avena',     icon: 'cafe-outline' },
+      { label: 'Arroz',     icon: 'restaurant-outline' },
+      { label: 'Batata',    icon: 'leaf-outline' },
+      { label: 'Quinua',    icon: 'nutrition-outline' },
+      { label: 'Pan',       icon: 'pizza-outline' },
+      { label: 'Pasta',     icon: 'restaurant-outline' },
     ],
   },
   {
-    title: 'Proteínas y Carbohidratos',
-    note: 'Seleccioná al menos 2 proteínas',
-    groups: [
-      {
-        name: 'Proteínas',
-        items: ['🍗 Pollo', '🥩 Carne', '🐟 Pescado', '🐟 Atún', '🦐 Camarones', '🥚 Huevo', '🦃 Pavo', '🥩 Cerdo', '🥩 Jamón', '🧆 Tofu', '🌱 Carne de soya', '🫘 Tempeh', '🌾 Seitán', '🥤 Proteína en polvo'],
-      },
-      {
-        name: 'Carbohidratos',
-        items: ['🍚 Arroz', '🥔 Papa', '🍠 Batata', '🌿 Mandioca', '🫘 Lentejas', '🫘 Porotos', '🫘 Garbanzos', '🟢 Arvejas', '🌾 Quinua', '🍝 Pasta', '🌽 Choclo', '🍿 Popcorn', '🥣 Avena', '🍞 Pan', '🫓 Tortilla', '🥣 Cereal'],
-      },
+    name: 'GRASAS',
+    color: colors.teal,
+    items: [
+      { label: 'Aguacate',  icon: 'leaf-outline' },
+      { label: 'Aceite Oliva', icon: 'water-outline' },
+      { label: 'Almendras', icon: 'ellipse-outline' },
+      { label: 'Nueces',    icon: 'ellipse-outline' },
+    ],
+  },
+  {
+    name: 'LÁCTEOS',
+    color: colors.purple,
+    items: [
+      { label: 'Leche',     icon: 'water-outline' },
+      { label: 'Yogurt',    icon: 'cafe-outline' },
+      { label: 'Queso',     icon: 'restaurant-outline' },
+    ],
+  },
+  {
+    name: 'FRUTAS',
+    color: colors.orange,
+    items: [
+      { label: 'Banana',    icon: 'ellipse-outline' },
+      { label: 'Manzana',   icon: 'ellipse-outline' },
+      { label: 'Arándanos', icon: 'ellipse-outline' },
+      { label: 'Naranja',   icon: 'ellipse-outline' },
     ],
   },
 ];
 
-const MIN_PER_PAGE = 2;
+const MIN_SELECTIONS = 4;
 const EMPTY_FOODS: string[] = [];
 
 export default function FoodSelectionScreen() {
@@ -63,36 +89,32 @@ export default function FoodSelectionScreen() {
   const setStore = useOnboardingStore((s) => s.set);
   const { token } = useAuthStore();
 
-  const [pageIdx, setPageIdx] = useState(0);
   const [selected, setSelected] = useState<Set<string>>(new Set(stored));
+  const [query, setQuery] = useState('');
 
-  const page = PAGES[pageIdx];
+  const progress = STEP / TOTAL_STEPS;
 
-  function toggleFood(food: string) {
+  const filteredCategories = useMemo(() => {
+    if (!query.trim()) return CATEGORIES;
+    const q = query.toLowerCase();
+    return CATEGORIES.map((cat) => ({
+      ...cat,
+      items: cat.items.filter((item) => item.label.toLowerCase().includes(q)),
+    })).filter((cat) => cat.items.length > 0);
+  }, [query]);
+
+  function toggleFood(label: string) {
     setSelected((prev) => {
       const next = new Set(prev);
-      if (next.has(food)) {
-        next.delete(food);
-      } else {
-        next.add(food);
-      }
+      if (next.has(label)) next.delete(label);
+      else next.add(label);
       return next;
     });
   }
 
-  function countPageSelections() {
-    const allItems = page.groups.flatMap((g) => g.items);
-    return allItems.filter((item) => selected.has(item)).length;
-  }
-
-  async function handleNext() {
-    if (countPageSelections() < MIN_PER_PAGE) {
-      Alert.alert('Selección mínima', `Seleccioná al menos ${MIN_PER_PAGE} alimentos para continuar.`);
-      return;
-    }
-
-    if (pageIdx < PAGES.length - 1) {
-      setPageIdx((p) => p + 1);
+  async function handleContinue() {
+    if (selected.size < MIN_SELECTIONS) {
+      Alert.alert('Selección mínima', `Seleccioná al menos ${MIN_SELECTIONS} alimentos para continuar.`);
       return;
     }
 
@@ -110,89 +132,173 @@ export default function FoodSelectionScreen() {
     router.push('/(onboarding)/meal-planning' as never);
   }
 
-  const progress = STEP / TOTAL_STEPS + (pageIdx / PAGES.length) * (1 / TOTAL_STEPS);
+  const canContinue = selected.size >= MIN_SELECTIONS;
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <View style={styles.progressTrack}>
-        <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
-      </View>
+    <HudBackground style={styles.flex}>
+      <SafeAreaView style={styles.flex}>
+        <OnboardingShell
+          step={STEP}
+          totalSteps={TOTAL_STEPS}
+          progress={progress}
+          onClose={() => router.back()}
+        >
+          <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+            <Text style={styles.title}>Tu despensa</Text>
+            <Text style={styles.subtitle}>
+              Seleccioná los ingredientes que solés tener disponibles para personalizar tus planes.
+            </Text>
 
-      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-        <Text style={styles.step}>Paso {STEP} de {TOTAL_STEPS} · {pageIdx + 1}/{PAGES.length}</Text>
-        <Text style={styles.title}>{page.title}</Text>
-        <Text style={styles.subtitle}>{page.note}</Text>
-
-        {page.groups.map((group) => (
-          <View key={group.name} style={styles.group}>
-            <Text style={styles.groupName}>{group.name}</Text>
-            <View style={styles.chipGrid}>
-              {group.items.map((item) => {
-                const active = selected.has(item);
-                return (
-                  <TouchableOpacity
-                    key={item}
-                    style={[styles.chip, active && styles.chipActive]}
-                    onPress={() => toggleFood(item)}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={styles.chipText}>{item}</Text>
-                  </TouchableOpacity>
-                );
-              })}
+            {/* Search */}
+            <View style={styles.searchWrap}>
+              <Ionicons name="search-outline" size={18} color={colors.muted} style={styles.searchIcon} />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Buscar ingredientes..."
+                placeholderTextColor={colors.dim}
+                value={query}
+                onChangeText={setQuery}
+                selectionColor={colors.neon}
+              />
             </View>
-          </View>
-        ))}
 
-        <View style={styles.btnWrap}>
-          <Btn onPress={handleNext}>
-            {isEdit && pageIdx === PAGES.length - 1
-              ? 'Guardar'
-              : pageIdx < PAGES.length - 1
-              ? 'Siguiente'
-              : 'Continuar'}
-          </Btn>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+            {/* Counter */}
+            <View style={styles.counterRow}>
+              <Text style={styles.counterLabel}>SELECCIONADOS</Text>
+              <Text style={[styles.counterValue, { color: canContinue ? colors.neon : colors.muted }]}>
+                {selected.size}
+              </Text>
+            </View>
+
+            {filteredCategories.map((cat) => (
+              <View key={cat.name} style={styles.section}>
+                <View style={styles.sectionHeader}>
+                  <Text style={[styles.sectionTitle, { color: colors.muted }]}>{cat.name}</Text>
+                  <View style={[styles.sectionLine, { backgroundColor: cat.color + '33' }]} />
+                </View>
+                <View style={styles.grid}>
+                  {cat.items.map((item) => {
+                    const active = selected.has(item.label);
+                    return (
+                      <TouchableOpacity
+                        key={item.label}
+                        style={[styles.cell, active && styles.cellActive]}
+                        onPress={() => toggleFood(item.label)}
+                        activeOpacity={0.7}
+                      >
+                        <Ionicons
+                          name={item.icon as any}
+                          size={28}
+                          color={active ? colors.neon : cat.color}
+                        />
+                        <Text style={[styles.cellLabel, active && styles.cellLabelActive]}>
+                          {item.label}
+                        </Text>
+                        {active && (
+                          <View style={styles.checkDot}>
+                            <Ionicons name="checkmark" size={10} color={colors.bg} />
+                          </View>
+                        )}
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+            ))}
+
+            <View style={styles.btnWrap}>
+              <Btn onPress={handleContinue} disabled={!canContinue}>
+                {isEdit ? 'Guardar' : 'Continuar'}
+              </Btn>
+            </View>
+          </ScrollView>
+        </OnboardingShell>
+      </SafeAreaView>
+    </HudBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
-  progressTrack: { height: 3, backgroundColor: 'rgba(255,255,255,0.08)' },
-  progressFill: { height: 3, backgroundColor: colors.neon, borderRadius: 2 },
-  container: { padding: 24, paddingTop: 16 },
-  step: { fontSize: 12, color: colors.muted, fontFamily: 'SpaceGrotesk_400Regular', marginBottom: 8 },
-  title: { fontSize: 26, fontWeight: '700', color: colors.text, marginBottom: 4, fontFamily: 'SpaceGrotesk_700Bold' },
-  subtitle: { fontSize: 14, color: colors.muted, marginBottom: 20, fontFamily: 'SpaceGrotesk_400Regular' },
-  group: { marginBottom: 24 },
-  groupName: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: colors.muted,
-    fontFamily: 'SpaceGrotesk_600SemiBold',
-    textTransform: 'uppercase',
-    letterSpacing: 1.2,
-    marginBottom: 12,
-  },
-  chipGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 999,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+  flex: { flex: 1 },
+  container: { padding: spacing.lg, paddingTop: 8, paddingBottom: 40, gap: spacing.lg },
+  title: { ...text.heroMd, color: colors.text },
+  subtitle: { ...text.bodyMd, color: colors.muted, marginTop: -8 },
+  searchWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.04)',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.09)',
+    borderColor: colors.border,
+    borderRadius: radius.xl,
+    paddingHorizontal: spacing.md,
+    gap: spacing.sm,
   },
-  chipActive: {
-    backgroundColor: 'rgba(204,255,0,0.12)',
-    borderColor: 'rgba(204,255,0,0.45)',
-  },
-  chipText: {
-    fontSize: 13,
+  searchIcon: { marginRight: -4 },
+  searchInput: {
+    flex: 1,
+    paddingVertical: spacing.md,
+    fontSize: 14,
     color: colors.text,
     fontFamily: 'SpaceGrotesk_400Regular',
+  },
+  counterRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 2,
+  },
+  counterLabel: { ...text.labelCaps, color: colors.muted },
+  counterValue: { ...text.dataMono, fontSize: 16 },
+  section: { gap: spacing.md },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingBottom: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  sectionTitle: { ...text.labelCaps },
+  sectionLine: { flex: 1, height: 1 },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  cell: {
+    width: '47%',
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.lg,
+    padding: spacing.md,
+    alignItems: 'center',
+    gap: spacing.xs,
+    position: 'relative',
+  },
+  cellActive: {
+    backgroundColor: 'rgba(204,255,0,0.08)',
+    borderColor: 'rgba(204,255,0,0.35)',
+  },
+  cellLabel: {
+    ...text.bodyMd,
+    color: colors.text,
+    textAlign: 'center',
+  },
+  cellLabelActive: {
+    color: colors.neon,
+    fontFamily: 'SpaceGrotesk_600SemiBold',
+  },
+  checkDot: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: colors.neon,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   btnWrap: { marginTop: 8 },
 });

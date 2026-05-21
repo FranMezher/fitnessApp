@@ -99,6 +99,9 @@ export const api = {
   deleteFoodLog: (token: string, id: string) =>
     request<{ ok: boolean }>(`/nutrition/log/${id}`, { method: 'DELETE', token }),
 
+  getNutritionHistory: (token: string, days = 7) =>
+    request<{ history: NutritionHistoryDay[] }>(`/nutrition/history?days=${days}`, { token }),
+
   getWaterLog: (token: string, date: string) =>
     request<{ glasses: number }>(`/nutrition/water?date=${date}`, { token }),
 
@@ -316,6 +319,15 @@ export interface Recipe {
   proteinG:     number;
   carbsG:       number;
   fatG:         number;
+}
+
+export interface NutritionHistoryDay {
+  date:           string;
+  totalCalories:  number;
+  totalProteinG:  number;
+  totalCarbsG:    number;
+  totalFatG:      number;
+  entryCount:     number;
 }
 
 export interface InsightRequest {

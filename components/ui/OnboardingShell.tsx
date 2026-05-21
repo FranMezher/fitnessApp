@@ -11,14 +11,17 @@ import { HudBackground } from './HudBackground';
 interface OnboardingShellProps {
   step: number;
   totalSteps: number;
-  title: string;
+  title?: string;
   subtitle?: string;
   children: React.ReactNode;
-  footer: React.ReactNode;
+  footer?: React.ReactNode;
+  onClose?: () => void;
+  /** @deprecated pass step/totalSteps instead */
+  progress?: number;
 }
 
 export function OnboardingShell({
-  step, totalSteps, title, subtitle, children, footer,
+  step, totalSteps, title, subtitle, children, footer, onClose,
 }: OnboardingShellProps) {
   const pct = (step / totalSteps) * 100;
 
@@ -30,7 +33,7 @@ export function OnboardingShell({
           <View style={styles.headerBrand}>
             <Text style={styles.brandText}>FIT<Text style={styles.brandAccent}>CORE</Text></Text>
           </View>
-          <TouchableOpacity onPress={() => router.back()}>
+          <TouchableOpacity onPress={onClose ?? (() => router.back())}>
             <Text style={styles.closeBtn}>✕</Text>
           </TouchableOpacity>
         </View>
@@ -50,18 +53,22 @@ export function OnboardingShell({
           </View>
 
           {/* Title */}
-          <View style={styles.titleSection}>
-            <Text style={styles.title}>{title}</Text>
-            {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
-          </View>
+          {title ? (
+            <View style={styles.titleSection}>
+              <Text style={styles.title}>{title}</Text>
+              {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
+            </View>
+          ) : null}
 
           {children}
         </ScrollView>
 
         {/* Sticky footer CTA */}
-        <View style={styles.footer}>
-          {footer}
-        </View>
+        {footer ? (
+          <View style={styles.footer}>
+            {footer}
+          </View>
+        ) : null}
       </SafeAreaView>
     </HudBackground>
   );

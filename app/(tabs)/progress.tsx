@@ -1,16 +1,22 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors, glass } from '@/constants/colors';
-import { Pill } from '@/components/ui/Pill';
-import { ProgressBar } from '@/components/ui/ProgressBar';
-import { GlassCard } from '@/components/ui/GlassCard';
+import { Ionicons } from '@expo/vector-icons';
+import { colors } from '@/constants/colors';
+import { text } from '@/constants/typography';
+import { spacing, radius } from '@/constants/spacing';
+import { HudBackground } from '@/components/ui/HudBackground';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useWorkoutStore } from '@/stores/useWorkoutStore';
 import { api, Achievement, LeagueEntry } from '@/lib/api';
-import { useState } from 'react';
 
 const XP_PER_LEVEL = 1000;
+
+const LEVEL_TITLES = ['Novato', 'Principiante', 'Atleta Emergente', 'Atleta', 'Élite', 'Leyenda'];
+
+function levelTitle(level: number): string {
+  return LEVEL_TITLES[Math.min(level - 1, LEVEL_TITLES.length - 1)];
+}
 
 function currentWeekMonday(): string {
   const d = new Date();
@@ -28,12 +34,7 @@ export default function ProgressScreen() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!token) {
-      setAchievements([]);
-      setLeague([]);
-      setLoading(false);
-      return;
-    }
+    if (!token) { setLoading(false); return; }
     setLoading(true);
     Promise.all([
       api.getAchievements(token).then((r) => setAchievements(r.achievements)),
@@ -42,7 +43,7 @@ export default function ProgressScreen() {
     ]).finally(() => setLoading(false));
   }, [token]);
 
-  const { totalXp, level, xpInLevel, levelPct } = useMemo(() => {
+  const { level, xpInLevel, levelPct, totalXp } = useMemo(() => {
     const xp = achievements.filter((a) => a.unlocked).reduce((s, a) => s + a.xpReward, 0);
     const lvl = Math.floor(xp / XP_PER_LEVEL) + 1;
     const inLevel = xp % XP_PER_LEVEL;
@@ -56,73 +57,124 @@ export default function ProgressScreen() {
   }, []);
 
   const myLeagueEntry = userId ? league.find((e) => e.userId === userId) : undefined;
+  const unlockedCount = achievements.filter((a) => a.unlocked).length;
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.title}>Tu progreso</Text>
-          <Pill color={colors.neon}>{weekLabel}</Pill>
+    <HudBackground style={styles.flex}>
+      <SafeAreaView style={styles.flex}>
+        {/* Top bar */}
+        <View style={styles.topBar}>
+          <Text style={styles.headerBrand}>FITCORE</Text>
+          <View style={styles.topBarRight}>
+            <Text style={styles.weekLabel}>{weekLabel}</Text>
+            <Ionicons name="notifications-outline" size={22} color={colors.neon} />
+          </View>
         </View>
 
         {loading ? (
-          <ActivityIndicator color={colors.neon} style={{ marginTop: 40 }} />
+          <View style={styles.center}>
+            <ActivityIndicator color={colors.neon} size="large" />
+          </View>
         ) : (
-          <>
-            {/* Level card */}
+          <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+            {/* Page title */}
+            <Text style={styles.pageTitle}>Tu Progreso</Text>
+
+            {/* Level hero card */}
             <View style={styles.levelCard}>
-              <Text style={styles.levelIcon}>🏆</Text>
-              <Text style={styles.levelTitle}>Nivel {level} · {levelTitle(level)}</Text>
-              <Text style={styles.levelSub}>{xpInLevel.toLocaleString()} / {XP_PER_LEVEL.toLocaleString()} XP para nivel {level + 1}</Text>
-              <ProgressBar pct={levelPct} />
+              <View style={styles.levelTop}>
+                <View>
+                  <Text style={styles.levelNum}>NVL {level}</Text>
+                  <Text style={styles.levelTitle}>{levelTitle(level).toUpperCase()}</Text>
+                </View>
+                <View style={styles.xpBadge}>
+                  <Text style={styles.xpBadgeText}>{totalXp.toLocaleString()} XP</Text>
+                </View>
+              </View>
+
+              <View style={styles.levelProgressWrap}>
+                <View style={styles.levelProgressTrack}>
+                  <View style={[styles.levelProgressFill, { width: `${levelPct}%` }]} />
+                </View>
+                <View style={styles.levelProgressLabels}>
+                  <Text style={styles.levelProgressSub}>{xpInLevel.toLocaleString()} / {XP_PER_LEVEL.toLocaleString()} XP</Text>
+                  <Text style={styles.levelProgressSub}>Nivel {level + 1}</Text>
+                </View>
+              </View>
             </View>
 
-            {/* Streak */}
+            {/* Streak card */}
             {(streak?.currentStreak ?? 0) > 0 && (
-              <GlassCard style={styles.streakCard}>
-                <Text style={styles.streakText}>🔥 Racha actual: <Text style={{ color: colors.neon }}>{streak!.currentStreak} días</Text></Text>
-                <Text style={styles.streakSub}>Mejor racha: {streak!.longestStreak} días</Text>
-              </GlassCard>
+              <View style={styles.streakCard}>
+                <View style={styles.streakLeft}>
+                  <Ionicons name="flame" size={32} color={colors.orange} />
+                  <View>
+                    <Text style={styles.streakNum}>{streak!.currentStreak}</Text>
+                    <Text style={styles.streakLabel}>días de racha</Text>
+                  </View>
+                </View>
+                <View style={styles.streakRight}>
+                  <Text style={styles.streakBestLabel}>MEJOR RACHA</Text>
+                  <Text style={styles.streakBestNum}>{streak!.longestStreak} días</Text>
+                </View>
+              </View>
             )}
 
             {/* Achievements */}
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Logros</Text>
-              <Text style={styles.seeAll}>{achievements.filter((a) => a.unlocked).length}/{achievements.length}</Text>
+              <Text style={styles.sectionTitle}>LOGROS</Text>
+              <View style={styles.sectionBadge}>
+                <Text style={styles.sectionBadgeText}>{unlockedCount}/{achievements.length}</Text>
+              </View>
             </View>
 
             {achievements.length === 0 ? (
-              <GlassCard style={styles.emptyCard}>
+              <View style={styles.emptyCard}>
+                <Ionicons name="trophy-outline" size={36} color={colors.dim} />
                 <Text style={styles.emptyText}>Completá entrenamientos para desbloquear logros</Text>
-              </GlassCard>
+              </View>
             ) : (
               achievements.slice(0, 6).map((a) => (
-                <View key={a.id} style={[glass, styles.achievement, !a.unlocked && styles.achievementDim]}>
-                  <View style={[styles.achieveIcon, a.unlocked
-                    ? { backgroundColor: `${colors.neon}18`, borderColor: `${colors.neon}44` }
-                    : { backgroundColor: 'rgba(255,255,255,0.04)', borderColor: colors.border }]}>
+                <View
+                  key={a.id}
+                  style={[
+                    styles.achievementRow,
+                    a.unlocked ? styles.achievementUnlocked : styles.achievementLocked,
+                  ]}
+                >
+                  <View style={[styles.achieveIconWrap, a.unlocked && styles.achieveIconWrapActive]}>
                     <Text style={styles.achieveEmoji}>{a.icon}</Text>
                   </View>
-                  <View style={styles.achieveText}>
-                    <Text style={[styles.achieveName, !a.unlocked && styles.achieveNameDim]}>{a.name}</Text>
+                  <View style={styles.achieveInfo}>
+                    <Text style={[styles.achieveName, !a.unlocked && styles.achieveNameDim]}>
+                      {a.name}
+                    </Text>
                     <Text style={styles.achieveDesc}>{a.description}</Text>
                   </View>
-                  {a.unlocked
-                    ? <Text style={styles.star}>★</Text>
-                    : <Text style={styles.xpBadge}>+{a.xpReward} XP</Text>
-                  }
+                  {a.unlocked ? (
+                    <Ionicons name="checkmark-circle" size={20} color={colors.neon} />
+                  ) : (
+                    <View style={styles.xpPill}>
+                      <Text style={styles.xpPillText}>+{a.xpReward}</Text>
+                    </View>
+                  )}
                 </View>
               ))
             )}
 
             {/* League */}
-            <Text style={[styles.sectionTitle, { marginTop: 8, marginBottom: 8 }]}>Liga semanal</Text>
+            <View style={[styles.sectionHeader, { marginTop: spacing.sm }]}>
+              <Text style={styles.sectionTitle}>LIGA SEMANAL</Text>
+              <Ionicons name="people-outline" size={16} color={colors.muted} />
+            </View>
 
             {league.length === 0 ? (
-              <GlassCard style={styles.emptyCard}>
-                <Text style={styles.emptyText}>Completá un entrenamiento esta semana para entrar a la liga</Text>
-              </GlassCard>
+              <View style={styles.emptyCard}>
+                <Ionicons name="podium-outline" size={36} color={colors.dim} />
+                <Text style={styles.emptyText}>
+                  Completá un entrenamiento esta semana para entrar a la liga
+                </Text>
+              </View>
             ) : (
               league
                 .filter((u) => u.rank <= 10)
@@ -130,97 +182,242 @@ export default function ProgressScreen() {
                 .map((u) => {
                   const isYou = u.userId === userId;
                   return (
-                    <View key={u.userId} style={[styles.leagueRow,
-                      isYou
-                        ? { backgroundColor: `${colors.neon}0d`, borderColor: colors.borderAccent }
-                        : { backgroundColor: 'rgba(255,255,255,0.04)', borderColor: colors.border },
-                    ]}>
-                      <Text style={[styles.leaguePos, { color: u.rank === 1 ? colors.gold : colors.dim }]}>
+                    <View
+                      key={u.userId}
+                      style={[styles.leagueRow, isYou && styles.leagueRowYou]}
+                    >
+                      <Text style={[
+                        styles.leaguePos,
+                        u.rank === 1 && { color: colors.gold },
+                        u.rank === 2 && { color: '#C0C0C0' },
+                        u.rank === 3 && { color: '#CD7F32' },
+                      ]}>
                         {u.rank}
                       </Text>
-                      <View style={styles.leagueAvatar}>
-                        <Text style={styles.leagueAvatarText}>{isYou ? 'Tú' : `U${u.rank}`}</Text>
+                      <View style={[styles.leagueAvatar, isYou && styles.leagueAvatarYou]}>
+                        <Text style={[styles.leagueAvatarText, isYou && { color: colors.bg }]}>
+                          {isYou ? 'TÚ' : `J${u.rank}`}
+                        </Text>
                       </View>
-                      <Text style={[styles.leagueName, isYou && styles.leagueNameYou]}>
+                      <Text style={[styles.leagueName, isYou && { color: colors.neon }]}>
                         {isYou ? 'Tú' : `Jugador ${u.rank}`}
                       </Text>
-                      <Text style={styles.leagueXp}>{u.xpTotal.toLocaleString()} XP</Text>
+                      <View style={styles.leagueXpWrap}>
+                        <Text style={[styles.leagueXp, isYou && { color: colors.neon }]}>
+                          {u.xpTotal.toLocaleString()}
+                        </Text>
+                        <Text style={styles.leagueXpLabel}>XP</Text>
+                      </View>
                     </View>
                   );
                 })
             )}
 
-            {/* My position if not in top 10 */}
+            {/* My position if outside top 10 */}
             {myLeagueEntry && myLeagueEntry.rank > 10 && (
-              <View style={[styles.leagueRow, { backgroundColor: `${colors.neon}0d`, borderColor: colors.borderAccent }]}>
-                <Text style={[styles.leaguePos, { color: colors.muted }]}>{myLeagueEntry.rank}</Text>
-                <View style={styles.leagueAvatar}>
-                  <Text style={styles.leagueAvatarText}>Tú</Text>
+              <View style={[styles.leagueRow, styles.leagueRowYou]}>
+                <Text style={styles.leaguePos}>{myLeagueEntry.rank}</Text>
+                <View style={[styles.leagueAvatar, styles.leagueAvatarYou]}>
+                  <Text style={[styles.leagueAvatarText, { color: colors.bg }]}>TÚ</Text>
                 </View>
-                <Text style={[styles.leagueName, styles.leagueNameYou]}>Tú</Text>
-                <Text style={styles.leagueXp}>{myLeagueEntry.xpTotal.toLocaleString()} XP</Text>
+                <Text style={[styles.leagueName, { color: colors.neon }]}>Tú</Text>
+                <View style={styles.leagueXpWrap}>
+                  <Text style={[styles.leagueXp, { color: colors.neon }]}>
+                    {myLeagueEntry.xpTotal.toLocaleString()}
+                  </Text>
+                  <Text style={styles.leagueXpLabel}>XP</Text>
+                </View>
               </View>
             )}
-          </>
+          </ScrollView>
         )}
-      </ScrollView>
-    </SafeAreaView>
+      </SafeAreaView>
+    </HudBackground>
   );
 }
 
-function levelTitle(level: number): string {
-  const titles = ['Novato', 'Principiante', 'Atleta Emergente', 'Atleta', 'Élite', 'Leyenda'];
-  return titles[Math.min(level - 1, titles.length - 1)];
-}
-
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
-  container: { padding: 20, gap: 8 },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
-  title: { fontSize: 22, fontWeight: '700', color: colors.text, fontFamily: 'SpaceGrotesk_700Bold' },
+  flex: { flex: 1 },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  topBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.lg,
+    height: 56,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    backgroundColor: 'rgba(8,8,8,0.85)',
+  },
+  headerBrand: { ...text.heroMd, color: colors.neon, fontSize: 20, letterSpacing: -0.5 },
+  topBarRight: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  weekLabel: { ...text.labelSm, color: colors.muted },
+  container: { padding: spacing.lg, gap: spacing.md, paddingBottom: 40 },
+  pageTitle: { ...text.headlineLg, color: colors.text, marginBottom: spacing.xs },
+
+  // Level card
   levelCard: {
     backgroundColor: 'rgba(204,255,0,0.06)',
     borderWidth: 1,
-    borderColor: colors.borderAccent,
-    borderRadius: 16,
-    padding: 14,
-    paddingHorizontal: 16,
+    borderColor: 'rgba(204,255,0,0.3)',
+    borderRadius: radius.lg,
+    padding: spacing.md,
+    gap: spacing.md,
+  },
+  levelTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  levelNum: { ...text.heroMd, color: colors.neon, fontSize: 40, lineHeight: 44 },
+  levelTitle: { ...text.labelCaps, color: colors.muted },
+  xpBadge: {
+    backgroundColor: 'rgba(204,255,0,0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(204,255,0,0.3)',
+    borderRadius: radius.full,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+  },
+  xpBadgeText: { ...text.dataMono, color: colors.neon, fontSize: 12 },
+  levelProgressWrap: { gap: 6 },
+  levelProgressTrack: {
+    height: 4,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  levelProgressFill: {
+    height: '100%',
+    backgroundColor: colors.neon,
+    borderRadius: 2,
+    shadowColor: colors.neon,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 4,
+  },
+  levelProgressLabels: { flexDirection: 'row', justifyContent: 'space-between' },
+  levelProgressSub: { ...text.labelSm, color: colors.muted },
+
+  // Streak
+  streakCard: {
+    flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    marginBottom: 4,
+    justifyContent: 'space-between',
+    backgroundColor: 'rgba(255,107,53,0.06)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,107,53,0.25)',
+    borderRadius: radius.lg,
+    padding: spacing.md,
   },
-  levelIcon: { fontSize: 36, marginBottom: 4 },
-  levelTitle: { fontSize: 17, fontWeight: '700', color: colors.neon, fontFamily: 'SpaceGrotesk_700Bold', textAlign: 'center' },
-  levelSub: { fontSize: 13, color: colors.muted, marginBottom: 8, fontFamily: 'SpaceGrotesk_400Regular' },
-  streakCard: { padding: 12, paddingHorizontal: 16, gap: 2 },
-  streakText: { fontSize: 15, fontWeight: '700', color: colors.text, fontFamily: 'SpaceGrotesk_700Bold' },
-  streakSub: { fontSize: 12, color: colors.muted, fontFamily: 'SpaceGrotesk_400Regular' },
-  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 },
-  sectionTitle: { fontSize: 15, fontWeight: '700', color: colors.text, fontFamily: 'SpaceGrotesk_700Bold' },
-  seeAll: { fontSize: 13, color: colors.neon, fontFamily: 'SpaceGrotesk_400Regular' },
-  emptyCard: { padding: 16, alignItems: 'center' },
-  emptyText: { fontSize: 13, color: colors.muted, fontFamily: 'SpaceGrotesk_400Regular', textAlign: 'center' },
-  achievement: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 11, paddingHorizontal: 14 },
-  achievementDim: { opacity: 0.6 },
-  achieveIcon: { width: 36, height: 36, borderRadius: 10, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  streakLeft: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  streakNum: { ...text.heroMd, color: colors.orange, fontSize: 36, lineHeight: 40 },
+  streakLabel: { ...text.bodyMd, color: colors.muted },
+  streakRight: { alignItems: 'flex-end' },
+  streakBestLabel: { ...text.labelSm, color: colors.muted },
+  streakBestNum: { ...text.headlineMd, color: colors.text },
+
+  // Section
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: spacing.xs,
+    marginBottom: spacing.xs,
+  },
+  sectionTitle: { ...text.labelCaps, color: colors.muted },
+  sectionBadge: {
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderRadius: radius.full,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+  },
+  sectionBadgeText: { ...text.labelSm, color: colors.text },
+
+  // Empty
+  emptyCard: {
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.lg,
+    padding: spacing.xl,
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  emptyText: { ...text.bodyMd, color: colors.muted, textAlign: 'center' },
+
+  // Achievement rows
+  achievementRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    borderWidth: 1,
+    borderRadius: radius.lg,
+    padding: spacing.md,
+    marginBottom: spacing.xs,
+  },
+  achievementUnlocked: {
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    borderColor: colors.border,
+  },
+  achievementLocked: {
+    backgroundColor: 'rgba(255,255,255,0.02)',
+    borderColor: 'rgba(255,255,255,0.05)',
+    opacity: 0.6,
+  },
+  achieveIconWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: radius.md,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  achieveIconWrapActive: {
+    backgroundColor: 'rgba(204,255,0,0.1)',
+    borderColor: 'rgba(204,255,0,0.3)',
+  },
   achieveEmoji: { fontSize: 18 },
-  achieveText: { flex: 1 },
-  achieveName: { fontSize: 15, fontWeight: '700', color: colors.text, fontFamily: 'SpaceGrotesk_700Bold' },
-  achieveNameDim: { fontWeight: '400', color: colors.muted },
-  achieveDesc: { fontSize: 12, color: colors.dim, fontFamily: 'SpaceGrotesk_400Regular' },
-  star: { color: colors.neon, fontSize: 18 },
-  xpBadge: { fontSize: 11, color: colors.muted, fontFamily: 'SpaceGrotesk_600SemiBold' },
+  achieveInfo: { flex: 1, gap: 2 },
+  achieveName: { ...text.headlineMd, color: colors.text, fontSize: 15 },
+  achieveNameDim: { color: colors.muted },
+  achieveDesc: { ...text.bodyMd, color: colors.dim },
+  xpPill: {
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderRadius: radius.full,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+  },
+  xpPillText: { ...text.labelSm, color: colors.muted },
+
+  // League rows
   leagueRow: {
-    flexDirection: 'row', alignItems: 'center', gap: 10,
-    borderWidth: 1, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 9,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.lg,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 10,
+    marginBottom: spacing.xs,
   },
-  leaguePos: { fontSize: 16, fontWeight: '700', width: 18, fontFamily: 'SpaceGrotesk_700Bold' },
+  leagueRowYou: {
+    backgroundColor: 'rgba(204,255,0,0.06)',
+    borderColor: 'rgba(204,255,0,0.3)',
+  },
+  leaguePos: { ...text.dataMono, color: colors.dim, width: 22, fontSize: 16 },
   leagueAvatar: {
-    width: 30, height: 30, borderRadius: 15,
-    backgroundColor: 'rgba(255,255,255,0.08)', alignItems: 'center', justifyContent: 'center',
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  leagueAvatarText: { fontSize: 10, fontWeight: '700', color: colors.muted, fontFamily: 'SpaceGrotesk_700Bold' },
-  leagueName: { flex: 1, fontSize: 15, color: colors.text, fontFamily: 'SpaceGrotesk_400Regular' },
-  leagueNameYou: { color: colors.neon, fontWeight: '700', fontFamily: 'SpaceGrotesk_700Bold' },
-  leagueXp: { fontSize: 13, color: colors.muted, fontFamily: 'SpaceGrotesk_400Regular' },
+  leagueAvatarYou: { backgroundColor: colors.neon },
+  leagueAvatarText: { ...text.labelSm, color: colors.muted, fontSize: 9 },
+  leagueName: { flex: 1, ...text.bodyLg, color: colors.text },
+  leagueXpWrap: { alignItems: 'flex-end' },
+  leagueXp: { ...text.dataMono, color: colors.muted, fontSize: 15 },
+  leagueXpLabel: { ...text.labelSm, color: colors.dim, fontSize: 9 },
 });
