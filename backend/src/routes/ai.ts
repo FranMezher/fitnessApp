@@ -3,8 +3,11 @@ import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import Anthropic from '@anthropic-ai/sdk';
 import { authMiddleware } from '../middleware/auth.js';
+import { rateLimit } from '../middleware/rateLimit.js';
 
-export const aiRouter = new Hono().use('*', authMiddleware);
+const aiLimit = rateLimit(30); // 30 llamadas/hora por usuario
+
+export const aiRouter = new Hono().use('*', authMiddleware).use('*', aiLimit);
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -136,8 +139,11 @@ Genera exactamente 3 recetas simples. Responde SOLO con este JSON:
   }
 });
 
+// ~5MB in base64 ≈ 6.8M chars; we cap at 7M to reject oversized uploads
+const MAX_IMAGE_B64_CHARS = 7_000_000;
+
 const receiptSchema = z.object({
-  imageBase64: z.string().min(1),
+  imageBase64: z.string().min(1).max(MAX_IMAGE_B64_CHARS),
   mediaType: z.enum(['image/jpeg', 'image/png', 'image/webp']).default('image/jpeg'),
 });
 
@@ -180,7 +186,7 @@ const foodEntriesResponseSchema = z.object({
 });
 
 const parseFoodSchema = z.object({
-  text: z.string().min(1),
+  text: z.string().min(1).max(500),
 });
 
 // POST /ai/parse-food — natural language food description → FoodLogEntry[]
@@ -216,7 +222,7 @@ Estimá los valores para la cantidad mencionada. Si no se menciona cantidad, asu
 });
 
 const analyzeFoodPhotoSchema = z.object({
-  imageBase64: z.string().min(1),
+  imageBase64: z.string().min(1).max(MAX_IMAGE_B64_CHARS),
   mediaType: z.enum(['image/jpeg', 'image/png', 'image/webp']).default('image/jpeg'),
 });
 

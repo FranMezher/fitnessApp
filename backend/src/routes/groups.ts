@@ -9,7 +9,10 @@ import { authMiddleware } from '../middleware/auth.js';
 export const groupsRouter = new Hono().use('*', authMiddleware);
 
 function randomCode() {
-  return Math.random().toString(36).substring(2, 8).toUpperCase();
+  return Array.from(crypto.getRandomValues(new Uint8Array(4)))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('')
+    .toUpperCase();
 }
 
 // GET /groups/mine — get all groups the user belongs to

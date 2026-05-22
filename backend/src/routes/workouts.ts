@@ -40,8 +40,11 @@ workoutsRouter.get('/my-plan', async (c) => {
   return c.json({ plan: null, exercises: [] });
 });
 
-// POST /workouts/seed — wipe all plan data and re-seed from scratch (always safe to re-run)
+// POST /workouts/seed — wipe all plan data and re-seed from scratch (development only)
 workoutsRouter.post('/seed', async (_c) => {
+  if (process.env.NODE_ENV === 'production') {
+    return _c.json({ error: 'Not available in production' }, 403);
+  }
   // Wipe all existing plan data before re-seeding to avoid stale rows
   await db.delete(planExercises);
   await db.delete(workoutPlans);

@@ -11,7 +11,16 @@ import { groupsRouter } from './routes/groups.js';
 const app = new Hono().basePath('/api');
 
 app.use('*', logger());
-app.use('*', cors({ origin: '*', allowHeaders: ['Authorization', 'Content-Type'] }));
+
+const ALLOWED_ORIGINS = [
+  'https://fitnessapp-ebon-omega.vercel.app',
+];
+app.use('*', cors({
+  origin: (origin) => (!origin || ALLOWED_ORIGINS.includes(origin)) ? origin : null,
+  allowHeaders: ['Authorization', 'Content-Type'],
+  allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  credentials: true,
+}));
 
 app.get('/health', (c) => c.json({ ok: true, version: '1.0.0' }));
 
@@ -23,9 +32,10 @@ app.route('/ai',            aiRouter);
 app.route('/groups',        groupsRouter);
 
 app.onError((err, c) => {
-  console.error(err);
+  console.error('[ERROR]', err);
   const status = 'status' in err ? (err as { status: number }).status : 500;
-  return c.json({ error: err.message }, status as never);
+  const isClientError = typeof status === 'number' && status >= 400 && status < 500;
+  return c.json({ error: isClientError ? err.message : 'Internal server error' }, status as never);
 });
 
 export default app;
