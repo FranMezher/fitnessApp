@@ -34,6 +34,15 @@ const logSchema = z.object({
 nutritionRouter.post('/log', zValidator('json', logSchema), async (c) => {
   const user = c.get('user');
   const body = c.req.valid('json');
+
+  const today = new Date();
+  const minDate = new Date(today);
+  minDate.setDate(today.getDate() - 30);
+  const parsed = new Date(body.date);
+  if (parsed > today || parsed < minDate) {
+    return c.json({ error: 'Invalid date. Must be within the last 30 days.' }, 400);
+  }
+
   const id = crypto.randomUUID();
   await db.insert(foodLog).values({ id, userId: user.id, ...body });
   return c.json({ id }, 201);

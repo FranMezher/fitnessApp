@@ -32,8 +32,16 @@ export default function RegisterScreen() {
       Alert.alert('Email inválido', 'Ingresá un email válido.');
       return;
     }
-    if (password.length < 6) {
-      Alert.alert('Contraseña corta', 'Mínimo 6 caracteres.');
+    if (password.length < 8) {
+      Alert.alert('Contraseña corta', 'Mínimo 8 caracteres.');
+      return;
+    }
+    if (!/[A-Z]/.test(password)) {
+      Alert.alert('Contraseña débil', 'Debe tener al menos una mayúscula.');
+      return;
+    }
+    if (!/[0-9]/.test(password)) {
+      Alert.alert('Contraseña débil', 'Debe tener al menos un número.');
       return;
     }
     if (password !== confirm) {
@@ -134,7 +142,7 @@ export default function RegisterScreen() {
               <Text style={styles.fieldLabel}>CONTRASEÑA</Text>
               <TextInput
                 style={styles.input}
-                placeholder="Mínimo 6 caracteres"
+                placeholder="Mín. 8 chars, 1 mayúscula, 1 número"
                 placeholderTextColor={colors.dim}
                 secureTextEntry
                 selectionColor={colors.neon}

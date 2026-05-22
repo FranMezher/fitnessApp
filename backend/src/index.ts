@@ -22,6 +22,15 @@ app.use('*', cors({
   credentials: true,
 }));
 
+app.use('*', async (c, next) => {
+  await next();
+  c.header('X-Content-Type-Options', 'nosniff');
+  c.header('X-Frame-Options', 'DENY');
+  c.header('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  c.header('Referrer-Policy', 'no-referrer');
+  c.header('Content-Security-Policy', "default-src 'none'");
+});
+
 app.get('/health', (c) => c.json({ ok: true, version: '1.0.0' }));
 
 app.route('/profile',       profileRouter);
