@@ -110,7 +110,7 @@ export default function StretchScreen() {
         </View>
 
         {/* Stretch card */}
-        <View style={[glassNeon, styles.stretchCard]}>
+        <View style={[glass, styles.stretchCard]}>
           <View style={styles.musclePill}>
             <Text style={styles.musclePillText}>{current.muscle.toUpperCase()}</Text>
           </View>
@@ -222,7 +222,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 14,
     marginVertical: 12,
-    ...glowShadows.teal,
   },
   timerValue: {
     fontSize: 48,

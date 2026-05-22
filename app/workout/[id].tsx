@@ -117,7 +117,7 @@ export default function WorkoutDetailScreen() {
             <View style={styles.heroContent}>
               <View style={styles.heroBadgeRow}>
                 {plan?.difficulty && (
-                  <View style={[glassNeon, styles.diffBadge]}>
+                  <View style={[glass, styles.diffBadge]}>
                     <Text style={styles.diffBadgeText}>
                       {DIFFICULTY_LABELS[plan.difficulty] ?? plan.difficulty.toUpperCase()}
                     </Text>
@@ -171,7 +171,7 @@ export default function WorkoutDetailScreen() {
                   style={[
                     glass,
                     styles.exCard,
-                    isActive && { borderColor: colors.neon + '50', ...glowShadows.neon },
+                    isActive && styles.exCardActive,
                     isDone && styles.exCardDone,
                   ]}
                   activeOpacity={0.8}
@@ -307,6 +307,7 @@ const styles = StyleSheet.create({
     paddingRight: spacing.md,
     gap: spacing.md,
   },
+  exCardActive: { borderColor: 'rgba(204,255,0,0.4)' },
   exCardDone: { opacity: 0.45 },
   exAccent: { width: 3, alignSelf: 'stretch' },
   exInfo: { flex: 1, gap: 4, paddingLeft: spacing.xs },

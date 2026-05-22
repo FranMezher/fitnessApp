@@ -5,12 +5,12 @@ import {
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
-import { colors, glass, glassNeon } from '@/constants/colors';
+import { colors, glass } from '@/constants/colors';
 import { useNutritionStore } from '@/stores/useNutritionStore';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { api } from '@/lib/api';
 
-type Mode = 'pick' | 'text' | 'photo' | 'audio' | 'search';
+type Mode = 'pick' | 'text' | 'photo' | 'audio' | 'manual';
 
 interface DetectedFood {
   foodName: string;
@@ -35,6 +35,14 @@ export function AddFoodModal({ visible, mealType, date, onClose, onAdded }: Prop
   const [preview, setPreview] = useState<DetectedFood[]>([]);
   const [confirming, setConfirming] = useState(false);
 
+  // Manual entry state
+  const [manualName, setManualName]   = useState('');
+  const [manualCal, setManualCal]     = useState('');
+  const [manualProt, setManualProt]   = useState('');
+  const [manualCarbs, setManualCarbs] = useState('');
+  const [manualFat, setManualFat]     = useState('');
+  const [manualSaving, setManualSaving] = useState(false);
+
   const { addFood } = useNutritionStore();
   const { token } = useAuthStore();
 
@@ -44,6 +52,11 @@ export function AddFoodModal({ visible, mealType, date, onClose, onAdded }: Prop
     setPreview([]);
     setLoading(false);
     setConfirming(false);
+    setManualName('');
+    setManualCal('');
+    setManualProt('');
+    setManualCarbs('');
+    setManualFat('');
   }
 
   function handleClose() {
@@ -57,7 +70,6 @@ export function AddFoodModal({ visible, mealType, date, onClose, onAdded }: Prop
     try {
       const { entries } = await api.parseFoodText(token, text.trim());
       setPreview(entries as DetectedFood[]);
-      setMode('pick'); // re-use pick layout to show preview
     } catch {
       Alert.alert('Error', 'No se pudo analizar el texto. Intentá de nuevo.');
     } finally {
@@ -124,7 +136,26 @@ export function AddFoodModal({ visible, mealType, date, onClose, onAdded }: Prop
     setPreview((prev) => prev.filter((_, i) => i !== index));
   }
 
-  // If preview is available, show it regardless of mode
+  async function handleManualAdd() {
+    const name = manualName.trim();
+    if (!name) { Alert.alert('Nombre requerido', 'Ingresá el nombre del alimento.'); return; }
+    const cal  = parseFloat(manualCal)  || 0;
+    const prot = parseFloat(manualProt) || 0;
+    const carbs = parseFloat(manualCarbs) || 0;
+    const fat  = parseFloat(manualFat)  || 0;
+    setManualSaving(true);
+    try {
+      await addFood({ date, mealType, foodName: name, calories: Math.round(cal), proteinG: prot, carbsG: carbs, fatG: fat });
+      resetModal();
+      onAdded();
+    } catch {
+      Alert.alert('Error', 'No se pudo guardar el alimento.');
+    } finally {
+      setManualSaving(false);
+    }
+  }
+
+  // ── Preview screen ───────────────────────────────────────────────────────────
   if (preview.length > 0) {
     return (
       <Modal visible={visible} transparent animationType="slide" onRequestClose={handleClose}>
@@ -182,13 +213,13 @@ export function AddFoodModal({ visible, mealType, date, onClose, onAdded }: Prop
     );
   }
 
+  // ── Main modal ───────────────────────────────────────────────────────────────
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={handleClose}>
       <KeyboardAvoidingView style={styles.overlay} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <View style={styles.sheet}>
           <View style={styles.handle} />
 
-          {/* Header */}
           <View style={styles.sheetHeader}>
             {mode !== 'pick' ? (
               <TouchableOpacity onPress={() => setMode('pick')} style={styles.backBtn}>
@@ -196,11 +227,11 @@ export function AddFoodModal({ visible, mealType, date, onClose, onAdded }: Prop
               </TouchableOpacity>
             ) : <View style={{ width: 32 }} />}
             <Text style={styles.sheetTitle}>
-              {mode === 'pick'  ? 'Agregar alimento'      : ''}
-              {mode === 'text'  ? 'Describir con texto'   : ''}
-              {mode === 'photo' ? 'Foto de la comida'     : ''}
-              {mode === 'audio' ? 'Dictar por voz'        : ''}
-              {mode === 'search'? 'Buscar alimento'       : ''}
+              {mode === 'pick'   ? 'Agregar alimento'      : ''}
+              {mode === 'text'   ? 'Describir con texto'   : ''}
+              {mode === 'photo'  ? 'Foto de la comida'     : ''}
+              {mode === 'audio'  ? 'Dictar por voz'        : ''}
+              {mode === 'manual' ? 'Carga manual'          : ''}
             </Text>
             <TouchableOpacity onPress={handleClose}>
               <Text style={styles.closeBtnText}>✕</Text>
@@ -210,17 +241,18 @@ export function AddFoodModal({ visible, mealType, date, onClose, onAdded }: Prop
           {/* ── Pick mode ── */}
           {mode === 'pick' && (
             <View style={styles.pickGrid}>
-              <MethodBtn icon="✏️" label="Texto" onPress={() => setMode('text')} />
-              <MethodBtn icon="📷" label="Foto" onPress={() => setMode('photo')} />
-              <MethodBtn icon="🎤" label="Audio" onPress={() => setMode('audio')} />
-              <MethodBtn
-                icon="🔍"
-                label="Buscar"
-                onPress={() => {
-                  handleClose();
-                  router.push({ pathname: '/nutrition/search', params: { meal: mealType, date } });
-                }}
-              />
+              <MethodBtn icon="🔍" label="Buscar" onPress={() => {
+                handleClose();
+                router.push({ pathname: '/nutrition/search', params: { meal: mealType, date } });
+              }} />
+              <MethodBtn icon="✏️" label="Texto IA" onPress={() => setMode('text')} />
+              <MethodBtn icon="📷" label="Foto IA"  onPress={() => setMode('photo')} />
+              <MethodBtn icon="🎤" label="Voz IA"   onPress={() => setMode('audio')} />
+              <MethodBtn icon="📱" label="Escáner"  onPress={() => {
+                handleClose();
+                router.push({ pathname: '/nutrition/scanner', params: { meal: mealType, date } } as never);
+              }} />
+              <MethodBtn icon="✍️" label="Manual"   onPress={() => setMode('manual')} />
             </View>
           )}
 
@@ -232,7 +264,7 @@ export function AddFoodModal({ visible, mealType, date, onClose, onAdded }: Prop
               </Text>
               <TextInput
                 style={styles.textArea}
-                placeholder="Ej: comí 200g de pollo a la plancha con arroz y ensalada"
+                placeholder="Ej: 200g de pollo a la plancha con arroz y ensalada"
                 placeholderTextColor={colors.dim}
                 multiline
                 numberOfLines={4}
@@ -241,15 +273,12 @@ export function AddFoodModal({ visible, mealType, date, onClose, onAdded }: Prop
                 autoFocus
               />
               <TouchableOpacity
-                style={[styles.analyzeBtn, (!textInput.trim() || loading) && styles.analyzeBtnDisabled]}
+                style={[styles.confirmBtn, (!textInput.trim() || loading) && styles.confirmBtnDisabled]}
                 onPress={() => analyzeText(textInput)}
                 disabled={!textInput.trim() || loading}
                 activeOpacity={0.8}
               >
-                {loading
-                  ? <ActivityIndicator color={colors.bg} />
-                  : <Text style={styles.analyzeBtnText}>Analizar →</Text>
-                }
+                {loading ? <ActivityIndicator color={colors.bg} /> : <Text style={styles.confirmBtnText}>Analizar con IA →</Text>}
               </TouchableOpacity>
             </View>
           )}
@@ -258,7 +287,7 @@ export function AddFoodModal({ visible, mealType, date, onClose, onAdded }: Prop
           {mode === 'photo' && (
             <View style={styles.photoSection}>
               <Text style={styles.inputHint}>
-                Sacá una foto o elegí una imagen de tu galería y Claude identificará los alimentos.
+                Sacá una foto o elegí una imagen de tu galería y la IA identificará los alimentos.
               </Text>
               {loading ? (
                 <View style={styles.loadingWrap}>
@@ -267,19 +296,11 @@ export function AddFoodModal({ visible, mealType, date, onClose, onAdded }: Prop
                 </View>
               ) : (
                 <View style={styles.photoButtons}>
-                  <TouchableOpacity
-                    style={[glassNeon, styles.photoBtn]}
-                    onPress={() => pickAndAnalyzePhoto(true)}
-                    activeOpacity={0.8}
-                  >
+                  <TouchableOpacity style={[glass, styles.photoBtn]} onPress={() => pickAndAnalyzePhoto(true)} activeOpacity={0.8}>
                     <Text style={styles.photoBtnIcon}>📷</Text>
                     <Text style={styles.photoBtnLabel}>Tomar foto</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[glass, styles.photoBtn]}
-                    onPress={() => pickAndAnalyzePhoto(false)}
-                    activeOpacity={0.8}
-                  >
+                  <TouchableOpacity style={[glass, styles.photoBtn]} onPress={() => pickAndAnalyzePhoto(false)} activeOpacity={0.8}>
                     <Text style={styles.photoBtnIcon}>🖼️</Text>
                     <Text style={styles.photoBtnLabel}>Galería</Text>
                   </TouchableOpacity>
@@ -309,17 +330,106 @@ export function AddFoodModal({ visible, mealType, date, onClose, onAdded }: Prop
                 autoFocus
               />
               <TouchableOpacity
-                style={[styles.analyzeBtn, (!textInput.trim() || loading) && styles.analyzeBtnDisabled]}
+                style={[styles.confirmBtn, (!textInput.trim() || loading) && styles.confirmBtnDisabled]}
                 onPress={() => analyzeText(textInput)}
                 disabled={!textInput.trim() || loading}
                 activeOpacity={0.8}
               >
-                {loading
-                  ? <ActivityIndicator color={colors.bg} />
-                  : <Text style={styles.analyzeBtnText}>Analizar →</Text>
-                }
+                {loading ? <ActivityIndicator color={colors.bg} /> : <Text style={styles.confirmBtnText}>Analizar con IA →</Text>}
               </TouchableOpacity>
             </View>
+          )}
+
+          {/* ── Manual mode ── */}
+          {mode === 'manual' && (
+            <ScrollView style={styles.manualScroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+              <Text style={styles.inputHint}>Ingresá los datos nutricionales del alimento.</Text>
+
+              <View style={styles.manualField}>
+                <Text style={styles.manualLabel}>NOMBRE DEL ALIMENTO *</Text>
+                <TextInput
+                  style={styles.manualInput}
+                  placeholder="Ej: Arroz con pollo"
+                  placeholderTextColor={colors.dim}
+                  value={manualName}
+                  onChangeText={setManualName}
+                  autoFocus
+                />
+              </View>
+
+              <View style={styles.manualRow}>
+                <View style={[styles.manualField, styles.manualFieldHalf]}>
+                  <Text style={styles.manualLabel}>CALORÍAS (kcal)</Text>
+                  <TextInput
+                    style={styles.manualInput}
+                    placeholder="0"
+                    placeholderTextColor={colors.dim}
+                    keyboardType="decimal-pad"
+                    value={manualCal}
+                    onChangeText={setManualCal}
+                  />
+                </View>
+                <View style={[styles.manualField, styles.manualFieldHalf]}>
+                  <Text style={[styles.manualLabel, { color: colors.neon }]}>PROTEÍNAS (g)</Text>
+                  <TextInput
+                    style={[styles.manualInput, { borderColor: 'rgba(204,255,0,0.25)' }]}
+                    placeholder="0"
+                    placeholderTextColor={colors.dim}
+                    keyboardType="decimal-pad"
+                    value={manualProt}
+                    onChangeText={setManualProt}
+                  />
+                </View>
+              </View>
+
+              <View style={styles.manualRow}>
+                <View style={[styles.manualField, styles.manualFieldHalf]}>
+                  <Text style={[styles.manualLabel, { color: colors.orange }]}>CARBOHIDRATOS (g)</Text>
+                  <TextInput
+                    style={[styles.manualInput, { borderColor: 'rgba(255,107,53,0.25)' }]}
+                    placeholder="0"
+                    placeholderTextColor={colors.dim}
+                    keyboardType="decimal-pad"
+                    value={manualCarbs}
+                    onChangeText={setManualCarbs}
+                  />
+                </View>
+                <View style={[styles.manualField, styles.manualFieldHalf]}>
+                  <Text style={[styles.manualLabel, { color: colors.teal }]}>GRASAS (g)</Text>
+                  <TextInput
+                    style={[styles.manualInput, { borderColor: 'rgba(61,255,160,0.25)' }]}
+                    placeholder="0"
+                    placeholderTextColor={colors.dim}
+                    keyboardType="decimal-pad"
+                    value={manualFat}
+                    onChangeText={setManualFat}
+                  />
+                </View>
+              </View>
+
+              {/* Preview total */}
+              {(manualCal || manualProt || manualCarbs || manualFat) ? (
+                <View style={styles.manualPreview}>
+                  <Text style={styles.manualPreviewKcal}>{Math.round(parseFloat(manualCal) || 0)} kcal</Text>
+                  <View style={styles.manualPreviewMacros}>
+                    <Text style={[styles.macroChip, { color: colors.neon }]}>{parseFloat(manualProt) || 0}g P</Text>
+                    <Text style={styles.macroDot}>·</Text>
+                    <Text style={[styles.macroChip, { color: colors.orange }]}>{parseFloat(manualCarbs) || 0}g C</Text>
+                    <Text style={styles.macroDot}>·</Text>
+                    <Text style={[styles.macroChip, { color: colors.teal }]}>{parseFloat(manualFat) || 0}g G</Text>
+                  </View>
+                </View>
+              ) : null}
+
+              <TouchableOpacity
+                style={[styles.confirmBtn, (!manualName.trim() || manualSaving) && styles.confirmBtnDisabled, { marginTop: 8, marginBottom: 8 }]}
+                onPress={handleManualAdd}
+                disabled={!manualName.trim() || manualSaving}
+                activeOpacity={0.8}
+              >
+                {manualSaving ? <ActivityIndicator color={colors.bg} /> : <Text style={styles.confirmBtnText}>Guardar alimento</Text>}
+              </TouchableOpacity>
+            </ScrollView>
           )}
         </View>
       </KeyboardAvoidingView>
@@ -348,7 +458,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 24,
     paddingBottom: 32,
     paddingHorizontal: 20,
-    maxHeight: '85%',
+    maxHeight: '88%',
   },
   handle: {
     width: 36,
@@ -374,32 +484,36 @@ const styles = StyleSheet.create({
     fontFamily: 'SpaceGrotesk_700Bold',
   },
   closeBtnText: { fontSize: 16, color: colors.muted, padding: 4 },
+
   pickGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 12,
-    paddingVertical: 16,
+    gap: 10,
+    paddingVertical: 12,
     justifyContent: 'space-between',
   },
   methodBtn: {
-    width: '47%',
-    paddingVertical: 20,
+    width: '31%',
+    paddingVertical: 18,
     alignItems: 'center',
     gap: 8,
-    borderRadius: 16,
+    borderRadius: 14,
   },
-  methodIcon: { fontSize: 32 },
+  methodIcon: { fontSize: 28 },
   methodLabel: {
-    fontSize: 14,
+    fontSize: 12,
     color: colors.text,
     fontFamily: 'SpaceGrotesk_600SemiBold',
+    textAlign: 'center',
   },
+
   inputSection: { paddingVertical: 8, gap: 14 },
   inputHint: {
     fontSize: 13,
     color: colors.muted,
     fontFamily: 'SpaceGrotesk_400Regular',
     lineHeight: 18,
+    marginBottom: 4,
   },
   textArea: {
     borderWidth: 1,
@@ -413,19 +527,7 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
     backgroundColor: 'rgba(255,255,255,0.04)',
   },
-  analyzeBtn: {
-    backgroundColor: colors.neon,
-    borderRadius: 12,
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
-  analyzeBtnDisabled: { opacity: 0.4 },
-  analyzeBtnText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: colors.bg,
-    fontFamily: 'SpaceGrotesk_700Bold',
-  },
+
   photoSection: { paddingVertical: 8, gap: 20 },
   photoButtons: { flexDirection: 'row', gap: 12 },
   photoBtn: {
@@ -443,6 +545,7 @@ const styles = StyleSheet.create({
   },
   loadingWrap: { alignItems: 'center', paddingVertical: 40, gap: 16 },
   loadingText: { fontSize: 14, color: colors.muted, fontFamily: 'SpaceGrotesk_400Regular' },
+
   audioHero: { alignItems: 'center', paddingVertical: 8, gap: 6 },
   audioMic: { fontSize: 48 },
   audioTitle: {
@@ -458,8 +561,49 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 18,
   },
+
+  // Manual entry
+  manualScroll: { paddingTop: 4, maxHeight: 420 },
+  manualField: { gap: 6, marginBottom: 12 },
+  manualFieldHalf: { flex: 1 },
+  manualRow: { flexDirection: 'row', gap: 10 },
+  manualLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: colors.muted,
+    fontFamily: 'SpaceGrotesk_600SemiBold',
+    letterSpacing: 1.2,
+  },
+  manualInput: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    color: colors.text,
+    fontFamily: 'SpaceGrotesk_400Regular',
+    fontSize: 15,
+    backgroundColor: 'rgba(255,255,255,0.04)',
+  },
+  manualPreview: {
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    marginBottom: 4,
+    gap: 4,
+  },
+  manualPreviewKcal: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: colors.neon,
+    fontFamily: 'SpaceGrotesk_700Bold',
+  },
+  manualPreviewMacros: { flexDirection: 'row', gap: 6, alignItems: 'center' },
+
+  // Preview & confirm
   previewScroll: { maxHeight: 320, marginBottom: 16 },
-  previewRow: { flexDirection: 'row', alignItems: 'center', padding: 12, marginBottom: 8 },
+  previewRow: { flexDirection: 'row', alignItems: 'center', padding: 12, marginBottom: 8, borderRadius: 12 },
   previewInfo: { flex: 1, gap: 4 },
   previewName: {
     fontSize: 15,

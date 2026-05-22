@@ -228,7 +228,7 @@ export default function WorkoutActiveScreen() {
 
           {/* Next card */}
           {currentEx && (
-            <View style={[glassNeon, styles.nextCard]}>
+            <View style={[glass, styles.nextCard]}>
               <Text style={styles.nextCardLabel}>
                 {currentSet > 1 ? 'PRÓXIMA SERIE' : 'SIGUIENTE EJERCICIO'}
               </Text>
@@ -243,23 +243,24 @@ export default function WorkoutActiveScreen() {
 
           {/* Bottom controls */}
           <View style={styles.bottomPanel}>
-            <View style={[glass, styles.controlsRow]}>
+            <View style={[glass, styles.statsRow]}>
               <View style={styles.statMini}>
                 <Text style={styles.statMiniLabel}>CALORÍAS</Text>
                 <Text style={styles.statMiniValue}>{caloriesBurned}</Text>
               </View>
-              <TouchableOpacity
-                style={styles.playBtnOrange}
-                onPress={() => { setRestSeconds(0); setPhase('exercise'); }}
-                activeOpacity={0.85}
-              >
-                <Ionicons name="play-skip-forward" size={24} color="#fff" />
-              </TouchableOpacity>
+              <View style={styles.statDivider} />
               <View style={styles.statMini}>
                 <Text style={styles.statMiniLabel}>SERIES</Text>
                 <Text style={styles.statMiniValue}>{loggedSets.length}</Text>
               </View>
             </View>
+            <TouchableOpacity
+              style={styles.completeCta}
+              onPress={() => { setRestSeconds(0); setPhase('exercise'); }}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.completeCtaText}>SALTEAR DESCANSO →</Text>
+            </TouchableOpacity>
           </View>
         </SafeAreaView>
       </HudBackground>
@@ -295,26 +296,24 @@ export default function WorkoutActiveScreen() {
           </View>
         </View>
 
-        {/* Timer + exercise name */}
+        {/* Exercise name */}
         <View style={styles.timerSection}>
-          <Text style={styles.mainTimer}>{mm}:{ss}</Text>
           <Text style={styles.exerciseName}>{currentEx.name}</Text>
-          {currentEx.muscleGroup && (
-            <Text style={styles.muscleLabel}>{currentEx.muscleGroup}</Text>
-          )}
-          {nextEx && (
-            <View style={[glass, styles.nextChip]}>
-              <Text style={styles.nextChipText}>Siguiente: {nextEx.name}</Text>
-            </View>
-          )}
+          <View style={styles.exerciseMeta}>
+            {currentEx.muscleGroup && (
+              <Text style={styles.muscleLabel}>{currentEx.muscleGroup}</Text>
+            )}
+            {nextEx && (
+              <Text style={styles.nextChipText} numberOfLines={1}>· Sig: {nextEx.name}</Text>
+            )}
+          </View>
         </View>
 
         {/* Form area */}
         <View style={[glass, styles.formArea]}>
-          {/* Series dots */}
-          <View style={styles.seriesDotsOverlay}>
-            <Text style={styles.seriesOverlayLabel}>SERIE</Text>
-            <Text style={styles.seriesOverlayValue}>{currentSet}/{currentEx.sets}</Text>
+          {/* Series row — horizontal */}
+          <View style={styles.seriesRow}>
+            <Text style={styles.seriesLabel}>SERIE <Text style={styles.seriesValue}>{currentSet}/{currentEx.sets}</Text></Text>
             <View style={styles.seriesDots}>
               {Array.from({ length: currentEx.sets }, (_, i) => (
                 <View
@@ -330,9 +329,8 @@ export default function WorkoutActiveScreen() {
             </View>
           </View>
 
-          {/* Rep counter */}
+          {/* Rep counter hero */}
           <View style={styles.repCenter}>
-            <RepBadges completed={Math.min(actualReps, currentEx.reps)} total={currentEx.reps} />
             <View style={styles.repRow}>
               <TouchableOpacity
                 style={styles.repMinus}
@@ -348,57 +346,51 @@ export default function WorkoutActiveScreen() {
                 <Text style={styles.repPlusText}>+</Text>
               </TouchableOpacity>
             </View>
+            <RepBadges completed={Math.min(actualReps, currentEx.reps)} total={currentEx.reps} size={30} />
             <Text style={styles.repTargetLabel}>Objetivo: {currentEx.reps} reps</Text>
           </View>
 
-          {/* Weight input */}
-          <View style={styles.weightRow}>
-            <Text style={styles.weightLabel}>Peso (kg)</Text>
-            <TextInput
-              style={styles.weightInput}
-              placeholder="0"
-              placeholderTextColor={colors.dim}
-              keyboardType="decimal-pad"
-              value={weight !== null ? String(weight) : ''}
-              onChangeText={(val) => setWeight(val === '' ? null : parseFloat(val) || null)}
-            />
-          </View>
-
-          {/* Instructions */}
-          {currentEx.instructions && (
-            <TouchableOpacity onPress={() => setShowInstructions((v) => !v)} activeOpacity={0.8}>
-              <View style={styles.instructionsToggle}>
+          {/* Weight + instructions row */}
+          <View style={styles.bottomInfoRow}>
+            <View style={styles.weightBlock}>
+              <Text style={styles.weightLabel}>PESO (KG)</Text>
+              <TextInput
+                style={styles.weightInput}
+                placeholder="—"
+                placeholderTextColor={colors.dim}
+                keyboardType="decimal-pad"
+                value={weight !== null ? String(weight) : ''}
+                onChangeText={(val) => setWeight(val === '' ? null : parseFloat(val) || null)}
+              />
+            </View>
+            {currentEx.instructions && (
+              <TouchableOpacity
+                style={styles.instructionsBtn}
+                onPress={() => setShowInstructions((v) => !v)}
+                activeOpacity={0.8}
+              >
                 <Ionicons name={showInstructions ? 'chevron-up' : 'chevron-down'} size={14} color={colors.muted} />
                 <Text style={styles.instructionsToggleText}>Instrucciones</Text>
-              </View>
-              {showInstructions && (
-                <Text style={styles.instructionsText}>{currentEx.instructions}</Text>
-              )}
-            </TouchableOpacity>
+              </TouchableOpacity>
+            )}
+          </View>
+          {showInstructions && currentEx.instructions && (
+            <Text style={styles.instructionsText}>{currentEx.instructions}</Text>
           )}
         </View>
 
         {/* Bottom controls */}
         <View style={styles.bottomPanel}>
-          <View style={[glass, styles.controlsRow]}>
+          <View style={[glass, styles.statsRow]}>
             <View style={styles.statMini}>
               <Text style={styles.statMiniLabel}>CALORÍAS</Text>
               <Text style={styles.statMiniValue}>{caloriesBurned}</Text>
             </View>
-            <TouchableOpacity
-              style={styles.playBtn}
-              onPress={completeSerie}
-              activeOpacity={0.85}
-            >
-              <Ionicons name="checkmark" size={32} color={colors.bg} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.statMiniBtn}
-              onPress={() => finishWorkout(loggedSets)}
-            >
-              <Text style={styles.statMiniLabel}>FINALIZAR</Text>
-              <Text style={styles.finishSmall}>Terminar</Text>
-            </TouchableOpacity>
+            <View style={styles.statDivider} />
+            <View style={styles.statMini}>
+              <Text style={styles.statMiniLabel}>SERIES</Text>
+              <Text style={styles.statMiniValue}>{loggedSets.length}</Text>
+            </View>
           </View>
           <TouchableOpacity
             style={styles.completeCta}
@@ -406,6 +398,9 @@ export default function WorkoutActiveScreen() {
             activeOpacity={0.85}
           >
             <Text style={styles.completeCtaText}>COMPLETAR SERIE</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => finishWorkout(loggedSets)} style={styles.finishLink}>
+            <Text style={styles.finishLinkText}>Finalizar entrenamiento</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -465,51 +460,46 @@ const styles = StyleSheet.create({
   timerSection: {
     alignItems: 'center',
     paddingHorizontal: spacing.lg,
-    paddingTop: spacing.lg,
-    gap: spacing.xs,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.xs,
+    gap: 2,
   },
-  mainTimer: {
-    fontSize: 72,
-    fontWeight: '700',
-    color: colors.neon,
-    fontFamily: 'SpaceGrotesk_700Bold',
-    letterSpacing: -2,
-    lineHeight: 76,
-    ...glowShadows.neon,
-  },
-  exerciseName: { ...text.headlineLg, color: colors.text, textAlign: 'center' },
+  exerciseName: { fontSize: 24, fontWeight: '700', color: colors.text, textAlign: 'center', fontFamily: 'SpaceGrotesk_700Bold' },
+  exerciseMeta: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   muscleLabel: { ...text.labelSm, color: colors.muted },
-  nextChip: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    borderRadius: radius.full,
-    marginTop: spacing.xs,
-  },
-  nextChipText: { ...text.labelSm, color: colors.muted },
+  nextChipText: { ...text.labelSm, color: colors.dim },
 
   formArea: {
     flex: 1,
     marginHorizontal: spacing.lg,
-    marginTop: spacing.md,
+    marginTop: spacing.xs,
     borderRadius: radius.lg,
-    padding: spacing.lg,
+    padding: spacing.md,
     gap: spacing.md,
     justifyContent: 'center',
   },
-  seriesDotsOverlay: { alignItems: 'center', gap: spacing.xs },
-  seriesOverlayLabel: { ...text.labelSm, color: colors.muted },
-  seriesOverlayValue: { ...text.headlineLg, color: colors.text },
-  seriesDots: { flexDirection: 'row', gap: spacing.sm },
-  dot: { width: 10, height: 10, borderRadius: 5 },
+
+  seriesRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingBottom: spacing.xs,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  seriesLabel: { ...text.labelSm, color: colors.muted },
+  seriesValue: { color: colors.text, fontFamily: 'SpaceGrotesk_700Bold' },
+  seriesDots: { flexDirection: 'row', gap: 6 },
+  dot: { width: 8, height: 8, borderRadius: 4 },
   dotDone: { backgroundColor: colors.neon },
   dotActive: { backgroundColor: colors.orange },
   dotPending: { backgroundColor: colors.dim },
 
-  repCenter: { alignItems: 'center', gap: spacing.md },
+  repCenter: { alignItems: 'center', gap: spacing.sm },
   repRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xl },
   repMinus: {
-    width: 52,
-    height: 52,
+    width: 48,
+    height: 48,
     borderRadius: radius.full,
     backgroundColor: 'rgba(255,255,255,0.05)',
     borderWidth: 1,
@@ -517,57 +507,56 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  repMinusText: { fontSize: 28, color: colors.text, fontWeight: '700' },
+  repMinusText: { fontSize: 26, color: colors.text, fontWeight: '700' },
   repPlus: {
-    width: 52,
-    height: 52,
+    width: 48,
+    height: 48,
     borderRadius: radius.full,
     backgroundColor: colors.neon,
     alignItems: 'center',
     justifyContent: 'center',
     ...glowShadows.neon,
   },
-  repPlusText: { fontSize: 28, color: colors.bg, fontWeight: '700' },
+  repPlusText: { fontSize: 26, color: colors.bg, fontWeight: '700' },
   repValue: {
-    fontSize: 72,
+    fontSize: 64,
     fontWeight: '700',
     color: colors.neon,
     fontFamily: 'SpaceGrotesk_700Bold',
     letterSpacing: -2,
-    minWidth: 96,
+    minWidth: 80,
     textAlign: 'center',
-    lineHeight: 76,
+    lineHeight: 68,
+    ...glowShadows.neon,
   },
-  repTargetLabel: { ...text.bodyMd, color: colors.muted },
+  repTargetLabel: { ...text.labelSm, color: colors.muted },
 
-  weightRow: {
+  bottomInfoRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingTop: spacing.sm,
+    paddingTop: spacing.xs,
     borderTopWidth: 1,
     borderTopColor: colors.border,
-    gap: spacing.md,
   },
+  weightBlock: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   weightLabel: { ...text.labelSm, color: colors.muted },
   weightInput: {
     ...text.headlineMd,
     color: colors.text,
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
-    backgroundColor: 'rgba(255,255,255,0.03)',
+    backgroundColor: 'rgba(255,255,255,0.04)',
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: radius.sm,
-    minWidth: 80,
+    minWidth: 64,
     textAlign: 'center',
   },
-  instructionsToggle: {
+  instructionsBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
     gap: 4,
-    paddingVertical: spacing.xs,
   },
   instructionsToggleText: { ...text.labelSm, color: colors.muted },
   instructionsText: { ...text.bodyMd, color: colors.muted, lineHeight: 20 },
@@ -575,31 +564,23 @@ const styles = StyleSheet.create({
   bottomPanel: {
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.lg,
-    paddingTop: spacing.sm,
+    paddingTop: spacing.xs,
     gap: spacing.sm,
   },
-  controlsRow: {
+  statsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     borderRadius: radius.lg,
-    padding: spacing.md,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    gap: spacing.lg,
   },
-  statMini: { alignItems: 'center', gap: 2, flex: 1 },
-  statMiniBtn: { alignItems: 'center', gap: 2, flex: 1 },
+  statMini: { alignItems: 'center', gap: 2 },
+  statDivider: { width: 1, height: 24, backgroundColor: colors.border },
   statMiniLabel: { ...text.labelSm, color: colors.muted },
   statMiniValue: { ...text.headlineMd, color: colors.text },
-  finishSmall: { ...text.bodyMd, color: colors.orange },
 
-  playBtn: {
-    width: 64,
-    height: 64,
-    borderRadius: radius.full,
-    backgroundColor: colors.neon,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...glowShadows.neon,
-  },
   playBtnOrange: {
     width: 64,
     height: 64,
@@ -618,6 +599,8 @@ const styles = StyleSheet.create({
     ...glowShadows.neon,
   },
   completeCtaText: { ...text.headlineMd, color: colors.bg },
+  finishLink: { alignItems: 'center', paddingVertical: spacing.xs },
+  finishLinkText: { ...text.labelSm, color: colors.dim },
 
   // Rest phase
   restCenter: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.sm },

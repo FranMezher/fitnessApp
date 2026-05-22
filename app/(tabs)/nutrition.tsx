@@ -14,6 +14,7 @@ import { RingChart } from '@/components/ui/RingChart';
 import { useNutritionStore } from '@/stores/useNutritionStore';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { FoodLogEntry } from '@/lib/api';
+import { AddFoodModal } from '@/components/nutrition/AddFoodModal';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -292,6 +293,21 @@ export default function NutritionScreen() {
   const today = useMemo(() => todayStr(), []);
   const [selectedDate, setSelectedDate] = useState(today);
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const [addModalVisible, setAddModalVisible] = useState(false);
+  const [addModalMeal, setAddModalMeal] = useState<'breakfast' | 'lunch' | 'snack' | 'dinner'>('lunch');
+
+  function openAddModal(meal: 'breakfast' | 'lunch' | 'snack' | 'dinner') {
+    setAddModalMeal(meal);
+    setAddModalVisible(true);
+  }
+
+  function guessCurrentMeal(): 'breakfast' | 'lunch' | 'snack' | 'dinner' {
+    const h = new Date().getHours();
+    if (h < 11) return 'breakfast';
+    if (h < 15) return 'lunch';
+    if (h < 19) return 'snack';
+    return 'dinner';
+  }
   const { foodLog, fetchFoodLog, loading, waterByDate, fetchWater, setWaterGlasses, logCache } = useNutritionStore();
   const waterGlasses = waterByDate[selectedDate] ?? 0;
   const { profile, fetchProfile } = useAuthStore();
@@ -450,7 +466,7 @@ export default function NutritionScreen() {
           {/* Diario header */}
           <View style={styles.diaryHeader}>
             <Text style={styles.diaryTitle}>Diario de {isToday ? 'Hoy' : formatShort(selectedDate)}</Text>
-            <TouchableOpacity onPress={() => router.push({ pathname: '/nutrition/add-food', params: { date: selectedDate } } as never)}>
+            <TouchableOpacity onPress={() => openAddModal(guessCurrentMeal())}>
               <Ionicons name="add-circle-outline" size={24} color={colors.muted} />
             </TouchableOpacity>
           </View>
@@ -467,7 +483,7 @@ export default function NutritionScreen() {
                 activeOpacity={0.75}
                 onPress={() => hasFoods
                   ? router.push({ pathname: '/nutrition/meal/[id]', params: { id: mealId, date: selectedDate } })
-                  : router.push({ pathname: '/nutrition/add-food', params: { meal: mealId, date: selectedDate } } as never)
+                  : openAddModal(mealId as 'breakfast' | 'lunch' | 'snack' | 'dinner')
                 }
               >
                 <View style={[styles.mealIconWrap, !hasFoods && styles.mealIconWrapEmpty]}>
@@ -492,7 +508,17 @@ export default function NutritionScreen() {
                     <Text style={styles.mealDescEmpty}>Registra tu {MEAL_NAMES[mealId].toLowerCase()}</Text>
                   )}
                 </View>
-                <Ionicons name={hasFoods ? 'chevron-forward' : 'add'} size={20} color={colors.dim} />
+                {hasFoods ? (
+                  <TouchableOpacity
+                    style={styles.mealAddBtn}
+                    onPress={() => openAddModal(mealId as 'breakfast' | 'lunch' | 'snack' | 'dinner')}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
+                    <Ionicons name="add-circle" size={22} color={colors.neon} />
+                  </TouchableOpacity>
+                ) : (
+                  <Ionicons name="add" size={20} color={colors.dim} />
+                )}
               </TouchableOpacity>
             );
           })}
@@ -533,6 +559,14 @@ export default function NutritionScreen() {
           calGoal={goals.calories}
           onSelect={handleSelectDate}
           onClose={() => setCalendarOpen(false)}
+        />
+
+        <AddFoodModal
+          visible={addModalVisible}
+          mealType={addModalMeal}
+          date={selectedDate}
+          onClose={() => setAddModalVisible(false)}
+          onAdded={() => { setAddModalVisible(false); fetchFoodLog(selectedDate); }}
         />
       </SafeAreaView>
     </HudBackground>
@@ -650,6 +684,7 @@ const styles = StyleSheet.create({
   mealPending: { ...text.dataMono, color: colors.muted, fontSize: 13 },
   mealDesc: { ...text.bodyMd, color: colors.muted },
   mealDescEmpty: { ...text.bodyMd, color: colors.dim, fontStyle: 'italic' },
+  mealAddBtn: { padding: 2 },
 
   waterCard: { padding: spacing.md, borderRadius: radius.lg, gap: spacing.md },
   waterHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },

@@ -5,11 +5,19 @@
   "build": {
     "preview": {
       "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://fitnessapp-ebon-omega.vercel.app/api",
+        "EXPO_PUBLIC_SUPABASE_URL": "https://kgwdmuvtkqwfkiguedre.supabase.co"
+      },
       "android": {
         "buildType": "apk"
       }
     },
     "production": {
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://fitnessapp-ebon-omega.vercel.app/api",
+        "EXPO_PUBLIC_SUPABASE_URL": "https://kgwdmuvtkqwfkiguedre.supabase.co"
+      },
       "android": {
         "buildType": "app-bundle"
       }

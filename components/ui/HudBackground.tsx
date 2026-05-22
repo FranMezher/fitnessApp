@@ -43,7 +43,7 @@ const styles = StyleSheet.create({
     width: 320,
     height: 320,
     borderRadius: 160,
-    backgroundColor: 'rgba(204,255,0,0.06)',
+    backgroundColor: 'rgba(204,255,0,0.025)',
   },
   radialOrange: {
     position: 'absolute',
@@ -52,6 +52,6 @@ const styles = StyleSheet.create({
     width: 320,
     height: 320,
     borderRadius: 160,
-    backgroundColor: 'rgba(255,107,53,0.05)',
+    backgroundColor: 'rgba(255,107,53,0.02)',
   },
 });

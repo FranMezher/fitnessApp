@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FITCORE — Checklist Play Store</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #080808;
+      color: #F2F2F2;
+      font-family: 'Space Grotesk', sans-serif;
+      min-height: 100vh;
+      padding: 32px 20px 80px;
+    }
+
+    .page {
+      max-width: 780px;
+      margin: 0 auto;
+    }
+
+    /* ── Header ── */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 40px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid rgba(255,255,255,0.09);
+    }
+    .logo {
+      font-size: 24px;
+      font-weight: 700;
+      color: #CCFF00;
+      letter-spacing: -0.5px;
+    }
+    .header-meta { text-align: right; }
+    .header-title {
+      font-size: 14px;
+      color: #888;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+    .progress-wrap { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
+    .progress-bar {
+      width: 140px;
+      height: 6px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: #CCFF00;
+      border-radius: 999px;
+      transition: width 0.3s ease;
+    }
+    .progress-label { font-size: 13px; color: #CCFF00; font-weight: 600; min-width: 40px; text-align: right; }
+
+    /* ── Status table ── */
+    .status-table {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 40px;
+    }
+    .status-table-title {
+      padding: 14px 20px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      color: #888;
+      text-transform: uppercase;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .status-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      font-size: 14px;
+    }
+    .status-row:last-child { border-bottom: none; }
+    .status-item-name { color: #888; }
+    .badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 999px;
+      letter-spacing: 0.5px;
+    }
+    .badge-ok  { background: rgba(204,255,0,0.12); color: #CCFF00; border: 1px solid rgba(204,255,0,0.3); }
+    .badge-warn{ background: rgba(255,107,53,0.12); color: #FF6B35; border: 1px solid rgba(255,107,53,0.3); }
+    .badge-unk { background: rgba(255,255,255,0.06); color: #888; border: 1px solid rgba(255,255,255,0.1); }
+
+    /* ── Phase ── */
+    .phase { margin-bottom: 32px; }
+    .phase-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 12px;
+    }
+    .phase-number {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(204,255,0,0.1);
+      border: 1px solid rgba(204,255,0,0.35);
+      color: #CCFF00;
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .phase-title { font-size: 18px; font-weight: 700; color: #F2F2F2; }
+    .phase-subtitle { font-size: 12px; color: #888; margin-top: 2px; font-style: italic; }
+    .phase-body {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+
+    /* ── Task item ── */
+    .task {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 14px 18px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      cursor: pointer;
+      transition: background 0.15s;
+      user-select: none;
+    }
+    .task:last-child { border-bottom: none; }
+    .task:hover { background: rgba(255,255,255,0.03); }
+    .task.done { opacity: 0.5; }
+    .task.done .task-text { text-decoration: line-through; color: #888; }
+
+    .checkbox {
+      width: 20px;
+      height: 20px;
+      border-radius: 6px;
+      border: 1.5px solid rgba(255,255,255,0.2);
+      flex-shrink: 0;
+      margin-top: 1px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+    .task.done .checkbox {
+      background: #CCFF00;
+      border-color: #CCFF00;
+    }
+    .checkmark {
+      display: none;
+      width: 11px;
+      height: 8px;
+    }
+    .task.done .checkmark { display: block; }
+    .checkmark::after {
+      content: '';
+      display: block;
+      width: 11px;
+      height: 8px;
+      border-left: 2px solid #080808;
+      border-bottom: 2px solid #080808;
+      transform: rotate(-45deg) translate(1px, -2px);
+    }
+
+    .task-content { flex: 1; }
+    .task-text { font-size: 14px; color: #F2F2F2; line-height: 1.5; }
+    .task-note {
+      font-size: 12px;
+      color: #888;
+      margin-top: 4px;
+      line-height: 1.5;
+    }
+    .task-tag {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 4px;
+      margin-right: 6px;
+      margin-top: 4px;
+      letter-spacing: 0.5px;
+      vertical-align: middle;
+    }
+    .tag-critical { background: rgba(255,107,53,0.15); color: #FF6B35; border: 1px solid rgba(255,107,53,0.3); }
+    .tag-first    { background: rgba(204,255,0,0.1);  color: #CCFF00; border: 1px solid rgba(204,255,0,0.3); }
+
+    /* ── Code block ── */
+    .code-block {
+      background: #0e0e0e;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      color: #CCFF00;
+      margin-top: 8px;
+      white-space: pre;
+      overflow-x: auto;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      text-align: center;
+      padding-top: 32px;
+      color: #444;
+      font-size: 12px;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      margin-top: 40px;
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="logo">FITCORE</div>
+    <div class="header-meta">
+      <div class="header-title">Play Store Checklist</div>
+      <div class="progress-wrap">
+        <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+        <div class="progress-label" id="progressLabel">0%</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Estado actual -->
+  <div class="status-table">
+    <div class="status-table-title">Estado actual del proyecto</div>
+    <div class="status-row"><span class="status-item-name">EAS configurado (eas.json + projectId)</span><span class="badge badge-ok">✓ Listo</span></div>
+    <div class="status-row"><span class="status-item-name">Package name — com.fitcore.app</span><span class="badge badge-ok">✓ Listo</span></div>
+    <div class="status-row"><span class="status-item-name">Perfil production Android (.aab)</span><span class="badge badge-ok">✓ Listo</span></div>
+    <div class="status-row"><span class="status-item-name">Icono / Splash / Adaptive icon</span><span class="badge badge-ok">✓ Archivos existen</span></div>
+    <div class="status-row"><span class="status-item-name">Backend en producción (Vercel)</span><span class="badge badge-ok">✓ Listo</span></div>
+    <div class="status-row"><span class="status-item-name">Variables de entorno de producción (.env)</span><span class="badge badge-ok">✓ Listo</span></div>
+    <div class="status-row"><span class="status-item-name">EAS Secrets para build en la nube</span><span class="badge badge-warn">⚠ Pendiente</span></div>
+    <div class="status-row"><span class="status-item-name">Política de privacidad (URL pública)</span><span class="badge badge-warn">⚠ Pendiente</span></div>
+    <div class="status-row"><span class="status-item-name">Capturas de pantalla para el listing</span><span class="badge badge-warn">⚠ Pendiente</span></div>
+    <div class="status-row"><span class="status-item-name">Cuenta Google Play Console</span><span class="badge badge-unk">? Confirmar</span></div>
+  </div>
+
+  <!-- FASE 1 -->
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-number">1</div>
+      <div>
+        <div class="phase-title">Backend listo para producción</div>
+        <div class="phase-subtitle">Sin esto la app no funciona — hacé esto primero</div>
+      </div>
+    </div>
+    <div class="phase-body">
+
+      <div class="task done" onclick="toggle(this)">
+        <div class="checkbox"><div class="checkmark"></div></div>
+        <div class="task-content">
+          <div class="task-text"><span class="task-tag tag-critical">CRÍTICO</span>Deploy del backend en Vercel</div>
+          <div class="task-note">✓ Deployado en fitnessapp-ebon-omega.vercel.app</div>
+        </div>
+      </div>
+
+      <div class="task done" onclick="toggle(this)">
+        <div class="checkbox"><div class="checkmark"></div></div>
+        <div class="task-content">
+          <div class="task-text"><span class="task-tag tag-critical">CRÍTICO</span>Variables de entorno de producción configuradas en <code>.env</code></div>
+          <div class="code-block">EXPO_PUBLIC_API_URL=https://fitnessapp-ebon-omega.vercel.app/api
+EXPO_PUBLIC_SUPABASE_URL=https://kgwdmuvtkqwfkiguedre.supabase.co
+EXPO_PUBLIC_SUPABASE_ANON_KEY=eyJhbGci...</div>
+        </div>
+      </div>
+
+      <div class="task" onclick="toggle(this)">
+        <div class="checkbox"><div class="checkmark"></div></div>
+        <div class="task-content">
+          <div class="task-text"><span class="task-tag tag-critical">PRÓXIMO</span>Cargar EAS Secrets para el build en la nube</div>
+          <div class="task-note">El archivo <code>.env</code> no sube a git ni a EAS. Hay que registrar cada variable como secret para que el build en la nube las tenga disponibles.</div>
+          <div class="code-block">eas secret:create --scope project --name EXPO_PUBLIC_API_URL \
+  --value "https://fitnessapp-ebon-omega.vercel.app/api"
+
+eas secret:create --scope project --name EXPO_PUBLIC_SUPABASE_URL \
+  --value "https://kgwdmuvtkqwfkiguedre.supabase.co"
+
+eas secret:create --scope project --name EXPO_PUBLIC_SUPABASE_ANON_KEY \
+  --value "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."</div>
+          <div class="task-note">Verificar que quedaron cargados: <code>eas secret:list</code></div>
+        </div>
+      </div>
+
+      <div class="task" onclick="toggle(this)">
+        <div class="checkbox"><div class="checkmark"></div></div>
+        <div class="task-content">
+          <div class="task-text">Variables de entorno del backend configuradas en Vercel</div>
+          <div class="task-note">En vercel.com → proyecto → Settings → Environment Variables: SUPABASE_SERVICE_KEY, ANTHROPIC_API_KEY, y cualquier secret que use el backend</div>
+        </div>
+      </div>
+
+      <div class="task" onclick="toggle(this)">
+        <div class="checkbox"><div class="checkmark"></div></div>
+        <div class="task-content">
+          <div class="task-text">Habilitar proveedores de autenticación en Supabase</div>
+          <div class="task-note">supabase.com → proyecto kgwdmuvt → Authentication → Providers: Email/password, Google OAuth, Apple Sign In — los que usa la app en login.tsx</div>
+        </div>
+      </div>
+
+      <div class="task" onclick="toggle(this)">
+        <div class="checkbox"><div class="checkmark"></div></div>
+        <div class="task-content">
+          <div class="task-text">Testear el flujo completo con backend real desde el celular</div>
+          <div class="task-note">Login → onboarding → dashboard → entrenamiento → nutrición → perfil. Podés usar el build de preview (.apk) para esto antes del build de producción</div>
+          <div class="code-block">eas build --platform android --profile preview</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- FASE 2 -->
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-number">2</div>
+      <div>
+        <div class="phase-title">Assets y Store Listing</div>
+        <div class="phase-subtitle">Lo que el usuario ve en Play Store antes de descargar</div>
+      </div>
+    </div>
+    <div class="phase-body">
+
+      <div class="task" onclick="toggle(this)">
+        <div class="checkbox"><div class="checkmark"></div></div>
+        <div class="task-content">
+          <div class="task-text">Ícono final — <code>assets/icon.png</code></div>
+          <div class="task-note">1024×1024 px · Sin transparencia · Sin esquinas redondeadas (Play Store las redondea solo)</div>
+        </div>
+      </div>
+
+      <div class="task" onclick="toggle(this)">
+        <div class="checkbox"><div class="checkmark"></div></div>
+        <div class="task-content">
+          <div class="task-text">Adaptive icon — <code>assets/adaptive-icon.png</code></div>
+          <div class="task-note">Foreground con transparencia sobre fondo #080808. El ícono centrado debe ocupar el 66% del canvas para no cortarse</div>
+        </div>
+      </div>
+
+      <div class="task" onclick="toggle(this)">
+        <div class="checkbox"><div class="checkmark"></div></div>
+        <div class="task-content">
+          <div class="task-text">Splash screen — <code>assets/splash.png</code></div>
+          <div class="task-note">1284×2778 px recomendado. Fondo #080808 con el logo centrado</div>
+        </div>
+      </div>
+
+      <div class="task" onclick="toggle(this)">
+        <div class="checkbox"><div class="checkmark"></div></div>
+        <div class="task-content">
+          <div class="task-text">Feature Graphic — banner de Play Store</div>
+          <div class="task-note">1024×500 px · Aparece arriba del listing. Diseño con logo + tagline de FITCORE</div>
+        </div>
+      </div>
+
+      <div class="task" onclick="toggle(this)">
+        <div class="checkbox"><div class="checkmark"></div></div>
+        <div class="task-content">
+          <div class="task-text">Capturas de pantalla (mínimo 2, recomendado 6-8)</div>
+          <div class="task-note">Resolución mínima 1080×1920 px · Sugeridas: Dashboard · Sesión activa · Nutrición · Modal agregar comida · Resumen post-entreno · Progreso/gamificación</div>
+        </div>
+      </div>
+
+      <div class="task" onclick="toggle(this)">
+        <div class="checkbox"><div class="checkmark"></div></div>
+        <div class="task-content">
+          <div class="task-text">Descripción corta — máx 80 caracteres</div>
+          <div class="task-note">Ej: "Entrená en casa con IA. Tracking de nutrición, rutinas y gamificación."</div>
+        </div>
+      </div>
+
+      <div class="task" onclick="toggle(this)">
+        <div class="checkbox"><div class="checkmark"></div></div>
+        <div class="task-content">
+          <div class="task-text">Descripción completa — máx 4000 caracteres</div>
+          <div class="task-note">Incluir: funciones principales, corrección de postura IA, modo despensa, liga semanal, qué diferencia a FITCORE</div>
+        </div>
+      </div>
+
+      <div class="task" onclick="toggle(this)">
+        <div class="checkbox"><div class="checkmark"></div></div>
+        <div class="task-content">
+          <div class="task-text"><span class="task-tag tag-critical">OBLIGATORIO</span>Política de privacidad en una URL pública</div>
+          <div class="task-note">Google la exige. Opciones simples: página en Notion publicada · GitHub Pages · o un generador como privacypolicytemplate.info</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- FASE 3 -->
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-number">3</div>
+      <div>
+        <div class="phase-title">Configuración técnica de la app</div>
+        <div class="phase-subtitle">Ajustes en app.json antes de buildear</div>
+      </div>
+    </div>
+    <div class="phase-body">
+
+      <div class="task" onclick="toggle(this)">
+        <div class="checkbox"><div class="checkmark"></div></div>
+        <div class="task-content">
+          <div class="task-text">Verificar que <code>com.fitcore.app</code> no esté en uso en Play Store</div>
+          <div class="task-note">Buscar el package name en Google Play. Si ya existe (aunque sea de otro dev), hay que cambiarlo en app.json antes del primer build</div>
+        </div>
+      </div>
+
+      <div class="task" onclick="toggle(this)">
+        <div class="checkbox"><div class="checkmark"></div></div>
+        <div class="task-content">
+          <div class="task-text">Agregar <code>versionCode</code> en app.json</div>
+          <div class="code-block">"android": {
+  "package": "com.fitcore.app",
+  "versionCode": 1,
+  "adaptiveIcon": { ... }
+}</div>
+        </div>
+      </div>
+
+      <div class="task" onclick="toggle(this)">
+        <div class="checkbox"><div class="checkmark"></div></div>
+        <div class="task-content">
+          <div class="task-text">Declarar permisos de Android en app.json</div>
+          <div class="code-block">"android": {
+  "permissions": [
+    "CAMERA",
+    "READ_MEDIA_IMAGES",
+    "INTERNET",
+    "VIBRATE"
+  ]
+}</div>
+          <div class="task-note">Declarar solo los que realmente se usan. Permisos extra pueden hacer que Google rechace la app</div>
+        </div>
+      </div>
+
+      <div class="task" onclick="toggle(this)">
+        <div class="checkbox"><div class="checkmark"></div></div>
+        <div class="task-content">
+          <div class="task-text">Verificar plugins en app.json</div>
+          <div class="code-block">"plugins": [
+  "expo-router",
+  "expo-font",
+  "expo-camera",
+  ["expo-image-picker", {
+    "photosPermission": "FITCORE necesita acceso a tus fotos para analizar comidas."
+  }]
+]</div>
+        </div>
+      </div>
+
+      <div class="task" onclick="toggle(this)">
+        <div class="checkbox"><div class="checkmark"></div></div>
+        <div class="task-content">
+          <div class="task-text">Testear en dispositivo físico Android con el build de preview</div>
+          <div class="code-block">eas build --platform android --profile preview</div>
+          <div class="task-note">Instalar el .apk generado en un celular real (no emulador) y recorrer todos los flujos</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- FASE 4 -->
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-number">4</div>
+      <div>
+        <div class="phase-title">Build de producción con EAS</div>
+        <div class="phase-subtitle">Genera el .aab listo para subir a Play Store</div>
+      </div>
+    </div>
+    <div class="phase-body">
+
+      <div class="task" onclick="toggle(this)">
+        <div class="checkbox"><div class="checkmark"></div></div>
+        <div class="task-content">
+          <div class="task-text">Login en EAS CLI</div>
+          <div class="code-block">eas login</div>
+        </div>
+      </div>
+
+      <div class="task" onclick="toggle(this)">
+        <div class="checkbox"><div class="checkmark"></div></div>
+        <div class="task-content">
+          <div class="task-text">Verificar que el proyecto esté vinculado</div>
+          <div class="code-block">eas project:info</div>
+        </div>
+      </div>
+
+      <div class="task" onclick="toggle(this)">
+        <div class="checkbox"><div class="checkmark"></div></div>
+        <div class="task-content">
+          <div class="task-text">Configurar secrets de entorno en EAS para el build</div>
+          <div class="code-block">eas secret:create --scope project --name EXPO_PUBLIC_API_URL --value https://...
+eas secret:create --scope project --name EXPO_PUBLIC_SUPABASE_URL --value https://...
+eas secret:create --scope project --name EXPO_PUBLIC_SUPABASE_ANON_KEY --value eyJ...</div>
+        </div>
+      </div>
+
+      <div class="task" onclick="toggle(this)">
+        <div class="checkbox"><div class="checkmark"></div></div>
+        <div class="task-content">
+          <div class="task-text"><span class="task-tag tag-first">PRIMERO</span>Build Android de producción (.aab)</div>
+          <div class="code-block">eas build --platform android --profile production</div>
+          <div class="task-note">EAS genera y guarda el keystore automáticamente. Guardar una copia de seguridad del keystore — si lo perdés no podés actualizar la app</div>
+        </div>
+      </div>
+
+      <div class="task" onclick="toggle(this)">
+        <div class="checkbox"><div class="checkmark"></div></div>
+        <div class="task-content">
+          <div class="task-text">Descargar y guardar el .aab generado</div>
+          <div class="task-note">El link de descarga aparece en expo.dev/accounts/franmezher o en la terminal al terminar el build</div>
+        </div>
+      </div>
+
+      <div class="task" onclick="toggle(this)">
+        <div class="checkbox"><div class="checkmark"></div></div>
+        <div class="task-content">
+          <div class="task-text">Guardar copia de seguridad del keystore</div>
+          <div class="code-block">eas credentials</div>
+          <div class="task-note">Descargarlo y guardarlo en un lugar seguro (Google Drive, 1Password, etc.). Sin el keystore no podés publicar updates</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- FASE 5 -->
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-number">5</div>
+      <div>
+        <div class="phase-title">Google Play Console</div>
+        <div class="phase-subtitle">Configurar el listing y publicar la app</div>
+      </div>
+    </div>
+    <div class="phase-body">
+
+      <div class="task" onclick="toggle(this)">
+        <div class="checkbox"><div class="checkmark"></div></div>
+        <div class="task-content">
+          <div class="task-text">Crear cuenta de desarrollador en Google Play Console</div>
+          <div class="task-note">play.google.com/console · Pago único de U$D 25 · Puede requerir verificación de identidad (1-3 días)</div>
+        </div>
+      </div>
+
+      <div class="task" onclick="toggle(this)">
+        <div class="checkbox"><div class="checkmark"></div></div>
+        <div class="task-content">
+          <div class="task-text">Crear la app en Play Console</div>
+          <div class="task-note">Tipo: App · Android · Gratis · Aceptar políticas del programa de desarrolladores</div>
+        </div>
+      </div>
+
+      <div class="task" onclick="toggle(this)">
+        <div class="checkbox"><div class="checkmark"></div></div>
+        <div class="task-content">
+          <div class="task-text">Completar el Store Listing</div>
+          <div class="task-note">Nombre · Descripción corta · Descripción completa · Ícono · Feature Graphic · Capturas de pantalla</div>
+        </div>
+      </div>
+
+      <div class="task" onclick="toggle(this)">
+        <div class="checkbox"><div class="checkmark"></div></div>
+        <div class="task-content">
+          <div class="task-text">Completar la Clasificación de contenido (cuestionario)</div>
+          <div class="task-note">FITCORE no tiene violencia ni contenido adulto. Clasificación esperada: Apto para todo público o 12+</div>
+        </div>
+      </div>
+
+      <div class="task" onclick="toggle(this)">
+        <div class="checkbox"><div class="checkmark"></div></div>
+        <div class="task-content">
+          <div class="task-text">Declarar público objetivo (edad mínima)</div>
+          <div class="task-note">Recomendado: 18+ para no tener restricciones de datos de menores (COPPA)</div>
+        </div>
+      </div>
+
+      <div class="task" onclick="toggle(this)">
+        <div class="checkbox"><div class="checkmark"></div></div>
+        <div class="task-content">
+          <div class="task-text">Declarar política de privacidad (URL)</div>
+          <div class="task-note">La misma URL generada en Fase 2. Obligatorio para apps que recopilan datos de usuario</div>
+        </div>
+      </div>
+
+      <div class="task" onclick="toggle(this)">
+        <div class="checkbox"><div class="checkmark"></div></div>
+        <div class="task-content">
+          <div class="task-text">Declarar si la app contiene anuncios</div>
+          <div class="task-note">Si FITCORE no tiene ads, seleccionar "No contiene anuncios"</div>
+        </div>
+      </div>
+
+      <div class="task" onclick="toggle(this)">
+        <div class="checkbox"><div class="checkmark"></div></div>
+        <div class="task-content">
+          <div class="task-text"><span class="task-tag tag-first">PRIMERO</span>Subir .aab a Internal Testing track</div>
+          <div class="task-note">Testing interno → agregar emails de testers → testear el build real en dispositivo físico antes de publicar</div>
+        </div>
+      </div>
+
+      <div class="task" onclick="toggle(this)">
+        <div class="checkbox"><div class="checkmark"></div></div>
+        <div class="task-content">
+          <div class="task-text">Pasar a Closed Testing (Alpha) con grupo más amplio</div>
+          <div class="task-note">Opcional pero recomendado. Podés invitar hasta 100 testers antes de abrir al público</div>
+        </div>
+      </div>
+
+      <div class="task" onclick="toggle(this)">
+        <div class="checkbox"><div class="checkmark"></div></div>
+        <div class="task-content">
+          <div class="task-text">Publicar en Production</div>
+          <div class="task-note">Revisión de Google: 1-7 días (generalmente 24-48hs). Recibirás un email cuando esté aprobada o si hay rechazo</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- FASE 6 -->
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-number">6</div>
+      <div>
+        <div class="phase-title">Post-lanzamiento</div>
+        <div class="phase-subtitle">Mantener la app viva después del primer deploy</div>
+      </div>
+    </div>
+    <div class="phase-body">
+
+      <div class="task" onclick="toggle(this)">
+        <div class="checkbox"><div class="checkmark"></div></div>
+        <div class="task-content">
+          <div class="task-text">Configurar monitoreo de errores en producción</div>
+          <div class="task-note">Sentry (sentry.io) o Firebase Crashlytics. Fundamental para saber si algo se rompe en usuarios reales</div>
+        </div>
+      </div>
+
+      <div class="task" onclick="toggle(this)">
+        <div class="checkbox"><div class="checkmark"></div></div>
+        <div class="task-content">
+          <div class="task-text">Configurar EAS Update para OTA updates</div>
+          <div class="code-block">eas update --branch production --message "Fix nutrición modal"</div>
+          <div class="task-note">Permite enviar cambios de JS sin generar un nuevo build ni pasar por revisión de Play Store</div>
+        </div>
+      </div>
+
+      <div class="task" onclick="toggle(this)">
+        <div class="checkbox"><div class="checkmark"></div></div>
+        <div class="task-content">
+          <div class="task-text">Responder reviews en Play Store</div>
+          <div class="task-note">Afecta el ranking. Responder tanto las negativas como las positivas mejora la visibilidad</div>
+        </div>
+      </div>
+
+      <div class="task" onclick="toggle(this)">
+        <div class="checkbox"><div class="checkmark"></div></div>
+        <div class="task-content">
+          <div class="task-text">Para cada update futuro: incrementar versionCode</div>
+          <div class="code-block">// app.json
+"version": "1.0.1",
+"android": { "versionCode": 2 }
+
+// Luego:
+eas build --platform android --profile production</div>
+          <div class="task-note">El versionCode siempre tiene que ser mayor al anterior. Play Store rechaza builds con el mismo versionCode</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="footer">FITCORE · Checklist generado por Claude Code</div>
+</div>
+
+<script>
+  function toggle(el) {
+    el.classList.toggle('done');
+    updateProgress();
+    saveState();
+  }
+
+  function updateProgress() {
+    const total = document.querySelectorAll('.task').length;
+    const done  = document.querySelectorAll('.task.done').length;
+    const pct   = total > 0 ? Math.round((done / total) * 100) : 0;
+    document.getElementById('progressFill').style.width  = pct + '%';
+    document.getElementById('progressLabel').textContent = pct + '%';
+  }
+
+  function saveState() {
+    const tasks = document.querySelectorAll('.task');
+    const state = Array.from(tasks).map(t => t.classList.contains('done'));
+    localStorage.setItem('fitcore_checklist', JSON.stringify(state));
+  }
+
+  function loadState() {
+    const raw = localStorage.getItem('fitcore_checklist');
+    if (!raw) return;
+    try {
+      const state = JSON.parse(raw);
+      const tasks = document.querySelectorAll('.task');
+      tasks.forEach((t, i) => { if (state[i]) t.classList.add('done'); });
+      updateProgress();
+    } catch {}
+  }
+
+  loadState();
+</script>
+</body>
+</html>
