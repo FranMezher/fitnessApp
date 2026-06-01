@@ -1,0 +1,13 @@
+{
+  "name": "fitcore-landing",
+  "version": "1.0.0",
+  "private": true,
+  "description": "FITCORE marketing landing page (static, compiled Tailwind)",
+  "scripts": {
+    "build": "tailwindcss -i ./src/input.css -o ./styles.css --minify",
+    "dev": "tailwindcss -i ./src/input.css -o ./styles.css --watch"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.17"
+  }
+}

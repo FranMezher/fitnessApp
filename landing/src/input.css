@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body { background: #080808; color: #F2F2F2; font-family: 'Space Grotesk', sans-serif; }
+
+/* Ambient HUD glow background */
+.hud-bg::before {
+  content: '';
+  position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(60% 50% at 80% -5%, rgba(204,255,0,0.10), transparent 60%),
+    radial-gradient(45% 40% at 0% 20%, rgba(61,255,160,0.06), transparent 55%),
+    radial-gradient(50% 45% at 100% 100%, rgba(255,107,53,0.06), transparent 60%);
+}
+
+.glass { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.09); }
+.glass-neon { background: rgba(204,255,0,0.07); border: 1px solid rgba(204,255,0,0.35); }
+.text-glow { text-shadow: 0 0 28px rgba(204,255,0,0.45); }
+.neon-shadow { box-shadow: 0 0 24px rgba(204,255,0,0.35); }
+.grid-lines {
+  background-image:
+    linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+  background-size: 44px 44px;
+}
+
+/* Phone mockup */
+.phone {
+  width: 270px; border-radius: 44px; padding: 10px;
+  background: linear-gradient(160deg, #1a1a1a, #000);
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow: 0 40px 90px -30px rgba(0,0,0,0.9), 0 0 60px -20px rgba(204,255,0,0.25);
+}
+.phone-screen { border-radius: 34px; background: #080808; overflow: hidden; border: 1px solid rgba(255,255,255,0.06); }
+
+/* Scroll reveal */
+.reveal { opacity: 0; transform: translateY(24px); transition: opacity .6s ease, transform .6s ease; }
+.reveal.in { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
+  html { scroll-behavior: auto; }
+  .floaty { animation: none !important; }
+}
+
+@keyframes floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+.floaty { animation: floaty 6s ease-in-out infinite; }
+
+details > summary { list-style: none; cursor: pointer; }
+details > summary::-webkit-details-marker { display: none; }
+details[open] .faq-icon { transform: rotate(45deg); }

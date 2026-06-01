@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FITCORE — Entrená en casa, comé mejor, progresá de verdad</title>
+  <meta name="description" content="FITCORE es la app de fitness integral para entrenar en casa: rutinas sin equipo, tracking de nutrición con IA y seguimiento de progreso real. Suma a tus amigos." />
+  <meta name="theme-color" content="#080808" />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="FITCORE — Tu gimnasio en casa" />
+  <meta property="og:description" content="Rutinas en casa, nutrición con IA y progreso real. Entrená con tus amigos." />
+  <meta property="og:type" content="website" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Compiled Tailwind (built by `npm run build` → styles.css) -->
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+
+<body class="hud-bg antialiased selection:bg-neon selection:text-bg">
+
+  <!-- ╔══════════════════ NAV ══════════════════╗ -->
+  <header class="fixed top-3 inset-x-3 sm:top-4 sm:inset-x-4 z-50">
+    <nav class="glass max-w-6xl mx-auto rounded-2xl backdrop-blur-xl px-4 sm:px-6 h-14 flex items-center justify-between">
+      <a href="#top" class="flex items-center gap-2 cursor-pointer">
+        <span class="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-neon">
+          <!-- bolt icon -->
+          <svg viewBox="0 0 24 24" class="h-4 w-4 text-bg" fill="currentColor" aria-hidden="true"><path d="M13 2 4.5 13.5H11l-1 8.5 8.5-11.5H12z"/></svg>
+        </span>
+        <span class="font-bold tracking-tight text-lg">FITCORE</span>
+      </a>
+
+      <div class="hidden md:flex items-center gap-8 text-sm text-muted">
+        <a href="#features" class="hover:text-ink transition-colors duration-200 cursor-pointer">Funciones</a>
+        <a href="#nutricion" class="hover:text-ink transition-colors duration-200 cursor-pointer">Nutrición</a>
+        <a href="#progreso" class="hover:text-ink transition-colors duration-200 cursor-pointer">Progreso</a>
+        <a href="#grupos" class="hover:text-ink transition-colors duration-200 cursor-pointer">Grupos</a>
+        <a href="#faq" class="hover:text-ink transition-colors duration-200 cursor-pointer">FAQ</a>
+      </div>
+
+      <a href="#descargar" class="hidden sm:inline-flex items-center gap-2 rounded-full bg-neon px-4 py-2 text-sm font-semibold text-bg hover:bg-[#b8e600] transition-colors duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neon focus-visible:ring-offset-2 focus-visible:ring-offset-bg">
+        Descargar
+      </a>
+
+      <button id="menuBtn" class="md:hidden inline-flex h-9 w-9 items-center justify-center rounded-lg glass cursor-pointer focus-visible:ring-2 focus-visible:ring-neon" aria-label="Abrir menú" aria-expanded="false" aria-controls="mobileMenu">
+        <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </nav>
+
+    <!-- Mobile menu -->
+    <div id="mobileMenu" class="md:hidden hidden glass max-w-6xl mx-auto mt-2 rounded-2xl backdrop-blur-xl p-4">
+      <div class="flex flex-col gap-1 text-sm">
+        <a href="#features" class="rounded-lg px-3 py-2 text-muted hover:text-ink hover:bg-white/5 transition-colors cursor-pointer">Funciones</a>
+        <a href="#nutricion" class="rounded-lg px-3 py-2 text-muted hover:text-ink hover:bg-white/5 transition-colors cursor-pointer">Nutrición</a>
+        <a href="#progreso" class="rounded-lg px-3 py-2 text-muted hover:text-ink hover:bg-white/5 transition-colors cursor-pointer">Progreso</a>
+        <a href="#grupos" class="rounded-lg px-3 py-2 text-muted hover:text-ink hover:bg-white/5 transition-colors cursor-pointer">Grupos</a>
+        <a href="#descargar" class="mt-1 rounded-full bg-neon px-3 py-2 text-center font-semibold text-bg cursor-pointer">Descargar gratis</a>
+      </div>
+    </div>
+  </header>
+
+  <main id="top">
+
+    <!-- ╔══════════════════ HERO ══════════════════╗ -->
+    <section class="relative overflow-hidden">
+      <div class="absolute inset-0 grid-lines opacity-40 [mask-image:radial-gradient(70%_60%_at_50%_0%,#000,transparent)]" aria-hidden="true"></div>
+
+      <div class="max-w-6xl mx-auto px-5 pt-32 sm:pt-40 pb-16 grid lg:grid-cols-2 gap-12 items-center">
+        <!-- Copy -->
+        <div class="reveal">
+          <span class="inline-flex items-center gap-2 rounded-full glass-neon px-3 py-1 text-xs font-semibold uppercase tracking-widest text-neon">
+            <span class="h-1.5 w-1.5 rounded-full bg-neon"></span> Fitness integral en casa
+          </span>
+          <h1 class="mt-5 text-4xl sm:text-6xl font-bold leading-[1.05] tracking-tight">
+            Entrená en casa.<br />
+            Comé <span class="text-neon text-glow">inteligente</span>.<br />
+            Progresá de verdad.
+          </h1>
+          <p class="mt-5 text-lg text-muted max-w-md leading-relaxed">
+            Rutinas sin equipo, seguimiento de nutrición con IA y un progreso medible de verdad —
+            peso, medidas y constancia. Todo en una sola app.
+          </p>
+
+          <!-- Store badges -->
+          <div id="descargar" class="mt-8 flex flex-wrap items-center gap-3">
+            <a href="#" class="group inline-flex items-center gap-3 rounded-xl bg-white px-5 py-3 text-bg hover:bg-white/90 transition-colors duration-200 cursor-pointer focus-visible:ring-2 focus-visible:ring-neon focus-visible:ring-offset-2 focus-visible:ring-offset-bg">
+              <svg viewBox="0 0 24 24" class="h-7 w-7" fill="currentColor" aria-hidden="true"><path d="M16.365 1.43c0 1.14-.466 2.22-1.22 3.01-.81.85-2.14 1.5-3.24 1.41-.13-1.09.41-2.25 1.16-3.02.82-.85 2.25-1.48 3.3-1.4zM20.5 17.3c-.6 1.38-.88 1.99-1.65 3.21-1.08 1.7-2.6 3.81-4.48 3.83-1.67.02-2.1-1.09-4.37-1.08-2.27.01-2.74 1.1-4.41 1.08-1.88-.02-3.32-1.93-4.4-3.62C-1.06 16.8-1.4 10.3 1.5 7.13 2.62 5.86 4.3 5.05 6.07 5.03c1.79-.02 2.92 1.09 4.4 1.09 1.45 0 2.33-1.1 4.4-1.09 1.06.01 2.93.43 4.13 2.05-3.63 1.99-3.04 7.18.5 8.22z"/></svg>
+              <span class="text-left leading-tight"><span class="block text-[10px] uppercase tracking-wide text-bg/60">Descargar en</span><span class="block text-base font-semibold">App Store</span></span>
+            </a>
+            <a href="#" class="group inline-flex items-center gap-3 rounded-xl bg-white px-5 py-3 text-bg hover:bg-white/90 transition-colors duration-200 cursor-pointer focus-visible:ring-2 focus-visible:ring-neon focus-visible:ring-offset-2 focus-visible:ring-offset-bg">
+              <svg viewBox="0 0 24 24" class="h-7 w-7" aria-hidden="true"><path fill="#34A853" d="M3.6 20.5 13 12 3.6 3.5c-.3.2-.5.6-.5 1.1v14.8c0 .5.2.9.5 1.1z"/><path fill="#FBBC04" d="M16.8 8.4 13 12l3.8 3.6 3.6-2c1-.6 1-2.2 0-2.8l-3.6-2z"/><path fill="#EA4335" d="M3.6 3.5 13 12l3.8-3.6L6.1 2.2c-.9-.5-1.9-.4-2.5.3z"/><path fill="#4285F4" d="M3.6 20.5c.6.7 1.6.8 2.5.3l10.7-6.2L13 12 3.6 20.5z"/></svg>
+              <span class="text-left leading-tight"><span class="block text-[10px] uppercase tracking-wide text-bg/60">Disponible en</span><span class="block text-base font-semibold">Google Play</span></span>
+            </a>
+          </div>
+
+          <!-- mini trust -->
+          <!-- PLACEHOLDER: reemplazar por métricas reales cuando la app esté publicada -->
+          <div class="mt-6 flex items-center gap-4 text-sm text-muted">
+            <div class="flex -space-x-2" aria-hidden="true">
+              <span class="h-7 w-7 rounded-full bg-neon/80 ring-2 ring-bg"></span>
+              <span class="h-7 w-7 rounded-full bg-teal/80 ring-2 ring-bg"></span>
+              <span class="h-7 w-7 rounded-full bg-orange/80 ring-2 ring-bg"></span>
+            </div>
+            <span>Hecho para entrenar en casa, sin excusas.</span>
+          </div>
+        </div>
+
+        <!-- Phone mockup: Dashboard -->
+        <div class="reveal flex justify-center lg:justify-end">
+          <div class="phone floaty">
+            <div class="phone-screen">
+              <div class="px-5 pt-6 pb-7">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <p class="text-[10px] uppercase tracking-widest text-muted">Buenos días</p>
+                    <p class="text-xl font-bold">Hola, Fran</p>
+                  </div>
+                  <span class="h-9 w-9 rounded-full glass flex items-center justify-center text-neon text-sm font-bold">F</span>
+                </div>
+
+                <!-- ring card -->
+                <div class="glass-neon mt-5 rounded-2xl p-4">
+                  <p class="text-[10px] uppercase tracking-widest text-neon">Progreso diario</p>
+                  <div class="mt-3 flex items-center gap-4">
+                    <div class="relative h-20 w-20">
+                      <svg viewBox="0 0 80 80" class="h-20 w-20 -rotate-90">
+                        <circle cx="40" cy="40" r="34" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="7"/>
+                        <circle cx="40" cy="40" r="34" fill="none" stroke="#CCFF00" stroke-width="7" stroke-linecap="round" stroke-dasharray="214" stroke-dashoffset="60"/>
+                      </svg>
+                      <span class="absolute inset-0 flex items-center justify-center text-lg font-bold">72%</span>
+                    </div>
+                    <div class="space-y-2 text-xs flex-1">
+                      <div><div class="flex justify-between text-muted"><span>Calorías</span><span class="text-ink">1.480 / 2.050</span></div><div class="mt-1 h-1.5 rounded-full bg-white/10"><div class="h-full rounded-full bg-neon" style="width:72%"></div></div></div>
+                      <div><div class="flex justify-between text-muted"><span>Entrenos</span><span class="text-ink">3 / 4</span></div><div class="mt-1 h-1.5 rounded-full bg-white/10"><div class="h-full rounded-full bg-teal" style="width:75%"></div></div></div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- streak -->
+                <div class="glass mt-3 rounded-2xl p-4 flex items-center justify-between">
+                  <div class="flex items-center gap-3">
+                    <svg viewBox="0 0 24 24" class="h-7 w-7 text-orange" fill="currentColor" aria-hidden="true"><path d="M12 2c1 3-1 4-1 6 0 1 1 2 2 2s2-1 2-2c2 2 3 4 3 7a6 6 0 0 1-12 0c0-4 4-6 6-13z"/></svg>
+                    <div><p class="text-base font-bold leading-none">12 días</p><p class="text-[11px] text-muted">de constancia</p></div>
+                  </div>
+                  <span class="rounded-full glass-neon px-2.5 py-1 text-[10px] font-semibold text-neon">ACTIVO</span>
+                </div>
+
+                <button class="mt-3 w-full rounded-xl bg-neon py-3 text-sm font-bold text-bg">Empezar entreno</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ╔══════════════════ VALUE STRIP ══════════════════╗ -->
+    <section class="border-y border-line/60">
+      <div class="max-w-6xl mx-auto px-5 py-8 grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+        <div class="reveal"><p class="text-3xl font-bold text-neon">0</p><p class="text-sm text-muted mt-1">equipamiento necesario</p></div>
+        <div class="reveal"><p class="text-3xl font-bold text-teal">IA</p><p class="text-sm text-muted mt-1">para registrar tus comidas</p></div>
+        <div class="reveal"><p class="text-3xl font-bold text-orange">100%</p><p class="text-sm text-muted mt-1">entrenable desde casa</p></div>
+        <div class="reveal"><p class="text-3xl font-bold text-purple">+</p><p class="text-sm text-muted mt-1">progreso real medible</p></div>
+      </div>
+    </section>
+
+    <!-- ╔══════════════════ FEATURES ══════════════════╗ -->
+    <section id="features" class="max-w-6xl mx-auto px-5 py-20 sm:py-28">
+      <div class="reveal max-w-2xl">
+        <p class="text-xs font-semibold uppercase tracking-widest text-neon">Todo lo que necesitás</p>
+        <h2 class="mt-3 text-3xl sm:text-4xl font-bold tracking-tight">Una app, cuatro pilares</h2>
+        <p class="mt-3 text-muted">Sin distracciones ni mecánicas de juego. Solo las herramientas que mueven la aguja.</p>
+      </div>
+
+      <div class="mt-12 grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Nutrición -->
+        <article class="reveal glass rounded-2xl p-6 hover:border-neon/40 hover:bg-white/[0.07] transition-colors duration-200">
+          <span class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-neon/10 text-neon">
+            <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 2v7a3 3 0 0 0 6 0V2M6 9v13M21 2c-2 0-4 2-4 6s2 4 2 4v9"/></svg>
+          </span>
+          <h3 class="mt-4 text-lg font-semibold">Nutrición con IA</h3>
+          <p class="mt-2 text-sm text-muted leading-relaxed">Registrá comidas por foto o texto. La IA calcula calorías y macros al instante.</p>
+        </article>
+
+        <!-- Entrenamiento -->
+        <article class="reveal glass rounded-2xl p-6 hover:border-orange/40 hover:bg-white/[0.07] transition-colors duration-200">
+          <span class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-orange/10 text-orange">
+            <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6.5 6.5 17.5 17.5M4 7l3-3 3 3-3 3zM14 17l3-3 3 3-3 3zM3 8l1-1M20 16l1-1"/></svg>
+          </span>
+          <h3 class="mt-4 text-lg font-semibold">Rutinas en casa</h3>
+          <p class="mt-2 text-sm text-muted leading-relaxed">Planes guiados sin equipo o con equipo básico, con descansos y series automáticas.</p>
+        </article>
+
+        <!-- Progreso -->
+        <article class="reveal glass rounded-2xl p-6 hover:border-teal/40 hover:bg-white/[0.07] transition-colors duration-200">
+          <span class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-teal/10 text-teal">
+            <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 17l6-6 4 4 7-7M14 8h6v6"/></svg>
+          </span>
+          <h3 class="mt-4 text-lg font-semibold">Progreso real</h3>
+          <p class="mt-2 text-sm text-muted leading-relaxed">Seguí tu peso, medidas e historial de entrenos. Datos reales, no puntos ni niveles.</p>
+        </article>
+
+        <!-- Grupos -->
+        <article class="reveal glass rounded-2xl p-6 hover:border-purple/40 hover:bg-white/[0.07] transition-colors duration-200">
+          <span class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-purple/10 text-purple">
+            <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M16 19a4 4 0 0 0-8 0M12 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM20 19a3 3 0 0 0-4-2.8M18 10.5a2.5 2.5 0 1 0-2-4"/></svg>
+          </span>
+          <h3 class="mt-4 text-lg font-semibold">Grupos de amigos</h3>
+          <p class="mt-2 text-sm text-muted leading-relaxed">Compartí lo que comés con tu círculo. Sin rankings ni competencia, solo apoyo.</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- ╔══════════════════ NUTRICIÓN DEEP-DIVE ══════════════════╗ -->
+    <section id="nutricion" class="max-w-6xl mx-auto px-5 py-16 sm:py-24 grid lg:grid-cols-2 gap-12 items-center">
+      <div class="reveal order-2 lg:order-1 flex justify-center">
+        <div class="phone">
+          <div class="phone-screen">
+            <div class="px-5 pt-6 pb-7">
+              <p class="text-[10px] uppercase tracking-widest text-muted">Hoy</p>
+              <p class="text-xl font-bold">Nutrición</p>
+              <div class="glass-neon mt-4 rounded-2xl p-4">
+                <div class="flex items-end justify-between">
+                  <div><p class="text-3xl font-bold text-neon">1.480</p><p class="text-[11px] text-muted">de 2.050 kcal</p></div>
+                  <span class="text-[11px] text-muted">570 restantes</span>
+                </div>
+                <div class="mt-3 grid grid-cols-3 gap-2 text-center text-[11px]">
+                  <div class="glass rounded-lg py-2"><p class="text-teal font-bold">112g</p><p class="text-muted">Prot</p></div>
+                  <div class="glass rounded-lg py-2"><p class="text-neon font-bold">148g</p><p class="text-muted">Carb</p></div>
+                  <div class="glass rounded-lg py-2"><p class="text-orange font-bold">44g</p><p class="text-muted">Grasa</p></div>
+                </div>
+              </div>
+              <div class="mt-4 space-y-2">
+                <div class="glass rounded-xl p-3 flex items-center gap-3">
+                  <span class="h-8 w-8 rounded-lg bg-neon/10 text-neon flex items-center justify-center">
+                    <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 7h18v13H3zM3 7l3-4h12l3 4"/></svg>
+                  </span>
+                  <div class="flex-1"><p class="text-sm font-medium">Avena con frutos</p><p class="text-[11px] text-muted">Desayuno · 320 kcal</p></div>
+                </div>
+                <div class="glass rounded-xl p-3 flex items-center gap-3">
+                  <span class="h-8 w-8 rounded-lg bg-teal/10 text-teal flex items-center justify-center">
+                    <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3v18M5 10c0-4 3-7 7-7M19 10c0-4-3-7-7-7"/></svg>
+                  </span>
+                  <div class="flex-1"><p class="text-sm font-medium">Pollo y arroz</p><p class="text-[11px] text-muted">Almuerzo · 610 kcal</p></div>
+                </div>
+                <button class="w-full rounded-xl border border-neon/40 py-2.5 text-sm font-semibold text-neon">+ Agregar con IA</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="reveal order-1 lg:order-2">
+        <p class="text-xs font-semibold uppercase tracking-widest text-neon">Nutrición</p>
+        <h2 class="mt-3 text-3xl sm:text-4xl font-bold tracking-tight">Registrar lo que comés, sin fricción</h2>
+        <p class="mt-4 text-muted leading-relaxed">Olvidate de buscar cada alimento. Escribí "dos huevos y una tostada" o sacá una foto del plato: la IA estima calorías y macros por vos.</p>
+        <ul class="mt-6 space-y-3 text-sm">
+          <li class="flex gap-3"><svg viewBox="0 0 24 24" class="h-5 w-5 text-neon shrink-0" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg><span><b class="font-semibold">Modo Despensa:</b> cargá tus ingredientes y recibí recetas que encajan en tus macros del día.</span></li>
+          <li class="flex gap-3"><svg viewBox="0 0 24 24" class="h-5 w-5 text-neon shrink-0" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg><span>Objetivos calculados a partir de tu biometría y meta.</span></li>
+          <li class="flex gap-3"><svg viewBox="0 0 24 24" class="h-5 w-5 text-neon shrink-0" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg><span>Seguimiento de agua y macros por comida.</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ╔══════════════════ PROGRESO DEEP-DIVE ══════════════════╗ -->
+    <section id="progreso" class="border-y border-line/60 bg-white/[0.015]">
+      <div class="max-w-6xl mx-auto px-5 py-16 sm:py-24 grid lg:grid-cols-2 gap-12 items-center">
+        <div class="reveal">
+          <p class="text-xs font-semibold uppercase tracking-widest text-teal">Progreso real</p>
+          <h2 class="mt-3 text-3xl sm:text-4xl font-bold tracking-tight">Lo que se mide, mejora</h2>
+          <p class="mt-4 text-muted leading-relaxed">Nada de puntos, niveles ni ligas. FITCORE muestra tu progreso de verdad: cómo cambia tu peso hacia tu objetivo, tus medidas y tu historial de entrenos.</p>
+          <div class="mt-6 grid grid-cols-3 gap-3 max-w-sm">
+            <div class="glass rounded-xl p-3 text-center"><p class="text-2xl font-bold text-teal">−4.2</p><p class="text-[11px] text-muted">kg en 8 sem</p></div>
+            <div class="glass rounded-xl p-3 text-center"><p class="text-2xl font-bold text-ink">36</p><p class="text-[11px] text-muted">entrenos</p></div>
+            <div class="glass rounded-xl p-3 text-center"><p class="text-2xl font-bold text-orange">12</p><p class="text-[11px] text-muted">de racha</p></div>
+          </div>
+        </div>
+
+        <div class="reveal flex justify-center">
+          <div class="phone">
+            <div class="phone-screen">
+              <div class="px-5 pt-6 pb-7">
+                <p class="text-xl font-bold">Tu Progreso</p>
+                <div class="glass-neon mt-4 rounded-2xl p-4">
+                  <p class="text-[10px] uppercase tracking-widest text-neon">Peso actual</p>
+                  <div class="flex items-end gap-2"><p class="text-4xl font-bold">75.8</p><p class="text-sm text-muted pb-1">kg</p><span class="ml-auto text-[11px] text-muted pb-1">Meta 72 kg</span></div>
+                  <div class="mt-2 h-1.5 rounded-full bg-white/10"><div class="h-full rounded-full bg-neon" style="width:64%"></div></div>
+                  <!-- sparkline -->
+                  <svg viewBox="0 0 240 70" class="mt-4 w-full" aria-hidden="true">
+                    <polyline points="6,44 40,40 74,46 108,34 142,30 176,24 214,18" fill="none" stroke="#CCFF00" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="214" cy="18" r="4" fill="#CCFF00"/>
+                  </svg>
+                </div>
+                <div class="mt-3 grid grid-cols-2 gap-2 text-center text-[11px]">
+                  <div class="glass rounded-xl py-3"><p class="text-lg font-bold">Cintura</p><p class="text-muted">81.0 cm</p></div>
+                  <div class="glass rounded-xl py-3"><p class="text-lg font-bold">Pecho</p><p class="text-muted">99.5 cm</p></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ╔══════════════════ GRUPOS ══════════════════╗ -->
+    <section id="grupos" class="max-w-6xl mx-auto px-5 py-16 sm:py-24 grid lg:grid-cols-2 gap-12 items-center">
+      <div class="reveal order-2 lg:order-1 flex justify-center">
+        <div class="phone">
+          <div class="phone-screen">
+            <div class="px-5 pt-6 pb-7">
+              <p class="text-xl font-bold">Grupo: Los Fierros</p>
+              <p class="text-[11px] uppercase tracking-widest text-muted mt-3">Hoy en el grupo</p>
+              <div class="mt-3 space-y-2">
+                <div class="glass rounded-xl p-3 flex items-center gap-3">
+                  <span class="h-9 w-9 rounded-full bg-white/10 flex items-center justify-center font-bold text-sm">A</span>
+                  <div class="flex-1"><p class="text-sm font-medium">Ana</p><p class="text-[11px] text-muted">1.620 kcal · 120g prot</p></div>
+                </div>
+                <div class="glass rounded-xl p-3 flex items-center gap-3">
+                  <span class="h-9 w-9 rounded-full bg-white/10 flex items-center justify-center font-bold text-sm">F</span>
+                  <div class="flex-1"><p class="text-sm font-medium">Fran</p><p class="text-[11px] text-muted">1.480 kcal · 112g prot</p></div>
+                </div>
+                <div class="glass rounded-xl p-3 flex items-center gap-3">
+                  <span class="h-9 w-9 rounded-full bg-white/10 flex items-center justify-center font-bold text-sm">M</span>
+                  <div class="flex-1"><p class="text-sm font-medium">Martín</p><p class="text-[11px] text-muted">2.010 kcal · 145g prot</p></div>
+                </div>
+              </div>
+              <p class="mt-3 text-center text-[11px] text-muted">Compartan su día. Sin puntajes, sin ganadores.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="reveal order-1 lg:order-2">
+        <p class="text-xs font-semibold uppercase tracking-widest text-purple">Grupos de amigos</p>
+        <h2 class="mt-3 text-3xl sm:text-4xl font-bold tracking-tight">Mejor acompañado</h2>
+        <p class="mt-4 text-muted leading-relaxed">Creá un grupo, compartí el código y sumá a tus amigos. Vean qué come cada uno cada día — un muro compartido pensado para apoyarse, no para competir.</p>
+        <ul class="mt-6 space-y-3 text-sm">
+          <li class="flex gap-3"><svg viewBox="0 0 24 24" class="h-5 w-5 text-purple shrink-0" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg><span>Invitaciones con código de 6 caracteres.</span></li>
+          <li class="flex gap-3"><svg viewBox="0 0 24 24" class="h-5 w-5 text-purple shrink-0" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg><span>Muro diario de comidas, sin rankings ni medallas.</span></li>
+          <li class="flex gap-3"><svg viewBox="0 0 24 24" class="h-5 w-5 text-purple shrink-0" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg><span>Entrá y salí de grupos cuando quieras.</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ╔══════════════════ CÓMO FUNCIONA ══════════════════╗ -->
+    <section class="border-y border-line/60">
+      <div class="max-w-6xl mx-auto px-5 py-20">
+        <div class="reveal text-center max-w-2xl mx-auto">
+          <p class="text-xs font-semibold uppercase tracking-widest text-neon">En 3 pasos</p>
+          <h2 class="mt-3 text-3xl sm:text-4xl font-bold tracking-tight">Empezá hoy mismo</h2>
+        </div>
+        <div class="mt-12 grid md:grid-cols-3 gap-6">
+          <div class="reveal glass rounded-2xl p-6">
+            <span class="text-5xl font-bold text-neon/30">01</span>
+            <h3 class="mt-2 text-lg font-semibold">Armá tu plan</h3>
+            <p class="mt-2 text-sm text-muted leading-relaxed">Un onboarding rápido calcula tus calorías, macros y rutina según tu objetivo.</p>
+          </div>
+          <div class="reveal glass rounded-2xl p-6">
+            <span class="text-5xl font-bold text-teal/30">02</span>
+            <h3 class="mt-2 text-lg font-semibold">Entrená y registrá</h3>
+            <p class="mt-2 text-sm text-muted leading-relaxed">Seguí las rutinas en casa y anotá tus comidas con IA en segundos.</p>
+          </div>
+          <div class="reveal glass rounded-2xl p-6">
+            <span class="text-5xl font-bold text-orange/30">03</span>
+            <h3 class="mt-2 text-lg font-semibold">Mirá tu progreso</h3>
+            <p class="mt-2 text-sm text-muted leading-relaxed">Peso, medidas y constancia, todo medible. Sumá a tus amigos para no aflojar.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ╔══════════════════ TESTIMONIOS ══════════════════╗ -->
+    <!-- PLACEHOLDER: testimonios de muestra. Reemplazar por reseñas reales antes de publicar. -->
+    <section class="max-w-6xl mx-auto px-5 py-20 sm:py-28">
+      <div class="reveal max-w-2xl">
+        <p class="text-xs font-semibold uppercase tracking-widest text-neon">Lo que dicen</p>
+        <h2 class="mt-3 text-3xl sm:text-4xl font-bold tracking-tight">Constancia, no excusas</h2>
+      </div>
+      <div class="mt-12 grid md:grid-cols-3 gap-4">
+        <figure class="reveal glass rounded-2xl p-6">
+          <div class="flex gap-0.5 text-neon" aria-label="5 de 5 estrellas">
+            <svg viewBox="0 0 24 24" class="h-4 w-4" fill="currentColor" aria-hidden="true"><path d="m12 2 3 6.5 7 .6-5.3 4.6L18 21l-6-3.5L6 21l1.3-7.3L2 9.1l7-.6z"/></svg>
+            <svg viewBox="0 0 24 24" class="h-4 w-4" fill="currentColor" aria-hidden="true"><path d="m12 2 3 6.5 7 .6-5.3 4.6L18 21l-6-3.5L6 21l1.3-7.3L2 9.1l7-.6z"/></svg>
+            <svg viewBox="0 0 24 24" class="h-4 w-4" fill="currentColor" aria-hidden="true"><path d="m12 2 3 6.5 7 .6-5.3 4.6L18 21l-6-3.5L6 21l1.3-7.3L2 9.1l7-.6z"/></svg>
+            <svg viewBox="0 0 24 24" class="h-4 w-4" fill="currentColor" aria-hidden="true"><path d="m12 2 3 6.5 7 .6-5.3 4.6L18 21l-6-3.5L6 21l1.3-7.3L2 9.1l7-.6z"/></svg>
+            <svg viewBox="0 0 24 24" class="h-4 w-4" fill="currentColor" aria-hidden="true"><path d="m12 2 3 6.5 7 .6-5.3 4.6L18 21l-6-3.5L6 21l1.3-7.3L2 9.1l7-.6z"/></svg>
+          </div>
+          <blockquote class="mt-3 text-sm text-ink/90 leading-relaxed">"Registrar las comidas con la foto me sacó la fiaca de anotar. Por fin sostengo la dieta."</blockquote>
+          <figcaption class="mt-4 flex items-center gap-3"><span class="h-9 w-9 rounded-full bg-neon/80"></span><span class="text-sm"><b class="block font-semibold">Lucía P.</b><span class="text-muted text-xs">Entrena en casa</span></span></figcaption>
+        </figure>
+        <figure class="reveal glass rounded-2xl p-6">
+          <div class="flex gap-0.5 text-neon" aria-label="5 de 5 estrellas">
+            <svg viewBox="0 0 24 24" class="h-4 w-4" fill="currentColor" aria-hidden="true"><path d="m12 2 3 6.5 7 .6-5.3 4.6L18 21l-6-3.5L6 21l1.3-7.3L2 9.1l7-.6z"/></svg>
+            <svg viewBox="0 0 24 24" class="h-4 w-4" fill="currentColor" aria-hidden="true"><path d="m12 2 3 6.5 7 .6-5.3 4.6L18 21l-6-3.5L6 21l1.3-7.3L2 9.1l7-.6z"/></svg>
+            <svg viewBox="0 0 24 24" class="h-4 w-4" fill="currentColor" aria-hidden="true"><path d="m12 2 3 6.5 7 .6-5.3 4.6L18 21l-6-3.5L6 21l1.3-7.3L2 9.1l7-.6z"/></svg>
+            <svg viewBox="0 0 24 24" class="h-4 w-4" fill="currentColor" aria-hidden="true"><path d="m12 2 3 6.5 7 .6-5.3 4.6L18 21l-6-3.5L6 21l1.3-7.3L2 9.1l7-.6z"/></svg>
+            <svg viewBox="0 0 24 24" class="h-4 w-4" fill="currentColor" aria-hidden="true"><path d="m12 2 3 6.5 7 .6-5.3 4.6L18 21l-6-3.5L6 21l1.3-7.3L2 9.1l7-.6z"/></svg>
+          </div>
+          <blockquote class="mt-3 text-sm text-ink/90 leading-relaxed">"Sin gimnasio, sin equipo. Las rutinas son cortas y veo el progreso en peso real."</blockquote>
+          <figcaption class="mt-4 flex items-center gap-3"><span class="h-9 w-9 rounded-full bg-teal/80"></span><span class="text-sm"><b class="block font-semibold">Diego M.</b><span class="text-muted text-xs">−6 kg en 3 meses</span></span></figcaption>
+        </figure>
+        <figure class="reveal glass rounded-2xl p-6">
+          <div class="flex gap-0.5 text-neon" aria-label="5 de 5 estrellas">
+            <svg viewBox="0 0 24 24" class="h-4 w-4" fill="currentColor" aria-hidden="true"><path d="m12 2 3 6.5 7 .6-5.3 4.6L18 21l-6-3.5L6 21l1.3-7.3L2 9.1l7-.6z"/></svg>
+            <svg viewBox="0 0 24 24" class="h-4 w-4" fill="currentColor" aria-hidden="true"><path d="m12 2 3 6.5 7 .6-5.3 4.6L18 21l-6-3.5L6 21l1.3-7.3L2 9.1l7-.6z"/></svg>
+            <svg viewBox="0 0 24 24" class="h-4 w-4" fill="currentColor" aria-hidden="true"><path d="m12 2 3 6.5 7 .6-5.3 4.6L18 21l-6-3.5L6 21l1.3-7.3L2 9.1l7-.6z"/></svg>
+            <svg viewBox="0 0 24 24" class="h-4 w-4" fill="currentColor" aria-hidden="true"><path d="m12 2 3 6.5 7 .6-5.3 4.6L18 21l-6-3.5L6 21l1.3-7.3L2 9.1l7-.6z"/></svg>
+            <svg viewBox="0 0 24 24" class="h-4 w-4" fill="currentColor" aria-hidden="true"><path d="m12 2 3 6.5 7 .6-5.3 4.6L18 21l-6-3.5L6 21l1.3-7.3L2 9.1l7-.6z"/></svg>
+          </div>
+          <blockquote class="mt-3 text-sm text-ink/90 leading-relaxed">"El grupo con mis amigos nos mantiene a todos. Nada de competir, solo bancarnos."</blockquote>
+          <figcaption class="mt-4 flex items-center gap-3"><span class="h-9 w-9 rounded-full bg-purple/80"></span><span class="text-sm"><b class="block font-semibold">Sofía R.</b><span class="text-muted text-xs">Grupo de 5</span></span></figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- ╔══════════════════ FAQ ══════════════════╗ -->
+    <section id="faq" class="max-w-3xl mx-auto px-5 py-16 sm:py-24">
+      <div class="reveal text-center">
+        <p class="text-xs font-semibold uppercase tracking-widest text-neon">Preguntas frecuentes</p>
+        <h2 class="mt-3 text-3xl sm:text-4xl font-bold tracking-tight">¿Dudas? Las resolvemos</h2>
+      </div>
+      <div class="mt-10 space-y-3">
+        <details class="reveal glass rounded-xl px-5 py-4">
+          <summary class="flex items-center justify-between gap-4"><span class="font-medium">¿Necesito equipamiento para entrenar?</span><svg class="faq-icon h-5 w-5 text-neon transition-transform duration-200 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary>
+          <p class="mt-3 text-sm text-muted leading-relaxed">No. Las rutinas están pensadas para hacerse en casa sin equipo, y hay variantes si tenés mancuernas o bandas.</p>
+        </details>
+        <details class="reveal glass rounded-xl px-5 py-4">
+          <summary class="flex items-center justify-between gap-4"><span class="font-medium">¿Cómo registro mis comidas?</span><svg class="faq-icon h-5 w-5 text-neon transition-transform duration-200 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary>
+          <p class="mt-3 text-sm text-muted leading-relaxed">Escribiendo lo que comiste en lenguaje natural o sacando una foto. La IA estima calorías y macros automáticamente.</p>
+        </details>
+        <details class="reveal glass rounded-xl px-5 py-4">
+          <summary class="flex items-center justify-between gap-4"><span class="font-medium">¿Hay puntos, niveles o ligas?</span><svg class="faq-icon h-5 w-5 text-neon transition-transform duration-200 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary>
+          <p class="mt-3 text-sm text-muted leading-relaxed">No. FITCORE se enfoca en progreso real: peso, medidas, nutrición y constancia. Sin mecánicas de juego que distraigan.</p>
+        </details>
+        <details class="reveal glass rounded-xl px-5 py-4">
+          <summary class="flex items-center justify-between gap-4"><span class="font-medium">¿En qué dispositivos funciona?</span><svg class="faq-icon h-5 w-5 text-neon transition-transform duration-200 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary>
+          <p class="mt-3 text-sm text-muted leading-relaxed">En iOS y Android. Descargala desde la App Store o Google Play.</p>
+        </details>
+      </div>
+    </section>
+
+    <!-- ╔══════════════════ CTA FINAL ══════════════════╗ -->
+    <section class="px-5 pb-24">
+      <div class="reveal relative max-w-5xl mx-auto overflow-hidden rounded-3xl glass-neon p-10 sm:p-16 text-center">
+        <div class="absolute inset-0 grid-lines opacity-30" aria-hidden="true"></div>
+        <div class="relative">
+          <h2 class="text-3xl sm:text-5xl font-bold tracking-tight">Tu mejor versión<br class="hidden sm:block" /> empieza en casa</h2>
+          <p class="mt-4 text-muted max-w-md mx-auto">Descargá FITCORE gratis y armá tu plan en menos de dos minutos.</p>
+          <div class="mt-8 flex flex-wrap justify-center gap-3">
+            <a href="#" class="inline-flex items-center gap-3 rounded-xl bg-white px-5 py-3 text-bg hover:bg-white/90 transition-colors duration-200 cursor-pointer focus-visible:ring-2 focus-visible:ring-neon focus-visible:ring-offset-2 focus-visible:ring-offset-bg">
+              <svg viewBox="0 0 24 24" class="h-7 w-7" fill="currentColor" aria-hidden="true"><path d="M16.365 1.43c0 1.14-.466 2.22-1.22 3.01-.81.85-2.14 1.5-3.24 1.41-.13-1.09.41-2.25 1.16-3.02.82-.85 2.25-1.48 3.3-1.4zM20.5 17.3c-.6 1.38-.88 1.99-1.65 3.21-1.08 1.7-2.6 3.81-4.48 3.83-1.67.02-2.1-1.09-4.37-1.08-2.27.01-2.74 1.1-4.41 1.08-1.88-.02-3.32-1.93-4.4-3.62C-1.06 16.8-1.4 10.3 1.5 7.13 2.62 5.86 4.3 5.05 6.07 5.03c1.79-.02 2.92 1.09 4.4 1.09 1.45 0 2.33-1.1 4.4-1.09 1.06.01 2.93.43 4.13 2.05-3.63 1.99-3.04 7.18.5 8.22z"/></svg>
+              <span class="text-left leading-tight"><span class="block text-[10px] uppercase tracking-wide text-bg/60">Descargar en</span><span class="block text-base font-semibold">App Store</span></span>
+            </a>
+            <a href="#" class="inline-flex items-center gap-3 rounded-xl bg-white px-5 py-3 text-bg hover:bg-white/90 transition-colors duration-200 cursor-pointer focus-visible:ring-2 focus-visible:ring-neon focus-visible:ring-offset-2 focus-visible:ring-offset-bg">
+              <svg viewBox="0 0 24 24" class="h-7 w-7" aria-hidden="true"><path fill="#34A853" d="M3.6 20.5 13 12 3.6 3.5c-.3.2-.5.6-.5 1.1v14.8c0 .5.2.9.5 1.1z"/><path fill="#FBBC04" d="M16.8 8.4 13 12l3.8 3.6 3.6-2c1-.6 1-2.2 0-2.8l-3.6-2z"/><path fill="#EA4335" d="M3.6 3.5 13 12l3.8-3.6L6.1 2.2c-.9-.5-1.9-.4-2.5.3z"/><path fill="#4285F4" d="M3.6 20.5c.6.7 1.6.8 2.5.3l10.7-6.2L13 12 3.6 20.5z"/></svg>
+              <span class="text-left leading-tight"><span class="block text-[10px] uppercase tracking-wide text-bg/60">Disponible en</span><span class="block text-base font-semibold">Google Play</span></span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ╔══════════════════ FOOTER ══════════════════╗ -->
+  <footer class="border-t border-line/60">
+    <div class="max-w-6xl mx-auto px-5 py-10 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-2">
+        <span class="inline-flex h-6 w-6 items-center justify-center rounded-md bg-neon">
+          <svg viewBox="0 0 24 24" class="h-3.5 w-3.5 text-bg" fill="currentColor" aria-hidden="true"><path d="M13 2 4.5 13.5H11l-1 8.5 8.5-11.5H12z"/></svg>
+        </span>
+        <span class="font-bold">FITCORE</span>
+      </div>
+      <nav class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-muted">
+        <a href="#features" class="hover:text-ink transition-colors cursor-pointer">Funciones</a>
+        <a href="#faq" class="hover:text-ink transition-colors cursor-pointer">FAQ</a>
+        <a href="#" class="hover:text-ink transition-colors cursor-pointer">Privacidad</a>
+        <a href="#" class="hover:text-ink transition-colors cursor-pointer">Términos</a>
+      </nav>
+      <p class="text-xs text-dim">© 2026 FITCORE. Entrená en casa.</p>
+    </div>
+  </footer>
+
+  <script>
+    // Mobile menu
+    const btn = document.getElementById('menuBtn');
+    const menu = document.getElementById('mobileMenu');
+    btn?.addEventListener('click', () => {
+      const open = menu.classList.toggle('hidden') === false;
+      btn.setAttribute('aria-expanded', String(open));
+    });
+    menu?.querySelectorAll('a').forEach((a) => a.addEventListener('click', () => menu.classList.add('hidden')));
+
+    // Scroll reveal (respects reduced motion via CSS)
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+    }, { threshold: 0.12 });
+    document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
+  </script>
+</body>
+</html>
