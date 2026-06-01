@@ -28,14 +28,12 @@ export default function WorkoutSummaryScreen() {
   const params = useLocalSearchParams<{
     durationMin?:    string;
     caloriesBurned?: string;
-    xpEarned?:      string;
     planName?:      string;
     loggedSetsJson?: string;
   }>();
 
   const durationMin = Number(params.durationMin ?? 0);
   const caloriesBurned = Number(params.caloriesBurned ?? durationMin * 6);
-  const xpEarned = Number(params.xpEarned ?? 100);
   const planName = params.planName ?? 'Entrenamiento';
 
   const loggedSets: LoggedSet[] = useMemo(() => {
@@ -125,12 +123,12 @@ export default function WorkoutSummaryScreen() {
             </View>
           </View>
 
-          {/* XP card */}
+          {/* Completed banner */}
           <View style={[glassNeon, styles.xpCard]}>
-            <Text style={styles.xpIcon}>⚡</Text>
+            <Text style={styles.xpIcon}>✅</Text>
             <View style={styles.xpInfo}>
-              <Text style={styles.xpAmount}>+{xpEarned} XP GANADOS</Text>
-              <Text style={styles.xpSub}>Por completar {planName}</Text>
+              <Text style={styles.xpAmount}>ENTRENAMIENTO COMPLETADO</Text>
+              <Text style={styles.xpSub}>{planName}</Text>
             </View>
           </View>
 

@@ -137,23 +137,21 @@ export const api = {
     }),
 
   finishSession: (token: string, id: string, data: FinishSessionData) =>
-    request<{ ok: boolean; xpEarned: number }>(
+    request<{ ok: boolean }>(
       `/workouts/sessions/${id}`,
       { method: 'PATCH', body: JSON.stringify(data), token },
     ),
 
-  // ── Gamification ─────────────────────────────────────────────────────────
+  // ── Streak (consistency) ────────────────────────────────────────────────
   getStreak: (token: string) =>
-    request<Streak>('/gamification/streak', { token }),
+    request<Streak>('/workouts/streak', { token }),
 
-  getAchievements: (token: string) =>
-    request<{ achievements: Achievement[] }>('/gamification/achievements', { token }),
+  // ── Body metrics (real progress) ──────────────────────────────────────────
+  getBodyMetrics: (token: string, limit = 60) =>
+    request<{ entries: BodyMetric[] }>(`/metrics?limit=${limit}`, { token }),
 
-  getLeague: (token: string, week?: string) =>
-    request<{ weekStart: string; entries: LeagueEntry[] }>(
-      `/gamification/league${week ? `?week=${week}` : ''}`,
-      { token },
-    ),
+  addBodyMetric: (token: string, data: BodyMetricInput) =>
+    request<{ id: string }>('/metrics', { method: 'POST', body: JSON.stringify(data), token }),
 
   // ── AI ────────────────────────────────────────────────────────────────────
   generateRecipes: (token: string, data: RecipeRequest) =>
@@ -299,22 +297,19 @@ export interface Streak {
   lastActivityDate: string | null;
 }
 
-export interface Achievement {
+export interface BodyMetric {
   id:          string;
-  name:        string;
-  description: string;
-  icon:        string;
-  xpReward:    number;
-  unlocked:    boolean;
-  unlockedAt:  string | null;
+  date:        string;   // YYYY-MM-DD
+  weightKg?:   number;
+  bodyFatPct?: number;
+  chestCm?:    number;
+  waistCm?:    number;
+  hipCm?:      number;
+  armCm?:      number;
+  thighCm?:    number;
 }
 
-export interface LeagueEntry {
-  userId:    string;
-  weekStart: string;
-  xpTotal:   number;
-  rank:      number;
-}
+export type BodyMetricInput = Omit<BodyMetric, 'id'> & { date?: string };
 
 export interface RecipeRequest {
   ingredients: Array<{

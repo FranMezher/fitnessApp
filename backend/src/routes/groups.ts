@@ -120,8 +120,8 @@ groupsRouter.get('/:id/feed', async (c) => {
     };
   });
 
-  // Sort by calories desc (ranking)
-  feed.sort((a, b) => b.totalCalories - a.totalCalories);
+  // Shared wall — alphabetical by name, not a competitive ranking
+  feed.sort((a, b) => a.name.localeCompare(b.name));
 
   return c.json({ date, feed });
 });

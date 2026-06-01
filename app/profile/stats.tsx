@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { useEffect, useMemo } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Polygon, Line, Text as SvgText } from 'react-native-svg';
 import { router } from 'expo-router';
@@ -8,7 +8,6 @@ import { text } from '@/constants/typography';
 import { spacing, radius } from '@/constants/spacing';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useWorkoutStore } from '@/stores/useWorkoutStore';
-import { api, Achievement } from '@/lib/api';
 
 // ─── Radar chart (4-axis diamond) ────────────────────────────────────────────
 
@@ -83,29 +82,17 @@ const PLACEHOLDER_PRS = [
   { name: 'Press Militar', value: '—', pct: 0.60 },
 ];
 
-const BADGE_ICONS = ['🏆', '⚡', '⏱', '🔥', '💪', '🎯'];
-
 // ─── Main screen ──────────────────────────────────────────────────────────────
 
 export default function ProfileStatsScreen() {
-  const token = useAuthStore((s) => s.token);
   const { profile, fetchProfile } = useAuthStore();
   const { sessions, streak, fetchSessions, fetchStreak } = useWorkoutStore();
-  const [achievements, setAchievements] = useState<Achievement[]>([]);
-  const [loadingAch, setLoadingAch] = useState(false);
 
   useEffect(() => {
     if (!profile) fetchProfile();
     fetchSessions();
     fetchStreak();
-    if (token) {
-      setLoadingAch(true);
-      api.getAchievements(token)
-        .then(({ achievements: ach }) => setAchievements(ach))
-        .catch(() => {})
-        .finally(() => setLoadingAch(false));
-    }
-  }, [token]);
+  }, []);
 
   const totalSessions = sessions.length;
   const totalCalories = useMemo(() =>
@@ -130,8 +117,6 @@ export default function ProfileStatsScreen() {
     Math.min(100, (totalCalories / 1000) * 1.5),  // Potencia (total cals)
   ], [consistencyDays, totalSessions, longestStreak, totalCalories]);
 
-  const unlockedAch = achievements.filter((a) => a.unlocked);
-
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       {/* TopAppBar */}
@@ -151,9 +136,6 @@ export default function ProfileStatsScreen() {
               <Text style={styles.avatarInitials}>
                 {firstName.charAt(0).toUpperCase()}
               </Text>
-            </View>
-            <View style={[glassNeon, styles.eliteBadge]}>
-              <Text style={styles.eliteBadgeText}>ELITE</Text>
             </View>
           </View>
           <Text style={styles.heroName}>{fullName}</Text>
@@ -239,30 +221,6 @@ export default function ProfileStatsScreen() {
           </View>
         </View>
 
-        {/* Elite Badges */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Logros Elite</Text>
-          {loadingAch ? (
-            <ActivityIndicator color={colors.neon} style={{ marginTop: spacing.sm }} />
-          ) : (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.badgesRow}>
-              {(unlockedAch.length > 0 ? unlockedAch : BADGE_ICONS.map((icon, i) => ({ id: String(i), icon, name: '', unlocked: false }))).map((ach, i) => {
-                const icon = typeof ach === 'string' ? ach : BADGE_ICONS[i % BADGE_ICONS.length];
-                const unlocked = typeof ach === 'object' ? ach.unlocked : false;
-                return (
-                  <View
-                    key={typeof ach === 'object' ? ach.id : i}
-                    style={[styles.badge, unlocked ? styles.badgeUnlocked : styles.badgeLocked]}
-                  >
-                    <Text style={[styles.badgeIcon, !unlocked && styles.badgeIconLocked]}>
-                      {typeof ach === 'object' ? ach.icon : ach}
-                    </Text>
-                  </View>
-                );
-              })}
-            </ScrollView>
-          )}
-        </View>
       </ScrollView>
     </SafeAreaView>
   );

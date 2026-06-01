@@ -40,10 +40,10 @@ const RETENTION_SEQUENCE: RetentionNotif[] = [
   { day: 1, hour: 8,  minute: 0, title: '¡Bienvenido a FITCORE! ⚡', body: 'Tu plan está listo. Primer entreno en 30 min.' },
   { day: 2, hour: 9,  minute: 0, title: 'Racha de 2 días 🔥',         body: '¡No la rompas hoy!' },
   { day: 3, hour: 17, minute: 0, title: 'Hora de entrenar ⏰',         body: 'Tu rutina Upper Body te espera. 38 min.' },
-  { day: 4, hour: 10, minute: 0, title: '¡Logro desbloqueado! 🏆',     body: '"Sin excusas" — 3 entrenos completados.' },
+  { day: 4, hour: 10, minute: 0, title: '¡Vas muy bien! 💪',           body: '3 entrenos esta semana. La constancia es todo.' },
   { day: 5, hour: 20, minute: 0, title: 'Tu resumen semanal 📊',       body: 'Revisa tu progreso de esta semana.' },
   { day: 6, hour: 13, minute: 0, title: 'Registra tu comida 🍽️',      body: 'Te faltan calorías para cerrar el día bien.' },
-  { day: 7, hour: 9,  minute: 0, title: '¡1 semana completa! ⚡',       body: 'Eres top 15% en tu liga. ¡Sigue así!' },
+  { day: 7, hour: 9,  minute: 0, title: '¡1 semana completa! ⚡',       body: 'Mirá cuánto avanzaste en tu progreso.' },
 ];
 
 // ── Android channel ──────────────────────────────────────────────────────────
@@ -72,7 +72,7 @@ export async function requestPermissions(): Promise<boolean> {
   return status === 'granted';
 }
 
-// ── Expo push token (for server-driven push: league, achievements) ───────────
+// ── Expo push token (for server-driven push: reminders, group activity) ──────
 export async function getExpoPushToken(): Promise<string | null> {
   if (!Device.isDevice) return null;
   try {

@@ -1,235 +1,282 @@
 import { useEffect, useMemo, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import {
+  View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, TextInput, Alert,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '@/constants/colors';
+import Svg, { Polyline, Circle } from 'react-native-svg';
+import { router } from 'expo-router';
+import { colors, glass, glassNeon } from '@/constants/colors';
 import { text } from '@/constants/typography';
 import { spacing, radius } from '@/constants/spacing';
 import { HudBackground } from '@/components/ui/HudBackground';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useWorkoutStore } from '@/stores/useWorkoutStore';
-import { api, Achievement, LeagueEntry } from '@/lib/api';
+import { api, BodyMetric } from '@/lib/api';
 
-const XP_PER_LEVEL = 1000;
-
-const LEVEL_TITLES = ['Novato', 'Principiante', 'Atleta Emergente', 'Atleta', 'Élite', 'Leyenda'];
-
-function levelTitle(level: number): string {
-  return LEVEL_TITLES[Math.min(level - 1, LEVEL_TITLES.length - 1)];
+// ─── Weight sparkline ────────────────────────────────────────────────────────
+function WeightChart({ points }: { points: number[] }) {
+  const W = 300, H = 90, pad = 8;
+  if (points.length < 2) return null;
+  const min = Math.min(...points), max = Math.max(...points);
+  const range = max - min || 1;
+  const stepX = (W - pad * 2) / (points.length - 1);
+  const coords = points.map((v, i) => {
+    const x = pad + i * stepX;
+    const y = pad + (1 - (v - min) / range) * (H - pad * 2);
+    return { x, y };
+  });
+  const poly = coords.map((c) => `${c.x},${c.y}`).join(' ');
+  const last = coords[coords.length - 1];
+  return (
+    <Svg width="100%" height={H} viewBox={`0 0 ${W} ${H}`}>
+      <Polyline points={poly} fill="none" stroke={colors.neon} strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round" />
+      <Circle cx={last.x} cy={last.y} r={4} fill={colors.neon} />
+    </Svg>
+  );
 }
 
-function currentWeekMonday(): string {
-  const d = new Date();
-  const day = d.getDay();
-  const diff = (day === 0 ? -6 : 1) - day;
-  d.setDate(d.getDate() + diff);
-  return d.toISOString().slice(0, 10);
-}
+const MEASURE_FIELDS: { key: keyof BodyMetric; label: string; unit: string }[] = [
+  { key: 'weightKg',   label: 'Peso',     unit: 'kg' },
+  { key: 'bodyFatPct', label: '% Grasa',  unit: '%' },
+  { key: 'waistCm',    label: 'Cintura',  unit: 'cm' },
+  { key: 'chestCm',    label: 'Pecho',    unit: 'cm' },
+  { key: 'hipCm',      label: 'Cadera',   unit: 'cm' },
+  { key: 'armCm',      label: 'Brazo',    unit: 'cm' },
+  { key: 'thighCm',    label: 'Muslo',    unit: 'cm' },
+];
 
 export default function ProgressScreen() {
-  const { token, userId } = useAuthStore();
-  const { streak, fetchStreak } = useWorkoutStore();
-  const [achievements, setAchievements] = useState<Achievement[]>([]);
-  const [league, setLeague] = useState<LeagueEntry[]>([]);
+  const { token, profile, fetchProfile } = useAuthStore();
+  const { streak, sessions, fetchStreak, fetchSessions } = useWorkoutStore();
+  const [metrics, setMetrics] = useState<BodyMetric[]>([]);
   const [loading, setLoading] = useState(true);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [form, setForm] = useState<Record<string, string>>({});
+  const [saving, setSaving] = useState(false);
+
+  async function loadMetrics() {
+    if (!token) return;
+    const { entries } = await api.getBodyMetrics(token).catch(() => ({ entries: [] as BodyMetric[] }));
+    setMetrics(entries);
+  }
 
   useEffect(() => {
     if (!token) { setLoading(false); return; }
+    if (!profile) fetchProfile();
     setLoading(true);
-    Promise.all([
-      api.getAchievements(token).then((r) => setAchievements(r.achievements)),
-      api.getLeague(token).then((r) => setLeague(r.entries)),
-      fetchStreak(),
-    ]).finally(() => setLoading(false));
+    Promise.all([fetchStreak(), fetchSessions(), loadMetrics()]).finally(() => setLoading(false));
   }, [token]);
 
-  const { level, xpInLevel, levelPct, totalXp } = useMemo(() => {
-    const xp = achievements.filter((a) => a.unlocked).reduce((s, a) => s + a.xpReward, 0);
-    const lvl = Math.floor(xp / XP_PER_LEVEL) + 1;
-    const inLevel = xp % XP_PER_LEVEL;
-    const pct = Math.round((inLevel / XP_PER_LEVEL) * 100);
-    return { totalXp: xp, level: lvl, xpInLevel: inLevel, levelPct: pct };
-  }, [achievements]);
+  // newest first → latest is metrics[0]
+  const latest = metrics[0];
+  const startWeight = metrics.length ? metrics[metrics.length - 1].weightKg : profile?.weightKg;
+  const currentWeight = latest?.weightKg ?? profile?.weightKg;
+  const targetWeight = profile?.targetWeightKg;
 
-  const weekLabel = useMemo(() => {
-    const d = new Date(currentWeekMonday() + 'T12:00:00');
-    return `Semana ${d.getDate()}/${d.getMonth() + 1}`;
-  }, []);
+  const weightPct = useMemo(() => {
+    if (currentWeight == null || targetWeight == null || startWeight == null) return null;
+    const totalDelta = startWeight - targetWeight;
+    if (totalDelta === 0) return 1;
+    const doneDelta = startWeight - currentWeight;
+    return Math.max(0, Math.min(1, doneDelta / totalDelta));
+  }, [startWeight, currentWeight, targetWeight]);
 
-  const myLeagueEntry = userId ? league.find((e) => e.userId === userId) : undefined;
-  const unlockedCount = achievements.filter((a) => a.unlocked).length;
+  const weightSeries = useMemo(
+    () => metrics.filter((m) => m.weightKg != null).map((m) => m.weightKg!).reverse(),
+    [metrics],
+  );
+
+  const sessionsThisWeek = useMemo(() => {
+    const monday = new Date();
+    const day = monday.getDay();
+    monday.setDate(monday.getDate() + ((day === 0 ? -6 : 1) - day));
+    monday.setHours(0, 0, 0, 0);
+    return sessions.filter((s) => s.endedAt && new Date(s.startedAt) >= monday).length;
+  }, [sessions]);
+
+  const completedSessions = sessions.filter((s) => s.endedAt);
+
+  async function handleSave() {
+    if (!token) return;
+    const payload: Record<string, number> = {};
+    for (const f of MEASURE_FIELDS) {
+      const raw = form[f.key];
+      if (raw != null && raw.trim() !== '') {
+        const n = parseFloat(raw.replace(',', '.'));
+        if (!Number.isNaN(n) && n > 0) payload[f.key] = n;
+      }
+    }
+    if (Object.keys(payload).length === 0) {
+      Alert.alert('Nada para guardar', 'Ingresá al menos un valor.');
+      return;
+    }
+    setSaving(true);
+    try {
+      await api.addBodyMetric(token, payload as any);
+      setForm({});
+      setModalOpen(false);
+      await loadMetrics();
+    } catch (err: any) {
+      Alert.alert('Error', err?.message ?? 'No se pudo guardar');
+    } finally {
+      setSaving(false);
+    }
+  }
 
   return (
     <HudBackground style={styles.flex}>
       <SafeAreaView style={styles.flex}>
-        {/* Top bar */}
         <View style={styles.topBar}>
           <Text style={styles.headerBrand}>FITCORE</Text>
-          <View style={styles.topBarRight}>
-            <Text style={styles.weekLabel}>{weekLabel}</Text>
-            <Ionicons name="notifications-outline" size={22} color={colors.neon} />
-          </View>
+          <TouchableOpacity style={styles.logBtn} onPress={() => setModalOpen(true)} activeOpacity={0.85}>
+            <Ionicons name="add" size={16} color={colors.bg} />
+            <Text style={styles.logBtnText}>Registrar</Text>
+          </TouchableOpacity>
         </View>
 
         {loading ? (
-          <View style={styles.center}>
-            <ActivityIndicator color={colors.neon} size="large" />
-          </View>
+          <View style={styles.center}><ActivityIndicator color={colors.neon} size="large" /></View>
         ) : (
           <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-            {/* Page title */}
             <Text style={styles.pageTitle}>Tu Progreso</Text>
 
-            {/* Level hero card */}
-            <View style={styles.levelCard}>
-              <View style={styles.levelTop}>
-                <View>
-                  <Text style={styles.levelNum}>NVL {level}</Text>
-                  <Text style={styles.levelTitle}>{levelTitle(level).toUpperCase()}</Text>
-                </View>
-                <View style={styles.xpBadge}>
-                  <Text style={styles.xpBadgeText}>{totalXp.toLocaleString()} XP</Text>
-                </View>
+            {/* Weight hero */}
+            <View style={[glassNeon, styles.weightCard]}>
+              <Text style={styles.cardLabel}>PESO ACTUAL</Text>
+              <View style={styles.weightRow}>
+                <Text style={styles.weightNum}>{currentWeight != null ? currentWeight.toFixed(1) : '—'}</Text>
+                <Text style={styles.weightUnit}>kg</Text>
+                {targetWeight != null && (
+                  <Text style={styles.weightTarget}>Meta {targetWeight.toFixed(1)} kg</Text>
+                )}
               </View>
-
-              <View style={styles.levelProgressWrap}>
-                <View style={styles.levelProgressTrack}>
-                  <View style={[styles.levelProgressFill, { width: `${levelPct}%` }]} />
-                </View>
-                <View style={styles.levelProgressLabels}>
-                  <Text style={styles.levelProgressSub}>{xpInLevel.toLocaleString()} / {XP_PER_LEVEL.toLocaleString()} XP</Text>
-                  <Text style={styles.levelProgressSub}>Nivel {level + 1}</Text>
-                </View>
-              </View>
+              {weightPct != null && (
+                <>
+                  <View style={styles.progressTrack}>
+                    <View style={[styles.progressFill, { width: `${Math.round(weightPct * 100)}%` }]} />
+                  </View>
+                  <Text style={styles.progressSub}>{Math.round(weightPct * 100)}% hacia tu objetivo</Text>
+                </>
+              )}
+              {weightSeries.length >= 2 && (
+                <View style={styles.chartWrap}><WeightChart points={weightSeries} /></View>
+              )}
             </View>
 
-            {/* Streak card */}
+            {/* Streak (consistency) */}
             {(streak?.currentStreak ?? 0) > 0 && (
               <View style={styles.streakCard}>
                 <View style={styles.streakLeft}>
                   <Ionicons name="flame" size={32} color={colors.orange} />
                   <View>
                     <Text style={styles.streakNum}>{streak!.currentStreak}</Text>
-                    <Text style={styles.streakLabel}>días de racha</Text>
+                    <Text style={styles.streakLabel}>días de constancia</Text>
                   </View>
                 </View>
                 <View style={styles.streakRight}>
-                  <Text style={styles.streakBestLabel}>MEJOR RACHA</Text>
+                  <Text style={styles.streakBestLabel}>MEJOR</Text>
                   <Text style={styles.streakBestNum}>{streak!.longestStreak} días</Text>
                 </View>
               </View>
             )}
 
-            {/* Achievements */}
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>LOGROS</Text>
-              <View style={styles.sectionBadge}>
-                <Text style={styles.sectionBadgeText}>{unlockedCount}/{achievements.length}</Text>
+            {/* Workout history summary */}
+            <View style={styles.statsGrid}>
+              <View style={[glass, styles.statCard]}>
+                <Text style={styles.statLabel}>ENTRENOS</Text>
+                <Text style={styles.statValue}>{completedSessions.length}</Text>
+                <Text style={styles.statUnit}>totales</Text>
+              </View>
+              <View style={[glass, styles.statCard]}>
+                <Text style={styles.statLabel}>ESTA SEMANA</Text>
+                <Text style={styles.statValue}>{sessionsThisWeek}</Text>
+                <Text style={styles.statUnit}>sesiones</Text>
               </View>
             </View>
 
-            {achievements.length === 0 ? (
+            {/* Latest measurements */}
+            {latest && (
+              <>
+                <Text style={styles.sectionTitle}>ÚLTIMAS MEDIDAS</Text>
+                <View style={styles.measuresGrid}>
+                  {MEASURE_FIELDS.filter((f) => latest[f.key] != null).map((f) => (
+                    <View key={f.key} style={[glass, styles.measureCard]}>
+                      <Text style={styles.measureLabel}>{f.label}</Text>
+                      <Text style={styles.measureValue}>
+                        {(latest[f.key] as number).toFixed(1)}<Text style={styles.measureUnit}> {f.unit}</Text>
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              </>
+            )}
+
+            {/* Recent workouts */}
+            <View style={styles.sectionHeaderRow}>
+              <Text style={styles.sectionTitle}>ENTRENOS RECIENTES</Text>
+              <TouchableOpacity onPress={() => router.push('/profile/workout-history')}>
+                <Text style={styles.linkText}>Ver todo</Text>
+              </TouchableOpacity>
+            </View>
+            {completedSessions.length === 0 ? (
               <View style={styles.emptyCard}>
-                <Ionicons name="trophy-outline" size={36} color={colors.dim} />
-                <Text style={styles.emptyText}>Completá entrenamientos para desbloquear logros</Text>
+                <Ionicons name="barbell-outline" size={32} color={colors.dim} />
+                <Text style={styles.emptyText}>Todavía no completaste entrenos.</Text>
               </View>
             ) : (
-              achievements.slice(0, 6).map((a) => (
-                <View
-                  key={a.id}
-                  style={[
-                    styles.achievementRow,
-                    a.unlocked ? styles.achievementUnlocked : styles.achievementLocked,
-                  ]}
-                >
-                  <View style={[styles.achieveIconWrap, a.unlocked && styles.achieveIconWrapActive]}>
-                    <Text style={styles.achieveEmoji}>{a.icon}</Text>
-                  </View>
-                  <View style={styles.achieveInfo}>
-                    <Text style={[styles.achieveName, !a.unlocked && styles.achieveNameDim]}>
-                      {a.name}
-                    </Text>
-                    <Text style={styles.achieveDesc}>{a.description}</Text>
-                  </View>
-                  {a.unlocked ? (
-                    <Ionicons name="checkmark-circle" size={20} color={colors.neon} />
-                  ) : (
-                    <View style={styles.xpPill}>
-                      <Text style={styles.xpPillText}>+{a.xpReward}</Text>
-                    </View>
-                  )}
+              completedSessions.slice(0, 4).map((s) => (
+                <View key={s.id} style={[glass, styles.sessionRow]}>
+                  <Ionicons name="checkmark-circle" size={20} color={colors.neon} />
+                  <Text style={styles.sessionDate}>
+                    {new Date(s.startedAt).toLocaleDateString('es', { day: 'numeric', month: 'short' })}
+                  </Text>
+                  <Text style={styles.sessionKcal}>{s.caloriesBurned ?? 0} kcal</Text>
                 </View>
               ))
             )}
-
-            {/* League */}
-            <View style={[styles.sectionHeader, { marginTop: spacing.sm }]}>
-              <Text style={styles.sectionTitle}>LIGA SEMANAL</Text>
-              <Ionicons name="people-outline" size={16} color={colors.muted} />
-            </View>
-
-            {league.length === 0 ? (
-              <View style={styles.emptyCard}>
-                <Ionicons name="podium-outline" size={36} color={colors.dim} />
-                <Text style={styles.emptyText}>
-                  Completá un entrenamiento esta semana para entrar a la liga
-                </Text>
-              </View>
-            ) : (
-              league
-                .filter((u) => u.rank <= 10)
-                .filter((u, _, arr) => arr.findIndex((x) => x.userId === u.userId) === arr.indexOf(u))
-                .map((u) => {
-                  const isYou = u.userId === userId;
-                  return (
-                    <View
-                      key={u.userId}
-                      style={[styles.leagueRow, isYou && styles.leagueRowYou]}
-                    >
-                      <Text style={[
-                        styles.leaguePos,
-                        u.rank === 1 && { color: colors.gold },
-                        u.rank === 2 && { color: '#C0C0C0' },
-                        u.rank === 3 && { color: '#CD7F32' },
-                      ]}>
-                        {u.rank}
-                      </Text>
-                      <View style={[styles.leagueAvatar, isYou && styles.leagueAvatarYou]}>
-                        <Text style={[styles.leagueAvatarText, isYou && { color: colors.bg }]}>
-                          {isYou ? 'TÚ' : `J${u.rank}`}
-                        </Text>
-                      </View>
-                      <Text style={[styles.leagueName, isYou && { color: colors.neon }]}>
-                        {isYou ? 'Tú' : `Jugador ${u.rank}`}
-                      </Text>
-                      <View style={styles.leagueXpWrap}>
-                        <Text style={[styles.leagueXp, isYou && { color: colors.neon }]}>
-                          {u.xpTotal.toLocaleString()}
-                        </Text>
-                        <Text style={styles.leagueXpLabel}>XP</Text>
-                      </View>
-                    </View>
-                  );
-                })
-            )}
-
-            {/* My position if outside top 10 */}
-            {myLeagueEntry && myLeagueEntry.rank > 10 && (
-              <View style={[styles.leagueRow, styles.leagueRowYou]}>
-                <Text style={styles.leaguePos}>{myLeagueEntry.rank}</Text>
-                <View style={[styles.leagueAvatar, styles.leagueAvatarYou]}>
-                  <Text style={[styles.leagueAvatarText, { color: colors.bg }]}>TÚ</Text>
-                </View>
-                <Text style={[styles.leagueName, { color: colors.neon }]}>Tú</Text>
-                <View style={styles.leagueXpWrap}>
-                  <Text style={[styles.leagueXp, { color: colors.neon }]}>
-                    {myLeagueEntry.xpTotal.toLocaleString()}
-                  </Text>
-                  <Text style={styles.leagueXpLabel}>XP</Text>
-                </View>
-              </View>
-            )}
           </ScrollView>
+        )}
+
+        {/* Log modal */}
+        {modalOpen && (
+          <View style={styles.modalOverlay}>
+            <TouchableOpacity style={styles.modalBackdrop} onPress={() => setModalOpen(false)} />
+            <View style={styles.modal}>
+              <View style={styles.modalHandle} />
+              <Text style={styles.modalTitle}>Registrar medidas</Text>
+              <Text style={styles.modalSub}>Completá lo que quieras medir hoy.</Text>
+              <ScrollView style={styles.modalScroll} showsVerticalScrollIndicator={false}>
+                {MEASURE_FIELDS.map((f) => (
+                  <View key={f.key} style={styles.modalField}>
+                    <Text style={styles.modalFieldLabel}>{f.label} ({f.unit})</Text>
+                    <TextInput
+                      style={styles.modalInput}
+                      keyboardType="decimal-pad"
+                      placeholder="—"
+                      placeholderTextColor={colors.dim}
+                      value={form[f.key] ?? ''}
+                      onChangeText={(v) => setForm((p) => ({ ...p, [f.key]: v }))}
+                      selectionColor={colors.neon}
+                    />
+                  </View>
+                ))}
+              </ScrollView>
+              <TouchableOpacity
+                style={[styles.modalPrimaryBtn, saving && { opacity: 0.5 }]}
+                onPress={handleSave}
+                disabled={saving}
+                activeOpacity={0.85}
+              >
+                {saving
+                  ? <ActivityIndicator color={colors.bg} />
+                  : <Text style={styles.modalPrimaryBtnText}>Guardar</Text>}
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => setModalOpen(false)} style={styles.modalCancelBtn}>
+                <Text style={styles.modalCancelText}>Cancelar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         )}
       </SafeAreaView>
     </HudBackground>
@@ -240,184 +287,97 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg,
-    height: 56,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    backgroundColor: 'rgba(8,8,8,0.85)',
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: spacing.lg, height: 56,
+    borderBottomWidth: 1, borderBottomColor: colors.border, backgroundColor: 'rgba(8,8,8,0.85)',
   },
   headerBrand: { ...text.heroMd, color: colors.neon, fontSize: 20, letterSpacing: -0.5 },
-  topBarRight: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  weekLabel: { ...text.labelSm, color: colors.muted },
+  logBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    backgroundColor: colors.neon, borderRadius: radius.full,
+    paddingHorizontal: spacing.md, paddingVertical: spacing.xs,
+  },
+  logBtnText: { ...text.labelSm, color: colors.bg },
   container: { padding: spacing.lg, gap: spacing.md, paddingBottom: 40 },
   pageTitle: { ...text.headlineLg, color: colors.text, marginBottom: spacing.xs },
 
-  // Level card
-  levelCard: {
-    backgroundColor: 'rgba(204,255,0,0.06)',
-    borderWidth: 1,
-    borderColor: 'rgba(204,255,0,0.3)',
-    borderRadius: radius.lg,
-    padding: spacing.md,
-    gap: spacing.md,
-  },
-  levelTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-  levelNum: { ...text.heroMd, color: colors.neon, fontSize: 40, lineHeight: 44 },
-  levelTitle: { ...text.labelCaps, color: colors.muted },
-  xpBadge: {
-    backgroundColor: 'rgba(204,255,0,0.12)',
-    borderWidth: 1,
-    borderColor: 'rgba(204,255,0,0.3)',
-    borderRadius: radius.full,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-  },
-  xpBadgeText: { ...text.dataMono, color: colors.neon, fontSize: 12 },
-  levelProgressWrap: { gap: 6 },
-  levelProgressTrack: {
-    height: 4,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    borderRadius: 2,
-    overflow: 'hidden',
-  },
-  levelProgressFill: {
-    height: '100%',
-    backgroundColor: colors.neon,
-    borderRadius: 2,
-    shadowColor: colors.neon,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.5,
-    shadowRadius: 4,
-  },
-  levelProgressLabels: { flexDirection: 'row', justifyContent: 'space-between' },
-  levelProgressSub: { ...text.labelSm, color: colors.muted },
+  // Weight card
+  weightCard: { borderRadius: radius.lg, padding: spacing.lg, gap: spacing.sm },
+  cardLabel: { ...text.labelCaps, color: colors.neon },
+  weightRow: { flexDirection: 'row', alignItems: 'flex-end', gap: spacing.xs },
+  weightNum: { ...text.heroMd, color: colors.text, fontSize: 44, lineHeight: 46 },
+  weightUnit: { ...text.bodyLg, color: colors.muted, paddingBottom: 6 },
+  weightTarget: { ...text.labelSm, color: colors.muted, marginLeft: 'auto', paddingBottom: 8 },
+  progressTrack: { height: 6, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 3, overflow: 'hidden', marginTop: spacing.xs },
+  progressFill: { height: '100%', backgroundColor: colors.neon, borderRadius: 3 },
+  progressSub: { ...text.labelSm, color: colors.muted },
+  chartWrap: { marginTop: spacing.sm },
 
   // Streak
   streakCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: 'rgba(255,107,53,0.06)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,107,53,0.25)',
-    borderRadius: radius.lg,
-    padding: spacing.md,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    backgroundColor: 'rgba(255,107,53,0.06)', borderWidth: 1, borderColor: 'rgba(255,107,53,0.25)',
+    borderRadius: radius.lg, padding: spacing.md,
   },
   streakLeft: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-  streakNum: { ...text.heroMd, color: colors.orange, fontSize: 36, lineHeight: 40 },
+  streakNum: { ...text.heroMd, color: colors.orange, fontSize: 32, lineHeight: 36 },
   streakLabel: { ...text.bodyMd, color: colors.muted },
   streakRight: { alignItems: 'flex-end' },
   streakBestLabel: { ...text.labelSm, color: colors.muted },
   streakBestNum: { ...text.headlineMd, color: colors.text },
 
-  // Section
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: spacing.xs,
-    marginBottom: spacing.xs,
-  },
-  sectionTitle: { ...text.labelCaps, color: colors.muted },
-  sectionBadge: {
-    backgroundColor: 'rgba(255,255,255,0.06)',
-    borderRadius: radius.full,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
-  },
-  sectionBadgeText: { ...text.labelSm, color: colors.text },
+  // Stats grid
+  statsGrid: { flexDirection: 'row', gap: spacing.sm },
+  statCard: { flex: 1, padding: spacing.md, borderRadius: radius.lg, gap: 2 },
+  statLabel: { ...text.labelSm, color: colors.muted },
+  statValue: { ...text.heroMd, color: colors.text, fontSize: 28, lineHeight: 32 },
+  statUnit: { ...text.labelSm, color: colors.dim },
+
+  // Sections
+  sectionTitle: { ...text.labelCaps, color: colors.muted, marginTop: spacing.xs },
+  sectionHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: spacing.xs },
+  linkText: { ...text.labelSm, color: colors.neon },
+
+  // Measures
+  measuresGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  measureCard: { width: '47%', padding: spacing.md, borderRadius: radius.lg, gap: 2 },
+  measureLabel: { ...text.labelSm, color: colors.muted },
+  measureValue: { ...text.headlineLg, color: colors.text, fontSize: 22 },
+  measureUnit: { ...text.bodyMd, color: colors.muted, fontSize: 13 },
+
+  // Sessions
+  sessionRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.md, borderRadius: radius.lg },
+  sessionDate: { ...text.bodyMd, color: colors.text, flex: 1 },
+  sessionKcal: { ...text.dataMono, color: colors.orange },
 
   // Empty
   emptyCard: {
-    backgroundColor: 'rgba(255,255,255,0.03)',
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.lg,
-    padding: spacing.xl,
-    alignItems: 'center',
-    gap: spacing.sm,
+    backgroundColor: 'rgba(255,255,255,0.03)', borderWidth: 1, borderColor: colors.border,
+    borderRadius: radius.lg, padding: spacing.xl, alignItems: 'center', gap: spacing.sm,
   },
   emptyText: { ...text.bodyMd, color: colors.muted, textAlign: 'center' },
 
-  // Achievement rows
-  achievementRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    borderWidth: 1,
-    borderRadius: radius.lg,
-    padding: spacing.md,
-    marginBottom: spacing.xs,
+  // Modal
+  modalOverlay: { ...StyleSheet.absoluteFillObject, justifyContent: 'flex-end' },
+  modalBackdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.6)' },
+  modal: {
+    backgroundColor: '#111111', borderTopWidth: 1, borderTopColor: colors.border,
+    borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: spacing.xl, gap: spacing.sm,
+    maxHeight: '85%',
   },
-  achievementUnlocked: {
-    backgroundColor: 'rgba(255,255,255,0.04)',
-    borderColor: colors.border,
+  modalHandle: { width: 40, height: 4, backgroundColor: colors.dim, borderRadius: 2, alignSelf: 'center', marginBottom: spacing.xs },
+  modalTitle: { ...text.headlineLg, color: colors.text },
+  modalSub: { ...text.bodyMd, color: colors.muted },
+  modalScroll: { maxHeight: 320 },
+  modalField: { gap: 4, marginBottom: spacing.sm },
+  modalFieldLabel: { ...text.labelSm, color: colors.muted },
+  modalInput: {
+    backgroundColor: 'rgba(255,255,255,0.05)', borderWidth: 1, borderColor: colors.border,
+    borderRadius: radius.md, paddingHorizontal: spacing.md, paddingVertical: spacing.sm,
+    color: colors.text, fontSize: 16, fontFamily: 'SpaceGrotesk_400Regular',
   },
-  achievementLocked: {
-    backgroundColor: 'rgba(255,255,255,0.02)',
-    borderColor: 'rgba(255,255,255,0.05)',
-    opacity: 0.6,
-  },
-  achieveIconWrap: {
-    width: 40,
-    height: 40,
-    borderRadius: radius.md,
-    backgroundColor: 'rgba(255,255,255,0.06)',
-    borderWidth: 1,
-    borderColor: colors.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  achieveIconWrapActive: {
-    backgroundColor: 'rgba(204,255,0,0.1)',
-    borderColor: 'rgba(204,255,0,0.3)',
-  },
-  achieveEmoji: { fontSize: 18 },
-  achieveInfo: { flex: 1, gap: 2 },
-  achieveName: { ...text.headlineMd, color: colors.text, fontSize: 15 },
-  achieveNameDim: { color: colors.muted },
-  achieveDesc: { ...text.bodyMd, color: colors.dim },
-  xpPill: {
-    backgroundColor: 'rgba(255,255,255,0.06)',
-    borderRadius: radius.full,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
-  },
-  xpPillText: { ...text.labelSm, color: colors.muted },
-
-  // League rows
-  leagueRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    backgroundColor: 'rgba(255,255,255,0.04)',
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.lg,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 10,
-    marginBottom: spacing.xs,
-  },
-  leagueRowYou: {
-    backgroundColor: 'rgba(204,255,0,0.06)',
-    borderColor: 'rgba(204,255,0,0.3)',
-  },
-  leaguePos: { ...text.dataMono, color: colors.dim, width: 22, fontSize: 16 },
-  leagueAvatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  leagueAvatarYou: { backgroundColor: colors.neon },
-  leagueAvatarText: { ...text.labelSm, color: colors.muted, fontSize: 9 },
-  leagueName: { flex: 1, ...text.bodyLg, color: colors.text },
-  leagueXpWrap: { alignItems: 'flex-end' },
-  leagueXp: { ...text.dataMono, color: colors.muted, fontSize: 15 },
-  leagueXpLabel: { ...text.labelSm, color: colors.dim, fontSize: 9 },
+  modalPrimaryBtn: { backgroundColor: colors.neon, borderRadius: radius.full, paddingVertical: 14, alignItems: 'center', marginTop: spacing.xs },
+  modalPrimaryBtnText: { ...text.bodyLg, color: colors.bg, fontFamily: 'SpaceGrotesk_700Bold' },
+  modalCancelBtn: { alignItems: 'center', paddingVertical: spacing.sm },
+  modalCancelText: { ...text.bodyMd, color: colors.muted },
 });

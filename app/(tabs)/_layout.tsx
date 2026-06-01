@@ -61,7 +61,7 @@ export default function TabsLayout() {
         name="progress"
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabIcon name="podium-outline" nameActive="podium" focused={focused} />
+            <TabIcon name="trending-up-outline" nameActive="trending-up" focused={focused} />
           ),
         }}
       />

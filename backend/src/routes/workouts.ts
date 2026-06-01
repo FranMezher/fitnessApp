@@ -5,7 +5,6 @@ import { eq, and } from 'drizzle-orm';
 import { db } from '../db/client.js';
 import { workoutSessions, sessionSets, streaks, workoutPlans, exercises, planExercises } from '../db/schema.js';
 import { authMiddleware } from '../middleware/auth.js';
-import { awardXp } from '../lib/gamification.js';
 
 export const workoutsRouter = new Hono().use('*', authMiddleware);
 
@@ -168,10 +167,14 @@ workoutsRouter.patch('/sessions/:id', zValidator('json', finishSchema), async (c
   const today = endedAt.slice(0, 10);
   await updateStreak(user.id, today);
 
-  const xp = 100;
-  await awardXp(user.id, xp);
+  return c.json({ ok: true });
+});
 
-  return c.json({ ok: true, xpEarned: xp });
+// GET /workouts/streak — current consistency streak
+workoutsRouter.get('/streak', async (c) => {
+  const user = c.get('user');
+  const [row] = await db.select().from(streaks).where(eq(streaks.userId, user.id));
+  return c.json(row ?? { currentStreak: 0, longestStreak: 0, lastActivityDate: null });
 });
 
 async function updateStreak(userId: string, today: string) {

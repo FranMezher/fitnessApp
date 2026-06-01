@@ -104,7 +104,7 @@ export const pantryItems = pgTable('pantry_items', {
   fatG:     doublePrecision('fat_g'),
 });
 
-// ─── Gamification ───────────────────────────────────────────────────────────
+// ─── Streaks (consistency tracking — kept, not gamification) ─────────────────
 export const streaks = pgTable('streaks', {
   userId:           text('user_id').primaryKey(),
   currentStreak:    integer('current_streak').notNull().default(0),
@@ -112,6 +112,8 @@ export const streaks = pgTable('streaks', {
   lastActivityDate: text('last_activity_date'),
 });
 
+// DEPRECATED: gamification (XP / achievements / weekly league) was removed.
+// Tables kept (no DROP migration) to avoid breaking existing DBs; no longer read or written.
 export const achievements = pgTable('achievements', {
   id:          text('id').primaryKey(),
   name:        text('name').notNull(),
@@ -119,7 +121,7 @@ export const achievements = pgTable('achievements', {
   icon:        text('icon').notNull(),
   xpReward:    integer('xp_reward').notNull(),
   threshold:   integer('threshold').notNull(),
-  metric:      text('metric').notNull(), // sessions | streak | meals_logged
+  metric:      text('metric').notNull(),
 });
 
 export const userAchievements = pgTable('user_achievements', {
@@ -130,9 +132,24 @@ export const userAchievements = pgTable('user_achievements', {
 
 export const leagueEntries = pgTable('league_entries', {
   userId:    text('user_id').notNull(),
-  weekStart: text('week_start').notNull(), // YYYY-MM-DD (Monday)
+  weekStart: text('week_start').notNull(),
   xpTotal:   integer('xp_total').notNull().default(0),
   rank:      integer('rank'),
+});
+
+// ─── Body metrics (real progress: weight + body measurements over time) ──────
+export const bodyMetrics = pgTable('body_metrics', {
+  id:        text('id').primaryKey(),
+  userId:    text('user_id').notNull(),
+  date:      text('date').notNull(),          // YYYY-MM-DD
+  weightKg:  doublePrecision('weight_kg'),
+  bodyFatPct: doublePrecision('body_fat_pct'),
+  chestCm:   doublePrecision('chest_cm'),
+  waistCm:   doublePrecision('waist_cm'),
+  hipCm:     doublePrecision('hip_cm'),
+  armCm:     doublePrecision('arm_cm'),
+  thighCm:   doublePrecision('thigh_cm'),
+  createdAt: text('created_at').default(sql`now()`),
 });
 
 // ─── Social Nutrition Groups ────────────────────────────────────────────────

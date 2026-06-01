@@ -106,18 +106,16 @@ export default function WorkoutActiveScreen() {
     finishedRef.current = true;
     const durationMin = Math.max(1, Math.round(elapsedRef.current / 60));
     const cal = Math.round(durationMin * CALORIES_PER_MIN);
-    let xpEarned = 100;
 
     if (sessionIdRef.current && token) {
       try {
-        const result = await api.finishSession(token, sessionIdRef.current, {
+        await api.finishSession(token, sessionIdRef.current, {
           caloriesBurned: cal,
           sets: sets.map((s) => {
             const ex = exercises.find((e) => e.id === s.exerciseId);
             return { exerciseId: s.exerciseId, repsCompleted: s.reps, repsTarget: ex?.reps ?? 10, seriesNum: s.setNum };
           }),
         });
-        xpEarned = result.xpEarned;
       } catch (err) {
         console.warn('[active] finishSession error:', err);
       }
@@ -127,8 +125,8 @@ export default function WorkoutActiveScreen() {
       pathname: '/workout/summary',
       params: {
         durationMin: String(durationMin),
+        caloriesBurned: String(cal),
         exercisesDone: String(exercises.length),
-        xpEarned: String(xpEarned),
         planName,
         planDetailsJson: JSON.stringify(exercises.map((ex) => ({ name: ex.name, sets: ex.sets, reps: ex.reps }))),
         loggedSetsJson: JSON.stringify(sets),

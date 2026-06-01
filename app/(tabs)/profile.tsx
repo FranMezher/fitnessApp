@@ -93,10 +93,6 @@ export default function ProfileScreen() {
             </View>
             <Text style={styles.name}>{name}</Text>
             <Text style={styles.email}>{email ?? ''}</Text>
-            <View style={styles.levelPill}>
-              <Ionicons name="star" size={12} color={colors.bg} />
-              <Text style={styles.levelPillText}>Nivel 1 · Novato</Text>
-            </View>
           </View>
 
           {/* Biometrics */}

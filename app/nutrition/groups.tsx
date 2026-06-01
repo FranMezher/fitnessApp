@@ -205,8 +205,8 @@ export default function GroupsScreen() {
               </View>
             )}
 
-            {/* Feed */}
-            <Text style={styles.sectionTitle}>RANKING DE HOY</Text>
+            {/* Feed — shared wall, no ranking */}
+            <Text style={styles.sectionTitle}>HOY EN EL GRUPO</Text>
 
             {feedLoading ? (
               <View style={styles.feedLoading}>
@@ -218,11 +218,11 @@ export default function GroupsScreen() {
                 <Text style={styles.feedEmptyText}>Nadie ha registrado comidas hoy.</Text>
               </View>
             ) : (
-              feed.map((member, idx) => (
-                <View key={member.userId} style={[styles.memberCard, idx === 0 && styles.memberCardFirst]}>
-                  <View style={[styles.rankBadge, idx === 0 && styles.rankBadgeFirst]}>
-                    <Text style={[styles.rankNum, idx === 0 && { color: colors.bg }]}>
-                      {idx + 1}
+              feed.map((member) => (
+                <View key={member.userId} style={styles.memberCard}>
+                  <View style={styles.memberAvatar}>
+                    <Text style={styles.memberAvatarText}>
+                      {member.name.charAt(0).toUpperCase()}
                     </Text>
                   </View>
                   <View style={styles.memberInfo}>
@@ -244,9 +244,7 @@ export default function GroupsScreen() {
                     </View>
                   </View>
                   <View style={styles.memberKcalWrap}>
-                    <Text style={[styles.memberKcal, idx === 0 && { color: colors.neon }]}>
-                      {member.totalCalories}
-                    </Text>
+                    <Text style={styles.memberKcal}>{member.totalCalories}</Text>
                     <Text style={styles.memberKcalLabel}>kcal</Text>
                   </View>
                 </View>
@@ -461,11 +459,7 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     marginBottom: spacing.xs,
   },
-  memberCardFirst: {
-    backgroundColor: 'rgba(204,255,0,0.06)',
-    borderColor: 'rgba(204,255,0,0.25)',
-  },
-  rankBadge: {
+  memberAvatar: {
     width: 32,
     height: 32,
     borderRadius: 16,
@@ -474,8 +468,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: 2,
   },
-  rankBadgeFirst: { backgroundColor: colors.neon },
-  rankNum: { ...text.dataMono, color: colors.muted, fontSize: 14 },
+  memberAvatarText: { ...text.labelSm, color: colors.muted, fontSize: 14 },
   memberInfo: { flex: 1, gap: 4 },
   memberName: { ...text.headlineMd, color: colors.text, fontSize: 15 },
   memberMacros: { ...text.bodyMd, color: colors.muted },
