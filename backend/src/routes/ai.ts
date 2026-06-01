@@ -262,12 +262,10 @@ const insightSchema = z.object({
   sessionData: z.object({
     durationMin:     z.number(),
     caloriesBurned:  z.number(),
-    formAccuracyPct: z.number(),
     exercisesDone:   z.number(),
   }),
   weekStats: z.object({
     sessionsCount: z.number(),
-    avgFormPct:    z.number(),
     totalKcal:     z.number(),
   }),
 });
@@ -276,7 +274,7 @@ const insightSchema = z.object({
 aiRouter.post('/insight', zValidator('json', insightSchema), async (c) => {
   const { sessionData, weekStats } = c.req.valid('json');
 
-  const prompt = `Sesión de hoy: ${sessionData.durationMin} min, ${sessionData.caloriesBurned} kcal, precisión de forma ${sessionData.formAccuracyPct}%, ${sessionData.exercisesDone} ejercicios. Esta semana: ${weekStats.sessionsCount} sesiones, ${weekStats.avgFormPct}% precisión media. Dame un insight motivacional y un tip de mejora en 2-3 frases, en español, tono enérgico.`;
+  const prompt = `Sesión de hoy: ${sessionData.durationMin} min, ${sessionData.caloriesBurned} kcal, ${sessionData.exercisesDone} ejercicios. Esta semana: ${weekStats.sessionsCount} sesiones, ${weekStats.totalKcal} kcal totales. Dame un insight motivacional y un tip de mejora en 2-3 frases, en español, tono enérgico.`;
 
   try {
     const raw = await generateJSON(prompt);

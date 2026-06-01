@@ -31,7 +31,13 @@
     },
     "plugins": [
       "expo-router",
-      "expo-font"
+      "expo-font",
+      [
+        "expo-notifications",
+        {
+          "color": "#CCFF00"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

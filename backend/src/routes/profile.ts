@@ -3,7 +3,7 @@ import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import { eq } from 'drizzle-orm';
 import { db } from '../db/client.js';
-import { profiles } from '../db/schema.js';
+import { profiles, pushTokens } from '../db/schema.js';
 import { authMiddleware } from '../middleware/auth.js';
 
 export const profileRouter = new Hono().use('*', authMiddleware);
@@ -49,6 +49,27 @@ profileRouter.post('/', zValidator('json', profileSchema), async (c) => {
     .insert(profiles)
     .values({ userId: user.id, ...dbBody })
     .onConflictDoUpdate({ target: profiles.userId, set: dbBody });
+
+  return c.json({ ok: true });
+});
+
+// POST /profile/push-token — register an Expo push token for this device
+const pushTokenSchema = z.object({
+  pushToken: z.string().min(1).max(255),
+  platform:  z.enum(['ios', 'android', 'web']).optional(),
+});
+
+profileRouter.post('/push-token', zValidator('json', pushTokenSchema), async (c) => {
+  const user = c.get('user');
+  const { pushToken, platform } = c.req.valid('json');
+
+  await db
+    .insert(pushTokens)
+    .values({ userId: user.id, token: pushToken, platform })
+    .onConflictDoUpdate({
+      target: pushTokens.token,
+      set: { userId: user.id, platform, updatedAt: new Date().toISOString() },
+    });
 
   return c.json({ ok: true });
 });

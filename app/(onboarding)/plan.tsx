@@ -11,6 +11,7 @@ import { HudBackground } from '@/components/ui/HudBackground';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useOnboardingStore } from '@/stores/useOnboardingStore';
+import { scheduleRetentionNotifications } from '@/lib/notifications';
 
 const TOTAL_STEPS = 10;
 const STEP = 10;
@@ -109,6 +110,11 @@ export default function PlanScreen() {
     setIsNewUser(false);
     resetStore();
     setLoading(false);
+
+    // Kick off the 7-day retention notification sequence (new users only).
+    if (!isEdit) {
+      scheduleRetentionNotifications().catch(() => {});
+    }
 
     router.replace(isEdit ? '../' : '/(tabs)');
   }

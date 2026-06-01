@@ -86,7 +86,6 @@ export default function WorkoutActiveScreen() {
         finishedRef.current = true;
         api.finishSession(token, sessionIdRef.current, {
           caloriesBurned: Math.round((elapsedRef.current / 60) * CALORIES_PER_MIN),
-          formAccuracyPct: 100,
           sets: [],
         }).catch(() => {});
       }
@@ -113,7 +112,6 @@ export default function WorkoutActiveScreen() {
       try {
         const result = await api.finishSession(token, sessionIdRef.current, {
           caloriesBurned: cal,
-          formAccuracyPct: 100,
           sets: sets.map((s) => {
             const ex = exercises.find((e) => e.id === s.exerciseId);
             return { exerciseId: s.exerciseId, repsCompleted: s.reps, repsTarget: ex?.reps ?? 10, seriesNum: s.setNum };

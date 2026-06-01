@@ -11,17 +11,7 @@ import { text } from '@/constants/typography';
 import { spacing, radius } from '@/constants/spacing';
 import { HudBackground } from '@/components/ui/HudBackground';
 import { useAuthStore } from '@/stores/useAuthStore';
-
-interface Group { id: string; name: string; code: string; createdBy: string }
-interface FeedMember {
-  userId: string;
-  name: string;
-  totalCalories: number;
-  totalProteinG: number;
-  entries: { mealType: string; foodName: string; calories: number }[];
-}
-
-const API_URL = process.env.EXPO_PUBLIC_API_URL ?? '';
+import { api, type Group, type GroupFeedMember } from '@/lib/api';
 
 const MEAL_ICONS: Record<string, string> = {
   breakfast: 'sunny-outline',
@@ -30,46 +20,15 @@ const MEAL_ICONS: Record<string, string> = {
   dinner:    'moon-outline',
 };
 
-function useGroupsApi() {
-  const { token } = useAuthStore();
-  const auth = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
-
-  return {
-    async getMyGroups(): Promise<Group[]> {
-      const r = await fetch(`${API_URL}/groups/mine`, { headers: auth });
-      const d = await r.json();
-      return d.groups ?? [];
-    },
-    async createGroup(name: string): Promise<Group> {
-      const r = await fetch(`${API_URL}/groups`, { method: 'POST', headers: auth, body: JSON.stringify({ name }) });
-      return r.json();
-    },
-    async joinGroup(code: string): Promise<Group> {
-      const r = await fetch(`${API_URL}/groups/join`, { method: 'POST', headers: auth, body: JSON.stringify({ code }) });
-      if (!r.ok) throw new Error('Código inválido');
-      const d = await r.json();
-      return d.group;
-    },
-    async getFeed(groupId: string, date: string): Promise<FeedMember[]> {
-      const r = await fetch(`${API_URL}/groups/${groupId}/feed?date=${date}`, { headers: auth });
-      const d = await r.json();
-      return d.feed ?? [];
-    },
-    async leaveGroup(groupId: string) {
-      await fetch(`${API_URL}/groups/${groupId}/leave`, { method: 'DELETE', headers: auth });
-    },
-  };
-}
-
 const TODAY = new Date().toISOString().slice(0, 10);
 
 type ModalMode = 'create' | 'join' | null;
 
 export default function GroupsScreen() {
-  const groupsApi = useGroupsApi();
+  const token = useAuthStore((s) => s.token);
   const [groups, setGroups] = useState<Group[]>([]);
   const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
-  const [feed, setFeed] = useState<FeedMember[]>([]);
+  const [feed, setFeed] = useState<GroupFeedMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [feedLoading, setFeedLoading] = useState(false);
   const [modalMode, setModalMode] = useState<ModalMode>(null);
@@ -79,32 +38,39 @@ export default function GroupsScreen() {
   useEffect(() => { load(); }, []);
 
   async function load() {
+    if (!token) return;
     setLoading(true);
     try {
-      const g = await groupsApi.getMyGroups();
+      const { groups: g } = await api.getMyGroups(token);
       setGroups(g);
       if (g.length && !selectedGroup) {
         setSelectedGroup(g[0]);
         loadFeed(g[0].id);
       }
+    } catch (err: any) {
+      Alert.alert('Error', err.message ?? 'No se pudieron cargar los grupos');
     } finally {
       setLoading(false);
     }
   }
 
   async function loadFeed(groupId: string) {
+    if (!token) return;
     setFeedLoading(true);
     try {
-      setFeed(await groupsApi.getFeed(groupId, TODAY));
+      const { feed } = await api.getGroupFeed(token, groupId, TODAY);
+      setFeed(feed);
+    } catch {
+      setFeed([]);
     } finally {
       setFeedLoading(false);
     }
   }
 
   async function handleCreate() {
-    if (!newGroupName.trim()) return;
+    if (!token || !newGroupName.trim()) return;
     try {
-      const g = await groupsApi.createGroup(newGroupName.trim());
+      const g = await api.createGroup(token, newGroupName.trim());
       setGroups((prev) => [...prev, g]);
       setSelectedGroup(g);
       setFeed([]);
@@ -117,9 +83,9 @@ export default function GroupsScreen() {
   }
 
   async function handleJoin() {
-    if (joinCode.length !== 6) return;
+    if (!token || joinCode.length !== 6) return;
     try {
-      const g = await groupsApi.joinGroup(joinCode.trim());
+      const { group: g } = await api.joinGroup(token, joinCode.trim());
       setGroups((prev) => (prev.find((x) => x.id === g.id) ? prev : [...prev, g]));
       setSelectedGroup(g);
       loadFeed(g.id);
@@ -131,14 +97,14 @@ export default function GroupsScreen() {
   }
 
   async function handleLeave() {
-    if (!selectedGroup) return;
+    if (!selectedGroup || !token) return;
     Alert.alert('Salir del grupo', `¿Seguro que querés salir de "${selectedGroup.name}"?`, [
       { text: 'Cancelar' },
       {
         text: 'Salir',
         style: 'destructive',
         onPress: async () => {
-          await groupsApi.leaveGroup(selectedGroup.id);
+          await api.leaveGroup(token, selectedGroup.id);
           const remaining = groups.filter((g) => g.id !== selectedGroup.id);
           setGroups(remaining);
           setSelectedGroup(remaining[0] ?? null);

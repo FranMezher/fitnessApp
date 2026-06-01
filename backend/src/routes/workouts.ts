@@ -140,7 +140,6 @@ workoutsRouter.post('/sessions', async (c) => {
 // PATCH /workouts/sessions/:id — finish session
 const finishSchema = z.object({
   caloriesBurned:  z.number().int().nonnegative(),
-  formAccuracyPct: z.number().int().min(0).max(100),
   sets:            z.array(z.object({
     exerciseId:    z.string(),
     repsCompleted: z.number().int().nonnegative(),
@@ -152,12 +151,12 @@ const finishSchema = z.object({
 workoutsRouter.patch('/sessions/:id', zValidator('json', finishSchema), async (c) => {
   const user = c.get('user');
   const { id } = c.req.param();
-  const { caloriesBurned, formAccuracyPct, sets } = c.req.valid('json');
+  const { caloriesBurned, sets } = c.req.valid('json');
   const endedAt = new Date().toISOString();
 
   await db
     .update(workoutSessions)
-    .set({ endedAt, caloriesBurned, formAccuracyPct })
+    .set({ endedAt, caloriesBurned })
     .where(and(eq(workoutSessions.id, id), eq(workoutSessions.userId, user.id)));
 
   if (sets.length > 0) {
@@ -169,7 +168,7 @@ workoutsRouter.patch('/sessions/:id', zValidator('json', finishSchema), async (c
   const today = endedAt.slice(0, 10);
   await updateStreak(user.id, today);
 
-  const xp = 100 + (formAccuracyPct >= 80 ? 30 : 0);
+  const xp = 100;
   await awardXp(user.id, xp);
 
   return c.json({ ok: true, xpEarned: xp });

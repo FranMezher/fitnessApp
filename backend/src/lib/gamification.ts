@@ -38,9 +38,6 @@ async function checkAchievements(userId: string) {
     sessions:      sessions.filter((s) => s.endedAt).length,
     streak:        streak?.currentStreak ?? 0,
     meals_logged:  meals.length,
-    form_accuracy: sessions
-      .filter((s) => s.formAccuracyPct !== null)
-      .reduce((acc, s) => Math.max(acc, s.formAccuracyPct ?? 0), 0),
   };
 
   const toUnlock = allAchievements.filter(

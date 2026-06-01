@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
-  View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, ScrollView,
+  View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, ScrollView, Switch,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -11,6 +11,7 @@ import { spacing, radius } from '@/constants/spacing';
 import { HudBackground } from '@/components/ui/HudBackground';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { isNotificationsEnabled, setNotificationsEnabled } from '@/lib/notifications';
 
 export default function SettingsScreen() {
   const { token, profile, email, fetchProfile } = useAuthStore();
@@ -18,6 +19,16 @@ export default function SettingsScreen() {
   const defaultName = profile?.name ?? (email ? email.split('@')[0] : '');
   const [name, setName] = useState(defaultName);
   const [saving, setSaving] = useState(false);
+  const [notifsOn, setNotifsOn] = useState(true);
+
+  useEffect(() => {
+    isNotificationsEnabled().then(setNotifsOn);
+  }, []);
+
+  async function handleToggleNotifs(value: boolean) {
+    setNotifsOn(value);
+    await setNotificationsEnabled(value);
+  }
 
   async function handleSave() {
     const trimmed = name.trim();
@@ -82,6 +93,25 @@ export default function SettingsScreen() {
             <Text style={styles.readOnlyText}>{email ?? '—'}</Text>
           </View>
 
+          {/* Notifications toggle */}
+          <View style={[glass, styles.fieldCard]}>
+            <View style={styles.toggleRow}>
+              <View style={styles.toggleTextWrap}>
+                <View style={styles.fieldHeader}>
+                  <Ionicons name="notifications-outline" size={16} color={colors.muted} />
+                  <Text style={styles.fieldLabel}>NOTIFICACIONES</Text>
+                </View>
+                <Text style={styles.toggleSub}>Recordatorios de entrenos, rachas y liga.</Text>
+              </View>
+              <Switch
+                value={notifsOn}
+                onValueChange={handleToggleNotifs}
+                trackColor={{ false: colors.border, true: colors.neon }}
+                thumbColor={colors.text}
+              />
+            </View>
+          </View>
+
           {saving ? (
             <ActivityIndicator color={colors.neon} style={{ marginTop: spacing.sm }} />
           ) : (
@@ -140,6 +170,9 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.border,
   },
   readOnlyText: { ...text.bodyMd, color: colors.muted },
+  toggleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  toggleTextWrap: { flex: 1, gap: spacing.xs },
+  toggleSub: { ...text.caption, color: colors.dim },
 
   saveBtn: {
     flexDirection: 'row',

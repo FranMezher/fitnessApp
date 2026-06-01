@@ -49,6 +49,8 @@ export const workoutSessions = pgTable('workout_sessions', {
   startedAt:        text('started_at').notNull(),
   endedAt:          text('ended_at'),
   caloriesBurned:   integer('calories_burned'),
+  // DEPRECATED: pose/form-detection feature was dropped (no camera-based pose in any MVP).
+  // Column kept nullable for backward compat; no longer written or read by the app.
   formAccuracyPct:  integer('form_accuracy_pct'),
 });
 
@@ -117,7 +119,7 @@ export const achievements = pgTable('achievements', {
   icon:        text('icon').notNull(),
   xpReward:    integer('xp_reward').notNull(),
   threshold:   integer('threshold').notNull(),
-  metric:      text('metric').notNull(), // sessions | streak | meals_logged | form_accuracy
+  metric:      text('metric').notNull(), // sessions | streak | meals_logged
 });
 
 export const userAchievements = pgTable('user_achievements', {
@@ -146,4 +148,13 @@ export const groupMembers = pgTable('group_members', {
   groupId:  text('group_id').notNull(),
   userId:   text('user_id').notNull(),
   joinedAt: text('joined_at').default(sql`now()`),
+});
+
+// ─── Push notifications ─────────────────────────────────────────────────────
+// Expo push tokens per device, used for server-driven push (league, achievements).
+export const pushTokens = pgTable('push_tokens', {
+  userId:    text('user_id').notNull(),
+  token:     text('token').primaryKey(),  // Expo push token (unique per device)
+  platform:  text('platform'),            // ios | android
+  updatedAt: text('updated_at').default(sql`now()`),
 });

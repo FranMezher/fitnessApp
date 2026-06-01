@@ -8,6 +8,7 @@ import { colors } from '@/constants/colors';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { api } from '@/lib/api';
+import { registerForPush } from '@/lib/notifications';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -30,6 +31,7 @@ export default function RootLayout() {
       if (data.session) {
         const token = data.session.access_token;
         setSession(token, data.session.user.id, data.session.user.email ?? '');
+        registerForPush(token).catch(() => {});
         const profile = await api.getProfile(token).catch(() => null);
         router.replace(profile ? '/(tabs)' : '/(onboarding)/goal');
       }

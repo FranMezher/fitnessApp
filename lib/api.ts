@@ -78,6 +78,11 @@ export const api = {
   upsertProfile: (token: string, data: Partial<Profile>) =>
     request<{ ok: boolean }>('/profile', { method: 'POST', body: JSON.stringify(data), token }),
 
+  registerPushToken: (token: string, pushToken: string, platform: string) =>
+    request<{ ok: boolean }>('/profile/push-token', {
+      method: 'POST', body: JSON.stringify({ pushToken, platform }), token,
+    }),
+
   // ── Nutrition ─────────────────────────────────────────────────────────────
   getFoodLog: (token: string, date: string) => {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new Error(`Invalid date format: ${date}`);
@@ -166,6 +171,24 @@ export const api = {
     request<{ entries: Array<Omit<FoodLogEntry, 'id' | 'date' | 'mealType'>> }>('/ai/analyze-food-photo', {
       method: 'POST', body: JSON.stringify({ imageBase64, mediaType }), token,
     }),
+
+  // ── Groups ────────────────────────────────────────────────────────────────
+  getMyGroups: (token: string) =>
+    request<{ groups: Group[] }>('/groups/mine', { token }),
+
+  createGroup: (token: string, name: string) =>
+    request<Group>('/groups', { method: 'POST', body: JSON.stringify({ name }), token }),
+
+  joinGroup: (token: string, code: string) =>
+    request<{ ok: boolean; group: Group }>('/groups/join', { method: 'POST', body: JSON.stringify({ code }), token }),
+
+  getGroupFeed: (token: string, groupId: string, date: string) => {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new Error(`Invalid date format: ${date}`);
+    return request<{ date: string; feed: GroupFeedMember[] }>(`/groups/${groupId}/feed?date=${date}`, { token });
+  },
+
+  leaveGroup: (token: string, groupId: string) =>
+    request<{ ok: boolean }>(`/groups/${groupId}/leave`, { method: 'DELETE', token }),
 };
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -258,12 +281,10 @@ export interface WorkoutSession {
   startedAt:       string;
   endedAt?:        string;
   caloriesBurned?: number;
-  formAccuracyPct?:number;
 }
 
 export interface FinishSessionData {
   caloriesBurned:  number;
-  formAccuracyPct: number;
   sets: Array<{
     exerciseId:    string;
     repsCompleted: number;
@@ -330,16 +351,33 @@ export interface NutritionHistoryDay {
   entryCount:     number;
 }
 
+export interface Group {
+  id:         string;
+  name:       string;
+  code:       string;
+  createdBy?: string;
+}
+
+export interface GroupFeedMember {
+  userId:        string;
+  name:          string;
+  totalCalories: number;
+  totalProteinG: number;
+  entries: Array<{
+    mealType: string;
+    foodName: string;
+    calories: number;
+  }>;
+}
+
 export interface InsightRequest {
   sessionData: {
     durationMin:     number;
     caloriesBurned:  number;
-    formAccuracyPct: number;
     exercisesDone:   number;
   };
   weekStats: {
     sessionsCount: number;
-    avgFormPct:    number;
     totalKcal:     number;
   };
 }
