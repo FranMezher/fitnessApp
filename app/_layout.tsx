@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useFonts, SpaceGrotesk_400Regular, SpaceGrotesk_600SemiBold, SpaceGrotesk_700Bold } from '@expo-google-fonts/space-grotesk';
 import * as SplashScreen from 'expo-splash-screen';
 import { router } from 'expo-router';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { colors } from '@/constants/colors';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/useAuthStore';
@@ -11,6 +12,11 @@ import { api } from '@/lib/api';
 import { registerForPush } from '@/lib/notifications';
 
 SplashScreen.preventAutoHideAsync();
+
+GoogleSignin.configure({
+  webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+  iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
+});
 
 export default function RootLayout() {
   const [loaded] = useFonts({

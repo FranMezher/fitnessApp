@@ -12,6 +12,7 @@ import { HudBackground } from '@/components/ui/HudBackground';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { api } from '@/lib/api';
+import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -43,11 +44,31 @@ export default function LoginScreen() {
   }
 
   async function handleGoogleLogin() {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: 'fitcore://auth/callback' },
-    });
-    if (error) Alert.alert('Error', error.message);
+    setLoading(true);
+    try {
+      await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+      const userInfo = await GoogleSignin.signIn();
+      const idToken = userInfo.data?.idToken;
+      if (!idToken) throw new Error('No se obtuvo idToken de Google');
+
+      const { data, error } = await supabase.auth.signInWithIdToken({
+        provider: 'google',
+        token: idToken,
+      });
+      if (error) throw error;
+
+      if (data.session) {
+        const token = data.session.access_token;
+        setSession(token, data.session.user.id, data.session.user.email ?? '');
+        const profile = await api.getProfile(token).catch(() => null);
+        router.replace(profile ? '/(tabs)' : '/(onboarding)/goal');
+      }
+    } catch (err: any) {
+      if (err.code === statusCodes.SIGN_IN_CANCELLED) return;
+      Alert.alert('Error con Google', err.message ?? 'Intentá de nuevo.');
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function handleAppleLogin() {
