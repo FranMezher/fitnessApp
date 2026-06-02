@@ -8,8 +8,6 @@ import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { colors } from '@/constants/colors';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/useAuthStore';
-import { api } from '@/lib/api';
-import { registerForPush } from '@/lib/notifications';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -25,37 +23,28 @@ export default function RootLayout() {
     SpaceGrotesk_700Bold,
   });
 
-  const { setSession, clearSession } = useAuthStore();
+  const setSession = useAuthStore((s) => s.setSession);
+  const clearSession = useAuthStore((s) => s.clearSession);
 
   useEffect(() => {
     if (loaded) SplashScreen.hideAsync();
   }, [loaded]);
 
   useEffect(() => {
-    // Restore existing session on app start
-    supabase.auth.getSession().then(async ({ data }) => {
-      if (data.session) {
-        const token = data.session.access_token;
-        setSession(token, data.session.user.id, data.session.user.email ?? '');
-        registerForPush(token).catch(() => {});
-        const profile = await api.getProfile(token).catch(() => null);
-        router.replace(profile ? '/(tabs)' : '/(onboarding)/goal');
-      }
-    });
-
-    // Listen for auth state changes — only update store and handle logout here.
-    // Login/register routing is handled by those screens to avoid double-navigation.
+    // Initial session restore + first navigation is handled by app/index.tsx.
+    // Here we only react to subsequent auth changes (logout, token refresh).
     const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session) {
-        setSession(session.access_token, session.user.id, session.user.email ?? '');
-      } else {
+      if (event === 'SIGNED_OUT' || !session) {
         clearSession();
         router.replace('/(auth)/login');
+        return;
       }
+      // TOKEN_REFRESHED / USER_UPDATED: keep store in sync, no navigation.
+      setSession(session.access_token, session.user.id, session.user.email ?? '');
     });
 
     return () => listener.subscription.unsubscribe();
-  }, []);
+  }, [setSession, clearSession]);
 
   if (!loaded) return null;
 

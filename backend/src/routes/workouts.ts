@@ -153,6 +153,13 @@ workoutsRouter.patch('/sessions/:id', zValidator('json', finishSchema), async (c
   const { caloriesBurned, sets } = c.req.valid('json');
   const endedAt = new Date().toISOString();
 
+  const [session] = await db
+    .select()
+    .from(workoutSessions)
+    .where(and(eq(workoutSessions.id, id), eq(workoutSessions.userId, user.id)));
+
+  if (!session) return c.json({ error: 'Session not found' }, 404);
+
   await db
     .update(workoutSessions)
     .set({ endedAt, caloriesBurned })

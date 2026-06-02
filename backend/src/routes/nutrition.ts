@@ -35,11 +35,13 @@ nutritionRouter.post('/log', zValidator('json', logSchema), async (c) => {
   const user = c.get('user');
   const body = c.req.valid('json');
 
-  const today = new Date();
-  const minDate = new Date(today);
-  minDate.setDate(today.getDate() - 30);
-  const parsed = new Date(body.date);
-  if (parsed > today || parsed < minDate) {
+  // Compare YYYY-MM-DD strings to avoid timezone parsing quirks
+  // (new Date('2026-06-02') is UTC midnight; new Date() is local now).
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const minDateObj = new Date();
+  minDateObj.setUTCDate(minDateObj.getUTCDate() - 30);
+  const minStr = minDateObj.toISOString().slice(0, 10);
+  if (body.date > todayStr || body.date < minStr) {
     return c.json({ error: 'Invalid date. Must be within the last 30 days.' }, 400);
   }
 

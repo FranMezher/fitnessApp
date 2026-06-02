@@ -48,7 +48,14 @@ const STRIP_DAYS = 60;
 
 // ─── Date helpers ─────────────────────────────────────────────────────────────
 
-function toDateStr(d: Date): string { return d.toISOString().slice(0, 10); }
+function toDateStr(d: Date): string {
+  // Local-time YYYY-MM-DD. toISOString() uses UTC and would roll the date past
+  // midnight in negative timezones (e.g. UTC-3 at 21h local = next day UTC).
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
 function todayStr(): string { return toDateStr(new Date()); }
 
 function addDays(dateStr: string, n: number): string {
@@ -319,8 +326,13 @@ export default function NutritionScreen() {
     fatG:     profile?.targetFatG     ?? DAILY_GOALS.fatG,
   };
 
-  useEffect(() => { if (!profile) fetchProfile(); }, []);
-  useEffect(() => { fetchFoodLog(selectedDate); fetchWater(selectedDate); }, [selectedDate]);
+  useEffect(() => {
+    if (!profile) fetchProfile();
+  }, [profile, fetchProfile]);
+  useEffect(() => {
+    fetchFoodLog(selectedDate);
+    fetchWater(selectedDate);
+  }, [selectedDate, fetchFoodLog, fetchWater]);
 
   const handleSelectDate = useCallback((d: string) => {
     if (d <= today) setSelectedDate(d);

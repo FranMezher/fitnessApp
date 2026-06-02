@@ -49,6 +49,11 @@ export const useNutritionStore = create<NutritionState>((set) => ({
           [date]: { calories, mealsCount: mealTypes.size },
         },
       }));
+    } catch (err) {
+      // Network or server error: keep last-known foodLog in place so the UI
+      // doesn't crash. Swallow here — the consumer can still recover by
+      // re-fetching on focus/retry.
+      console.warn('[useNutritionStore] fetchFoodLog failed:', err);
     } finally {
       // Only clear loading when the latest request finishes; stale requests leave
       // loading=true so the in-flight latest request can clear it when it resolves.

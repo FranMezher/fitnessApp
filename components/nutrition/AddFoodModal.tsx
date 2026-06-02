@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   View, Text, Modal, TouchableOpacity, TextInput, ScrollView,
   StyleSheet, ActivityIndicator, Alert, KeyboardAvoidingView, Platform,
@@ -45,6 +45,9 @@ export function AddFoodModal({ visible, mealType, date, onClose, onAdded }: Prop
 
   const { addFood } = useNutritionStore();
   const { token } = useAuthStore();
+
+  const mountedRef = useRef(true);
+  useEffect(() => () => { mountedRef.current = false; }, []);
 
   function resetModal() {
     setMode('pick');
@@ -111,9 +114,10 @@ export function AddFoodModal({ visible, mealType, date, onClose, onAdded }: Prop
   async function confirmAll() {
     if (!token || preview.length === 0) return;
     setConfirming(true);
-    try {
-      for (const food of preview) {
-        await addFood({
+
+    const results = await Promise.allSettled(
+      preview.map((food) =>
+        addFood({
           date,
           mealType,
           foodName: food.foodName,
@@ -121,14 +125,30 @@ export function AddFoodModal({ visible, mealType, date, onClose, onAdded }: Prop
           proteinG: food.proteinG,
           carbsG: food.carbsG,
           fatG: food.fatG,
-        });
-      }
+        }),
+      ),
+    );
+
+    if (!mountedRef.current) return;
+
+    const failed = results.filter((r) => r.status === 'rejected').length;
+    const saved = results.length - failed;
+
+    setConfirming(false);
+
+    if (failed === 0) {
       resetModal();
       onAdded();
-    } catch {
+    } else if (saved === 0) {
       Alert.alert('Error', 'No se pudieron guardar los alimentos.');
-    } finally {
-      setConfirming(false);
+    } else {
+      Alert.alert(
+        'Guardado parcial',
+        `Se guardaron ${saved} de ${results.length} alimentos. Revisá los que faltan.`,
+      );
+      // Drop the ones that already saved so a retry doesn't duplicate them.
+      setPreview((prev) => prev.filter((_, i) => results[i]?.status === 'rejected'));
+      onAdded();
     }
   }
 

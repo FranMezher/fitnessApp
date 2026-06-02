@@ -16,10 +16,13 @@ async function request<T>(
   isRetry = false,
 ): Promise<T> {
   const { token, ...init } = options;
+  // Order matters: caller-provided headers first so Authorization (and the
+  // 401-refresh retry) always wins. Body must be a string/null — never a
+  // consumed stream — so the same request can be replayed on 401 retry.
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...(init.headers as Record<string, string>),
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
 
   const controller = new AbortController();

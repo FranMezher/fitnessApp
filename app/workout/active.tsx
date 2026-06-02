@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, TextInput } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, TextInput, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -43,7 +43,12 @@ export default function WorkoutActiveScreen() {
   const planId = params.planId;
   const planName = params.planName ?? 'Entrenamiento';
   const exercises: ExerciseItem[] = (() => {
-    try { return JSON.parse(params.exercisesJson ?? '[]'); } catch { return []; }
+    try {
+      return JSON.parse(params.exercisesJson ?? '[]');
+    } catch (err) {
+      console.warn('[active] failed to parse exercisesJson:', err);
+      return [];
+    }
   })();
 
   const [currentExIdx, setCurrentExIdx] = useState(0);
@@ -59,6 +64,11 @@ export default function WorkoutActiveScreen() {
   const sessionIdRef = useRef<string | null>(null);
   const finishedRef = useRef(false);
   const elapsedRef = useRef(0);
+  const loggedSetsRef = useRef<LoggedSet[]>([]);
+
+  useEffect(() => {
+    loggedSetsRef.current = loggedSets;
+  }, [loggedSets]);
 
   useEffect(() => {
     const interval = setInterval(() => setElapsed((s) => {
@@ -82,11 +92,30 @@ export default function WorkoutActiveScreen() {
     }).catch((err) => console.warn('[active] startSession error:', err?.message));
 
     return () => {
-      if (sessionIdRef.current && !finishedRef.current && token) {
+      // Only finalize the session on unmount if the user actually logged something.
+      // Otherwise the session would be marked complete with 0 sets, inflating the
+      // streak and session count. Orphan started sessions (no sets, no endedAt)
+      // can be cleaned up server-side later.
+      if (
+        sessionIdRef.current &&
+        !finishedRef.current &&
+        token &&
+        loggedSetsRef.current.length > 0
+      ) {
         finishedRef.current = true;
-        api.finishSession(token, sessionIdRef.current, {
+        const sessionId = sessionIdRef.current;
+        const sets = loggedSetsRef.current.map((s) => {
+          const ex = exercises.find((e) => e.id === s.exerciseId);
+          return {
+            exerciseId: s.exerciseId,
+            repsCompleted: s.reps,
+            repsTarget: ex?.reps ?? 10,
+            seriesNum: s.setNum,
+          };
+        });
+        api.finishSession(token, sessionId, {
           caloriesBurned: Math.round((elapsedRef.current / 60) * CALORIES_PER_MIN),
-          sets: [],
+          sets,
         }).catch(() => {});
       }
     };
@@ -107,17 +136,36 @@ export default function WorkoutActiveScreen() {
     const durationMin = Math.max(1, Math.round(elapsedRef.current / 60));
     const cal = Math.round(durationMin * CALORIES_PER_MIN);
 
-    if (sessionIdRef.current && token) {
-      try {
-        await api.finishSession(token, sessionIdRef.current, {
-          caloriesBurned: cal,
-          sets: sets.map((s) => {
-            const ex = exercises.find((e) => e.id === s.exerciseId);
-            return { exerciseId: s.exerciseId, repsCompleted: s.reps, repsTarget: ex?.reps ?? 10, seriesNum: s.setNum };
-          }),
-        });
-      } catch (err) {
-        console.warn('[active] finishSession error:', err);
+    if (token) {
+      // If startSession failed earlier, try once more before finishing so we
+      // don't silently lose all the user's logged sets.
+      if (!sessionIdRef.current) {
+        try {
+          const { id } = await api.startSession(token, planId);
+          sessionIdRef.current = id;
+        } catch (err) {
+          console.warn('[active] retry startSession failed:', err);
+          if (sets.length > 0) {
+            Alert.alert(
+              'Sin conexión',
+              'No pudimos guardar este entrenamiento. Revisá tu conexión e intentá de nuevo.',
+            );
+          }
+        }
+      }
+
+      if (sessionIdRef.current) {
+        try {
+          await api.finishSession(token, sessionIdRef.current, {
+            caloriesBurned: cal,
+            sets: sets.map((s) => {
+              const ex = exercises.find((e) => e.id === s.exerciseId);
+              return { exerciseId: s.exerciseId, repsCompleted: s.reps, repsTarget: ex?.reps ?? 10, seriesNum: s.setNum };
+            }),
+          });
+        } catch (err) {
+          console.warn('[active] finishSession error:', err);
+        }
       }
     }
 

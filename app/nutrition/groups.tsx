@@ -20,7 +20,13 @@ const MEAL_ICONS: Record<string, string> = {
   dinner:    'moon-outline',
 };
 
-const TODAY = new Date().toISOString().slice(0, 10);
+function todayStr(): string {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
 
 type ModalMode = 'create' | 'join' | null;
 
@@ -58,7 +64,7 @@ export default function GroupsScreen() {
     if (!token) return;
     setFeedLoading(true);
     try {
-      const { feed } = await api.getGroupFeed(token, groupId, TODAY);
+      const { feed } = await api.getGroupFeed(token, groupId, todayStr());
       setFeed(feed);
     } catch {
       setFeed([]);

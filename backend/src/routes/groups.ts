@@ -47,7 +47,7 @@ groupsRouter.post(
 // POST /groups/join — join a group by invite code
 groupsRouter.post(
   '/join',
-  zValidator('json', z.object({ code: z.string().length(6) })),
+  zValidator('json', z.object({ code: z.string().length(8) })),
   async (c) => {
     const user = c.get('user');
     const { code } = c.req.valid('json');

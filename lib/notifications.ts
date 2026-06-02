@@ -61,7 +61,12 @@ export async function ensureAndroidChannel(): Promise<void> {
 // ── Permissions ──────────────────────────────────────────────────────────────
 export async function requestPermissions(): Promise<boolean> {
   // Push/notifications are not available on simulators/emulators.
-  if (!Device.isDevice) return false;
+  if (!Device.isDevice) {
+    if (__DEV__) {
+      console.warn('[notifications] running on simulator/emulator — push & scheduled notifs disabled');
+    }
+    return false;
+  }
 
   const { status: existing } = await Notifications.getPermissionsAsync();
   let status = existing;

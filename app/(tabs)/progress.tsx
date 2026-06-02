@@ -65,7 +65,14 @@ export default function ProgressScreen() {
     if (!token) { setLoading(false); return; }
     if (!profile) fetchProfile();
     setLoading(true);
-    Promise.all([fetchStreak(), fetchSessions(), loadMetrics()]).finally(() => setLoading(false));
+    // Wrap each promise so a single failure (e.g. /streak 500) doesn't reject
+    // the whole Promise.all and leave the screen empty with no signal in logs.
+    Promise.all([
+      fetchStreak().catch((err) => console.warn('[progress] fetchStreak failed:', err)),
+      fetchSessions().catch((err) => console.warn('[progress] fetchSessions failed:', err)),
+      loadMetrics().catch((err) => console.warn('[progress] loadMetrics failed:', err)),
+    ]).finally(() => setLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   // newest first → latest is metrics[0]
